@@ -71,7 +71,7 @@ blendComposer.addPass(film);
 
 var vignette = new THREE.ShaderPass(THREE.VignetteShader);
 vignette.uniforms['darkness'].value = 1;
-vignette.uniforms['offset'].value = 1.3;
+vignette.uniforms['offset'].value = 1.1;
 vignette.renderToScreen = true;
 blendComposer.addPass(vignette);
 
