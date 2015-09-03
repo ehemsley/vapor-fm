@@ -20,19 +20,22 @@
     <script src="js/lib/shaders/VerticalBlurShader.js"></script>
     <script src="js/lib/shaders/AdditiveBlendShader.js"></script>
     <script src="js/lib/shaders/BadTVShader.js"></script>
-		<script src="js/scene.js"></script>
 
     <audio autoplay id="stream" src="http://vapor.fm:8000/stream"></audio>
     <!-- <div class="speaker&#45;high">&#38;#128266;</div> -->
     <!-- <div class="speaker&#45;low">&#38;#128265;</div> -->
     <!-- <div class="speaker&#45;none">&#38;#128264;</div> -->
     <!-- <div class="speaker&#45;mute">&#38;#128263;</div> -->
+
+    <div id="visualizer"></div>
+
     <div class="controls">
       <input type="range" id="volume-bar" min="0" max="1" step="0.01" value="1">
       <div class="play-button">&#9654;</div>
       <div class="stop-button">&#9632;</div>
     </div>
 
+		<script src="js/scene.js"></script>
     <script src="js/controls.js"></script>
 	</body>
 </html>

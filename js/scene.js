@@ -1,12 +1,14 @@
+var visualizerElement = document.getElementById('visualizer');
+
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-scene.fog = new THREE.Fog( 0x11051b, 2000, 3000 );
+scene.fog = new THREE.Fog( 0x11051b, 10, 15 );
 
 var renderer = new THREE.WebGLRenderer();
 renderer.setClearColor(0x07020a);
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+visualizerElement.appendChild(renderer.domElement);
 
 var geometry = new THREE.BoxGeometry(3, 3, 3);
 var material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: false});
@@ -67,6 +69,22 @@ film.uniforms['nIntensity'].value = 0.4;
 film.uniforms['grayscale'].value = 0;
 film.renderToScreen = true;
 blendComposer.addPass(film);
+
+window.addEventListener('resize', onResize, false);
+
+function onResize(){
+
+  var renderW = window.innerWidth;
+  var renderH = window.innerHeight;
+
+  camera.aspect = renderW / renderH;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize( renderW,renderH);
+
+  renderer.domElement.width = renderW;
+  renderer.domElement.height = renderH;
+}
 
 var timer = 0;
 
