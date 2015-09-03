@@ -67,8 +67,13 @@ film.uniforms['sCount'].value = 800;
 film.uniforms['sIntensity'].value = 0.9;
 film.uniforms['nIntensity'].value = 0.4;
 film.uniforms['grayscale'].value = 0;
-film.renderToScreen = true;
 blendComposer.addPass(film);
+
+var vignette = new THREE.ShaderPass(THREE.VignetteShader);
+vignette.uniforms['darkness'].value = 1;
+vignette.uniforms['offset'].value = 1.3;
+vignette.renderToScreen = true;
+blendComposer.addPass(vignette);
 
 window.addEventListener('resize', onResize, false);
 
