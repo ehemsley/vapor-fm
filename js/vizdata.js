@@ -15,6 +15,7 @@ audioElement.addEventListener("canplay", function() {
 
   sampleRate = context.sampleRate;
   beatdetect = new FFT.BeatDetect(analyser.frequencyBinCount, sampleRate);
+  beatdetect.setSensitivity(1000);
 
   audioElement.play();
 });

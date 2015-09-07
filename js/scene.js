@@ -15,9 +15,26 @@ var material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: false});
 var cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
+var backgroundLineMaterial = new THREE.MeshBasicMaterial({color: 0x67c8ff, wireframe: true});
+
+var backgroundLineOneGeometry = new THREE.BoxGeometry(0.5, 1, 0.5);
+var backgroundLineOne = new THREE.Mesh(backgroundLineOneGeometry, backgroundLineMaterial);
+backgroundLineOne.position.z = -5;
+scene.add(backgroundLineOne);
+
+var backgroundLineTwoGeometry = new THREE.BoxGeometry(1, 0.5, 0.5);
+var backgroundLineTwo = new THREE.Mesh(backgroundLineTwoGeometry, backgroundLineMaterial);
+backgroundLineTwo.position.z = -5;
+scene.add(backgroundLineTwo);
+
+var backgroundLineThreeGeometry = new THREE.BoxGeometry(1, 1, 0.5);
+var backgroundLineThree = new THREE.Mesh(backgroundLineThreeGeometry, backgroundLineMaterial);
+backgroundLineThree.position.z = -5;
+scene.add(backgroundLineThree);
+
 camera.position.z = 5;
 
-var renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBufer: false };
+var renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: false };
 
 var renderTargetCube = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
 var cubeComposer = new THREE.EffectComposer(renderer, renderTargetCube);
@@ -98,16 +115,23 @@ var yRotationDirection = -1;
 function render() {
   requestAnimationFrame(render);
 
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-
   timer += 0.01;
 
-  rgbEffect.uniforms['amount'].value = Math.sin(timer) * 0.01;
+  rgbEffect.uniforms['amount'].value = Math.sin(timer * 2) * 0.01;
   badTV.uniforms['time'].value = timer;
 
   analyser.getByteFrequencyData(frequencyData);
   analyser.getFloatTimeDomainData(floats);
+
+  /*
+  cube.rotation.x += 0.01;
+  cube.rotation.y += 0.01;
+  */
+
+  var rotationAddition = getAverageVolume(frequencyData) / 2000;
+
+  cube.rotation.x += (0.01 + rotationAddition) * xRotationDirection;
+  cube.rotation.y += (0.01 + rotationAddition) * yRotationDirection;
 
   beatdetect.detect(floats);
 
@@ -117,10 +141,13 @@ function render() {
     cube.scale.y = scaleValue;
     cube.scale.z = scaleValue;
 
-    badTV.uniforms['distortion'].value = 3 * Math.random();
-    badTV.uniforms['distortion2'].value = 2 * Math.random();
-    badTV.uniforms['rollSpeed'].value = getAverageVolume(frequencyData) / 1000;
-    console.log(getAverageVolume(frequencyData) / 500);
+    badTV.uniforms['distortion'].value = 5 * Math.random();
+    badTV.uniforms['distortion2'].value = 5 * Math.random();
+    badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? -1 : 1) * getAverageVolume(frequencyData) / 5000;
+
+    xRotationDirection = Math.random() < 0.5 ? -1 : 1;
+    yRotationDirection = Math.random() < 0.5 ? -1 : 1;
+
   } else {
     cube.scale.x = Math.max(cube.scale.x - 0.001, 1);
     cube.scale.y = Math.max(cube.scale.y - 0.001, 1);
@@ -128,8 +155,18 @@ function render() {
 
     badTV.uniforms['distortion'].value = Math.max(badTV.uniforms['distortion'].value - 0.1, 1);
     badTV.uniforms['distortion2'].value = Math.max(badTV.uniforms['distortion2'].value - 0.1, 1);
-    badTV.uniforms['rollSpeed'].value = Math.max(badTV.uniforms['rollSpeed'].value - 0.001, 0);
+    if (badTV.uniforms['rollSpeed'].value > 0) {
+      badTV.uniforms['rollSpeed'].value = Math.max(badTV.uniforms['rollSpeed'].value - 0.001, 0);
+    } else {
+      badTV.uniforms['rollSpeed'].value = Math.min(badTV.uniforms['rollSpeed'].value + 0.001, 0);
+    }
   }
+
+  backgroundLineOne.scale.x = Math.sin(timer) * 15;
+  backgroundLineOne.scale.y = Math.sin(timer) * 15;
+
+  backgroundLineTwo.scale.x = Math.sin(timer * 0.25) * 30;
+  backgroundLineTwo.scale.y = Math.sin(timer * 0.25) * 30;
 
   cubeComposer.render(0.1);
   glowComposer.render(0.1);
