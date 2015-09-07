@@ -102,6 +102,8 @@ function render() {
   cubeComposer.render(0.1);
   glowComposer.render(0.1);
   blendComposer.render(0.1);
+
+  console.log(getAverageVolume(frequencyData));
 }
 
 render();
