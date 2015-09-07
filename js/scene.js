@@ -35,6 +35,11 @@ verticalBlur.uniforms['v'].value = 2.0 / window.innerHeight;
 
 glowComposer.addPass(renderPass);
 
+glowComposer.addPass(horizontalBlur);
+glowComposer.addPass(verticalBlur);
+glowComposer.addPass(horizontalBlur);
+glowComposer.addPass(verticalBlur);
+
 blendPass = new THREE.ShaderPass(THREE.AdditiveBlendShader);
 blendPass.uniforms['tBase'].value = cubeComposer.renderTarget1;
 blendPass.uniforms['tAdd'].value = glowComposer.renderTarget1;
@@ -44,11 +49,6 @@ blendComposer.addPass(blendPass);
 
 bloomPass = new THREE.BloomPass(3, 12, 2.0, 512);
 blendComposer.addPass(bloomPass);
-
-glowComposer.addPass(horizontalBlur);
-glowComposer.addPass(verticalBlur);
-glowComposer.addPass(horizontalBlur);
-glowComposer.addPass(verticalBlur);
 
 var badTV = new THREE.ShaderPass(THREE.BadTVShader);
 badTV.uniforms['distortion'].value = 1.0;
@@ -87,6 +87,8 @@ function onResize(){
 }
 
 var timer = 0;
+var xRotationDirection = 1;
+var yRotationDirection = -1;
 
 function render() {
   requestAnimationFrame(render);
@@ -99,11 +101,34 @@ function render() {
   rgbEffect.uniforms['amount'].value = Math.sin(timer) * 0.01;
   badTV.uniforms['time'].value = timer;
 
+  analyser.getByteFrequencyData(frequencyData);
+  analyser.getFloatTimeDomainData(floats);
+
+  beatdetect.detect(floats);
+
+  var scaleValue = 1.1;
+  if (beatdetect.isKick()) {
+    cube.scale.x = scaleValue;
+    cube.scale.y = scaleValue;
+    cube.scale.z = scaleValue;
+
+    badTV.uniforms['distortion'].value = 3 * Math.random();
+    badTV.uniforms['distortion2'].value = 2 * Math.random();
+    badTV.uniforms['rollSpeed'].value = getAverageVolume(frequencyData) / 1000;
+    console.log(getAverageVolume(frequencyData) / 500);
+  } else {
+    cube.scale.x = Math.max(cube.scale.x - 0.001, 1);
+    cube.scale.y = Math.max(cube.scale.y - 0.001, 1);
+    cube.scale.z = Math.max(cube.scale.z - 0.001, 1);
+
+    badTV.uniforms['distortion'].value = Math.max(badTV.uniforms['distortion'].value - 0.1, 1);
+    badTV.uniforms['distortion2'].value = Math.max(badTV.uniforms['distortion2'].value - 0.1, 1);
+    badTV.uniforms['rollSpeed'].value = Math.max(badTV.uniforms['rollSpeed'].value - 0.001, 0);
+  }
+
   cubeComposer.render(0.1);
   glowComposer.render(0.1);
   blendComposer.render(0.1);
-
-  console.log(getAverageVolume(frequencyData));
 }
 
 render();

@@ -9,7 +9,6 @@
   </head>
 	<body>
 		<script src="js/lib/three.min.js"></script>
-    <script src="js/lib/dancer.min.js"></script>
     <script src="js/lib/postprocessing/EffectComposer.js"></script>
     <script src="js/lib/postprocessing/RenderPass.js"></script>
     <script src="js/lib/postprocessing/MaskPass.js"></script>
@@ -25,7 +24,10 @@
     <script src="js/lib/shaders/AdditiveBlendShader.js"></script>
     <script src="js/lib/shaders/BadTVShader.js"></script>
 
-    <audio autoplay id="stream" src="http://vapor.fm:8000/stream"></audio>
+    <script type="text/javascript" src="js/lib/beatdetect/fft.js"></script>
+    <script type="text/javascript" src="js/lib/beatdetect/beatdetect.js"></script>
+
+    <audio id="stream" src="http://vapor.fm:8000/stream" crossorigin="anonymous"></audio>
 
     <div id="visualizer"></div>
 
