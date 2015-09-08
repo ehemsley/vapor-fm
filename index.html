@@ -8,6 +8,7 @@
     <meta name="google-site-verification" content="pwwXxc3XR5EkvTQ08dreLZ3xcv-RDrE1zXWgWaZwShc" />
   </head>
 	<body>
+    <script src="js/lib/jquery-2.1.4.min.js"></script>
 		<script src="js/lib/three.min.js"></script>
     <script src="js/lib/postprocessing/EffectComposer.js"></script>
     <script src="js/lib/postprocessing/RenderPass.js"></script>
@@ -32,6 +33,10 @@
 
     <div id="visualizer"></div>
 
+    <div id="nowplaying">
+      <div id="title"></div>
+    </div>
+
     <div class="controls">
       <i id="speaker-high" class="fa fa-volume-up"></i>
       <i id="speaker-low" class="fa fa-volume-down"></i>
@@ -41,6 +46,7 @@
       <i id="stop-button" class="fa fa-stop"></i>
     </div>
 
+    <script src="js/icecastdata.js"></script>
     <script src="js/vizdata.js"></script>
 		<script src="js/scene.js"></script>
     <script src="js/controls.js"></script>

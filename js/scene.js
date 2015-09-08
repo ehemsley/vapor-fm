@@ -123,11 +123,6 @@ function render() {
   analyser.getByteFrequencyData(frequencyData);
   analyser.getFloatTimeDomainData(floats);
 
-  /*
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-  */
-
   var rotationAddition = getAverageVolume(frequencyData) / 2000;
 
   cube.rotation.x += (0.01 + rotationAddition) * xRotationDirection;
@@ -143,7 +138,7 @@ function render() {
 
     badTV.uniforms['distortion'].value = 5 * Math.random();
     badTV.uniforms['distortion2'].value = 5 * Math.random();
-    badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? -1 : 1) * getAverageVolume(frequencyData) / 5000;
+    if (Math.random() < 0.05) badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? -1 : 1) * getAverageVolume(frequencyData) / 5000;
 
     xRotationDirection = Math.random() < 0.5 ? -1 : 1;
     yRotationDirection = Math.random() < 0.5 ? -1 : 1;
