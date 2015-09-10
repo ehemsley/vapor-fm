@@ -3,7 +3,7 @@ var visualizerElement = document.getElementById('visualizer');
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-scene.fog = new THREE.Fog( 0x11051b, 10, 15 );
+//scene.fog = new THREE.Fog( 0x11051b, 10, 15 );
 
 var renderer = new THREE.WebGLRenderer();
 renderer.setClearColor(0x07020a);
@@ -15,22 +15,21 @@ var material = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: false});
 var cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
-var backgroundLineMaterial = new THREE.MeshBasicMaterial({color: 0x67c8ff, wireframe: true});
+var lineMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
 
-var backgroundLineOneGeometry = new THREE.BoxGeometry(0.5, 1, 0.5);
-var backgroundLineOne = new THREE.Mesh(backgroundLineOneGeometry, backgroundLineMaterial);
-backgroundLineOne.position.z = -5;
-scene.add(backgroundLineOne);
+var lineBoxArray = [];
 
-var backgroundLineTwoGeometry = new THREE.BoxGeometry(1, 0.5, 0.5);
-var backgroundLineTwo = new THREE.Mesh(backgroundLineTwoGeometry, backgroundLineMaterial);
-backgroundLineTwo.position.z = -5;
-scene.add(backgroundLineTwo);
-
-var backgroundLineThreeGeometry = new THREE.BoxGeometry(1, 1, 0.5);
-var backgroundLineThree = new THREE.Mesh(backgroundLineThreeGeometry, backgroundLineMaterial);
-backgroundLineThree.position.z = -5;
-scene.add(backgroundLineThree);
+for (var i = 0; i < 20; i ++) {
+  var lineBoxGeometry = new THREE.Geometry();
+  lineBoxGeometry.vertices.push(new THREE.Vector3(-20, 10, -10));
+  lineBoxGeometry.vertices.push(new THREE.Vector3(20, 10, -10));
+  lineBoxGeometry.vertices.push(new THREE.Vector3(20, -10, -10));
+  lineBoxGeometry.vertices.push(new THREE.Vector3(-20, -10, -10));
+  lineBoxGeometry.vertices.push(new THREE.Vector3(-20, 10, -10));
+  var lineBox = new THREE.Line(lineBoxGeometry, lineMaterial);
+  lineBoxArray[i] = lineBox;
+  scene.add(lineBox);
+}
 
 camera.position.z = 5;
 
@@ -157,11 +156,10 @@ function render() {
     }
   }
 
-  backgroundLineOne.scale.x = Math.sin(timer) * 15;
-  backgroundLineOne.scale.y = Math.sin(timer) * 15;
-
-  backgroundLineTwo.scale.x = Math.sin(timer * 0.25) * 30;
-  backgroundLineTwo.scale.y = Math.sin(timer * 0.25) * 30;
+  for (var i = 0; i < lineBoxArray.length; i++) {
+    lineBoxArray[i].scale.x = ((timer + (i * 0.5)) * 0.2) % 1.5;
+    lineBoxArray[i].scale.y = ((timer + (i * 0.5)) * 0.2) % 1.5;
+  }
 
   cubeComposer.render(0.1);
   glowComposer.render(0.1);
