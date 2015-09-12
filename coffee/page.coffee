@@ -2,7 +2,7 @@ class @Page
   constructor: ->
     @audioInitializer = new AudioInitializer()
 
-    @visualizer = new Visualizer(@audioInitializer)
+    @visualizer = new HeartVisualizer(@audioInitializer)
     window.addEventListener('resize', @visualizer.OnResize, false)
     @visualizer.Render()
 

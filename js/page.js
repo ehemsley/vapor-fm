@@ -8,7 +8,7 @@
       this.HideAllSpeakers = bind(this.HideAllSpeakers, this);
       var playButton, previousVolume, stopButton;
       this.audioInitializer = new AudioInitializer();
-      this.visualizer = new Visualizer(this.audioInitializer);
+      this.visualizer = new HeartVisualizer(this.audioInitializer);
       window.addEventListener('resize', this.visualizer.OnResize, false);
       this.visualizer.Render();
       playButton = document.getElementById('play-button');
