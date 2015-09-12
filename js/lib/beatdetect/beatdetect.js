@@ -147,10 +147,10 @@ FFT.BeatDetect = function(timeSize, sampleRate)
 		fIsOnset = new Array(numAvg);
 
 		feBuffer = new Array(numAvg);
-		for(var i = 0; i < feBuffer.length; i++) feBuffer[i] = new Float32Array(sampleRate / timeSize);
+		for(var i = 0; i < feBuffer.length; i++) feBuffer[i] = new Float32Array(Math.ceil(sampleRate / timeSize));
 		
 		fdBuffer = new Array(numAvg);
-		for(i = 0; i < fdBuffer.length; i++) fdBuffer[i] = new Float32Array(sampleRate / timeSize);
+		for(i = 0; i < fdBuffer.length; i++) fdBuffer[i] = new Float32Array(Math.ceil(sampleRate / timeSize));
 		
 		fTimer = new Array(numAvg);
 		var start = Date.now();;
