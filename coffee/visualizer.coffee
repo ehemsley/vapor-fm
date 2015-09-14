@@ -19,6 +19,8 @@ class @Visualizer
       @scene.add(@lineBoxes[i])
       i++
 
+    @beatDistortionEffect = true
+
     @camera.position.z = 5
     return
 
@@ -47,18 +49,10 @@ class @Visualizer
   Update: =>
     @timer += 0.01
 
-    #@rgbEffect.uniforms['amount'].value = Math.sin(@timer * 2) * 0.01
-    #@badTV.uniforms['time'].value = @timer
-
-    @audioInitializer.analyser.getByteFrequencyData(@audioInitializer.frequencyData)
-    @audioInitializer.analyser.getFloatTimeDomainData(@audioInitializer.floats)
-
     rotationAddition = @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 2000
 
     @cube.rotation.x += (0.01 + rotationAddition) * @xRotationDirection
     @cube.rotation.y += (0.01 + rotationAddition) * @yRotationDirection
-
-    @audioInitializer.beatdetect.detect(@audioInitializer.floats)
 
     scaleValue = 1.1
 
@@ -67,24 +61,12 @@ class @Visualizer
       @cube.scale.y = scaleValue
       @cube.scale.z = scaleValue
 
-      # @badTV.uniforms['distortion'].value = 5 * Math.random()
-      # @badTV.uniforms['distortion2'].value = 5 * Math.random()
-      # if Math.random() < 0.05
-        # @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then -1 else 1) * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
-
       @xRotationDirection = if Math.random() < 0.5 then -1 else 1
       @yRotationDirection = if Math.random() < 0.5 then -1 else 1
     else
       @cube.scale.x = Math.max(@cube.scale.x - 0.001, 1)
       @cube.scale.y = Math.max(@cube.scale.y - 0.001, 1)
       @cube.scale.z = Math.max(@cube.scale.z - 0.001, 1)
-
-      # @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 1)
-      # @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 1)
-      # if @badTV.uniforms['rollSpeed'].value > 0
-      #   @badTV.uniforms['rollSpeed'].value = Math.max(@badTV.uniforms['rollSpeed'].value - 0.001, 0)
-      # else
-      #   @badTV.uniforms['rollSpeed'].value = Math.min(@badTV.uniforms['rollSpeed'].value + 0.001, 0)
 
     i = 0
     while i < @lineBoxes.length

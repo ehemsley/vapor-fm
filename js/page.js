@@ -6,10 +6,9 @@
     function Page() {
       this.UpdateVolume = bind(this.UpdateVolume, this);
       this.HideAllSpeakers = bind(this.HideAllSpeakers, this);
-      var playButton, previousVolume, stopButton, visualizers;
+      var playButton, previousVolume, stopButton;
       this.audioInitializer = new AudioInitializer();
-      visualizers = [new Visualizer(this.audioInitializer), new HeartVisualizer(this.audioInitializer)];
-      this.renderController = new RenderController(visualizers);
+      this.renderController = new RenderController(this.audioInitializer);
       window.addEventListener('resize', this.renderController.OnResize, false);
       this.renderController.Render();
       setInterval(this.renderController.FadeToNext, 60000);

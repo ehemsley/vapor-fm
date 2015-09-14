@@ -15,6 +15,7 @@
       this.pointLight.position.set(10, 20, 20);
       this.scene.add(this.pointLight);
       this.Hearts(80);
+      this.beatDistortionEffect = false;
       this.camera.position.z = 20;
       return;
     }
@@ -101,9 +102,6 @@
     HeartVisualizer.prototype.Update = function() {
       var heartObject, j, k, len, len1, randomHeart, ref, ref1;
       this.timer += 0.01;
-      this.audioInitializer.analyser.getByteFrequencyData(this.audioInitializer.frequencyData);
-      this.audioInitializer.analyser.getFloatTimeDomainData(this.audioInitializer.floats);
-      this.audioInitializer.beatdetect.detect(this.audioInitializer.floats);
       if (this.heart != null) {
         this.heart.rotation.y = this.timer;
       }

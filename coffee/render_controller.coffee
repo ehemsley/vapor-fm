@@ -1,13 +1,16 @@
 class @RenderController
-  constructor: (visualizers) ->
+  constructor: (audioInitializer) ->
     @visualizerElement = $('#visualizer')
+    @audioInitializer = audioInitializer
+
+    @timer = 0
 
     @renderer = new THREE.WebGLRenderer
     @renderer.setClearColor(0x07020a)
     @renderer.setSize(window.innerWidth, window.innerHeight)
     @visualizerElement.append(@renderer.domElement)
 
-    @visualizers = visualizers
+    @visualizers = [new Visualizer(@audioInitializer), new HeartVisualizer(@audioInitializer)]
     @visualizerCounter = 1
     @activeVisualizer = @visualizers[@visualizerCounter]
 
@@ -19,6 +22,7 @@ class @RenderController
 
   FadeToNext: =>
     @fadingOut = true
+    return
 
   FadeOut: =>
     if @fadeValue == 1.0
@@ -28,6 +32,7 @@ class @RenderController
     else
       @fadeValue = Math.min(@fadeValue + 0.01, 1.0)
     @fade.uniforms['fade'].value = @fadeValue
+    return
 
   FadeIn: =>
     if @fadeValue == 0.0
@@ -35,12 +40,14 @@ class @RenderController
     else
       @fadeValue = Math.max(@fadeValue - 0.01, 0.0)
     @fade.uniforms['fade'].value = @fadeValue
+    return
 
   NextVisualizer: =>
     @visualizerCounter = (@visualizerCounter + 1) % @visualizers.length
     @activeVisualizer = @visualizers[@visualizerCounter]
 
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
+    return
 
   RenderProcess: (scene, camera) =>
     renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: false };
@@ -94,7 +101,7 @@ class @RenderController
     @blendComposer.addPass film
 
     vignette = new (THREE.ShaderPass)(THREE.VignetteShader)
-    vignette.uniforms['darkness'].value = 1
+    vignette.uniforms['darkness'].value = 0.9
     vignette.uniforms['offset'].value = 1.1
     @blendComposer.addPass vignette
 
@@ -107,9 +114,13 @@ class @RenderController
   Render: =>
     requestAnimationFrame(@Render)
 
+    @timer += 0.01
+
     @FadeOut() if @fadingOut
     @FadeIn() if @fadingIn
 
+    @UpdateAudioAnalyzer()
+    @UpdateEffects()
     @activeVisualizer.Update()
 
     @cubeComposer.render(0.1)
@@ -129,4 +140,31 @@ class @RenderController
     @renderer.setSize renderW, renderH
     @renderer.domElement.width = renderW
     @renderer.domElement.height = renderH
+    return
+
+  UpdateAudioAnalyzer: =>
+    @audioInitializer.analyser.getByteFrequencyData(@audioInitializer.frequencyData)
+    @audioInitializer.analyser.getFloatTimeDomainData(@audioInitializer.floats)
+
+    @audioInitializer.beatdetect.detect(@audioInitializer.floats)
+    return
+
+  UpdateEffects: =>
+    @rgbEffect.uniforms['amount'].value = Math.sin(@timer * 2) * 0.01
+    @badTV.uniforms['time'].value = @timer
+
+    if @activeVisualizer.beatDistortionEffect
+      if @audioInitializer.beatdetect.isKick()
+        @badTV.uniforms['distortion'].value = 5 * Math.random()
+        @badTV.uniforms['distortion2'].value = 5 * Math.random()
+        if Math.random() < 0.05
+          @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then -1 else 1) * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
+      else
+        @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 1)
+        @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 1)
+        if @badTV.uniforms['rollSpeed'].value > 0
+          @badTV.uniforms['rollSpeed'].value = Math.max(@badTV.uniforms['rollSpeed'].value - 0.001, 0)
+        else
+          @badTV.uniforms['rollSpeed'].value = Math.min(@badTV.uniforms['rollSpeed'].value + 0.001, 0)
+
     return

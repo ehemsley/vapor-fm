@@ -1,9 +1,8 @@
 class @Page
   constructor: ->
     @audioInitializer = new AudioInitializer()
-    visualizers = [new Visualizer(@audioInitializer), new HeartVisualizer(@audioInitializer)]
 
-    @renderController = new RenderController(visualizers)
+    @renderController = new RenderController(@audioInitializer)
     window.addEventListener('resize', @renderController.OnResize, false)
     @renderController.Render()
 

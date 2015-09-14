@@ -3,7 +3,9 @@
   var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   this.RenderController = (function() {
-    function RenderController(visualizers) {
+    function RenderController(audioInitializer) {
+      this.UpdateEffects = bind(this.UpdateEffects, this);
+      this.UpdateAudioAnalyzer = bind(this.UpdateAudioAnalyzer, this);
       this.OnResize = bind(this.OnResize, this);
       this.Render = bind(this.Render, this);
       this.RenderProcess = bind(this.RenderProcess, this);
@@ -12,11 +14,13 @@
       this.FadeOut = bind(this.FadeOut, this);
       this.FadeToNext = bind(this.FadeToNext, this);
       this.visualizerElement = $('#visualizer');
+      this.audioInitializer = audioInitializer;
+      this.timer = 0;
       this.renderer = new THREE.WebGLRenderer;
       this.renderer.setClearColor(0x07020a);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.visualizerElement.append(this.renderer.domElement);
-      this.visualizers = visualizers;
+      this.visualizers = [new Visualizer(this.audioInitializer), new HeartVisualizer(this.audioInitializer)];
       this.visualizerCounter = 1;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       this.fadingIn = false;
@@ -26,7 +30,7 @@
     }
 
     RenderController.prototype.FadeToNext = function() {
-      return this.fadingOut = true;
+      this.fadingOut = true;
     };
 
     RenderController.prototype.FadeOut = function() {
@@ -37,7 +41,7 @@
       } else {
         this.fadeValue = Math.min(this.fadeValue + 0.01, 1.0);
       }
-      return this.fade.uniforms['fade'].value = this.fadeValue;
+      this.fade.uniforms['fade'].value = this.fadeValue;
     };
 
     RenderController.prototype.FadeIn = function() {
@@ -46,13 +50,13 @@
       } else {
         this.fadeValue = Math.max(this.fadeValue - 0.01, 0.0);
       }
-      return this.fade.uniforms['fade'].value = this.fadeValue;
+      this.fade.uniforms['fade'].value = this.fadeValue;
     };
 
     RenderController.prototype.NextVisualizer = function() {
       this.visualizerCounter = (this.visualizerCounter + 1) % this.visualizers.length;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
-      return this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
+      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
     };
 
     RenderController.prototype.RenderProcess = function(scene, camera) {
@@ -103,7 +107,7 @@
       film.uniforms['grayscale'].value = 0;
       this.blendComposer.addPass(film);
       vignette = new THREE.ShaderPass(THREE.VignetteShader);
-      vignette.uniforms['darkness'].value = 1;
+      vignette.uniforms['darkness'].value = 0.9;
       vignette.uniforms['offset'].value = 1.1;
       this.blendComposer.addPass(vignette);
       this.fade = new THREE.ShaderPass(THREE.FadeToBlackShader);
@@ -114,12 +118,15 @@
 
     RenderController.prototype.Render = function() {
       requestAnimationFrame(this.Render);
+      this.timer += 0.01;
       if (this.fadingOut) {
         this.FadeOut();
       }
       if (this.fadingIn) {
         this.FadeIn();
       }
+      this.UpdateAudioAnalyzer();
+      this.UpdateEffects();
       this.activeVisualizer.Update();
       this.cubeComposer.render(0.1);
       this.glowComposer.render(0.1);
@@ -139,6 +146,34 @@
       this.renderer.setSize(renderW, renderH);
       this.renderer.domElement.width = renderW;
       this.renderer.domElement.height = renderH;
+    };
+
+    RenderController.prototype.UpdateAudioAnalyzer = function() {
+      this.audioInitializer.analyser.getByteFrequencyData(this.audioInitializer.frequencyData);
+      this.audioInitializer.analyser.getFloatTimeDomainData(this.audioInitializer.floats);
+      this.audioInitializer.beatdetect.detect(this.audioInitializer.floats);
+    };
+
+    RenderController.prototype.UpdateEffects = function() {
+      this.rgbEffect.uniforms['amount'].value = Math.sin(this.timer * 2) * 0.01;
+      this.badTV.uniforms['time'].value = this.timer;
+      if (this.activeVisualizer.beatDistortionEffect) {
+        if (this.audioInitializer.beatdetect.isKick()) {
+          this.badTV.uniforms['distortion'].value = 5 * Math.random();
+          this.badTV.uniforms['distortion2'].value = 5 * Math.random();
+          if (Math.random() < 0.05) {
+            this.badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? -1 : 1) * this.audioInitializer.GetAverageVolume(this.audioInitializer.frequencyData) / 5000;
+          }
+        } else {
+          this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 1);
+          this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 1);
+          if (this.badTV.uniforms['rollSpeed'].value > 0) {
+            this.badTV.uniforms['rollSpeed'].value = Math.max(this.badTV.uniforms['rollSpeed'].value - 0.001, 0);
+          } else {
+            this.badTV.uniforms['rollSpeed'].value = Math.min(this.badTV.uniforms['rollSpeed'].value + 0.001, 0);
+          }
+        }
+      }
     };
 
     return RenderController;

@@ -20,6 +20,7 @@
         this.scene.add(this.lineBoxes[i]);
         i++;
       }
+      this.beatDistortionEffect = true;
       this.camera.position.z = 5;
       return;
     }
@@ -59,12 +60,9 @@
     Visualizer.prototype.Update = function() {
       var i, rotationAddition, scaleValue;
       this.timer += 0.01;
-      this.audioInitializer.analyser.getByteFrequencyData(this.audioInitializer.frequencyData);
-      this.audioInitializer.analyser.getFloatTimeDomainData(this.audioInitializer.floats);
       rotationAddition = this.audioInitializer.GetAverageVolume(this.audioInitializer.frequencyData) / 2000;
       this.cube.rotation.x += (0.01 + rotationAddition) * this.xRotationDirection;
       this.cube.rotation.y += (0.01 + rotationAddition) * this.yRotationDirection;
-      this.audioInitializer.beatdetect.detect(this.audioInitializer.floats);
       scaleValue = 1.1;
       if (this.audioInitializer.beatdetect.isKick()) {
         this.cube.scale.x = scaleValue;

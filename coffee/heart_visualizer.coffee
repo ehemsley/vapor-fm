@@ -7,10 +7,6 @@ class @HeartVisualizer
     @scene = new THREE.Scene
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 
-    #@directionalLight = new THREE.DirectionalLight(0xffffff, 0.9)
-    #@directionalLight.position.set(0, 1, 1)
-    #@scene.add(@directionalLight)
-
     @ambientLight = new THREE.AmbientLight(0x404040)
     @scene.add(@ambientLight)
 
@@ -19,6 +15,8 @@ class @HeartVisualizer
     @scene.add(@pointLight)
 
     @Hearts(80)
+
+    @beatDistortionEffect = false
 
     @camera.position.z = 20
 
@@ -76,11 +74,6 @@ class @HeartVisualizer
 
   Update: =>
     @timer += 0.01
-
-    @audioInitializer.analyser.getByteFrequencyData(@audioInitializer.frequencyData)
-    @audioInitializer.analyser.getFloatTimeDomainData(@audioInitializer.floats)
-
-    @audioInitializer.beatdetect.detect(@audioInitializer.floats)
 
     @heart.rotation.y = @timer if @heart?
 
