@@ -157,10 +157,18 @@ class @HeartVisualizer
           heartObject.rotation.y += 0.01 + heartObject.userData.extraRotation
           heartObject.rotation.x += heartObject.userData.extraRotation
           heartObject.userData.extraRotation = Math.max(0, heartObject.userData.extraRotation - 0.01)
+          heartObject.scale.x = Math.max(heartObject.scale.x - 0.001, 0.25)
+          heartObject.scale.y = Math.max(heartObject.scale.y - 0.001, 0.25)
+          heartObject.scale.z = Math.max(heartObject.scale.z - 0.001, 0.25)
 
       if @audioInitializer.beatdetect.isKick()
         randomHeart = @hearts[@RandomInt(0, @hearts.length)]
         randomHeart.userData.extraRotation = 0.4 if randomHeart?
+
+      if @audioInitializer.beatdetect.isSnare()
+        for heartObject in @hearts
+          if heartObject?
+            heartObject.scale.set(0.3, 0.3, 0.3) if Math.random() < 0.33
 
     @camera.position.set(40 * Math.cos(@timer * 0.5), 0, 40 * Math.sin(@timer * 0.5))
     @camera.lookAt(@scene.position)
