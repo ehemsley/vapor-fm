@@ -6,11 +6,13 @@
     function Page() {
       this.UpdateVolume = bind(this.UpdateVolume, this);
       this.HideAllSpeakers = bind(this.HideAllSpeakers, this);
-      var playButton, previousVolume, stopButton;
+      var playButton, previousVolume, stopButton, visualizers;
       this.audioInitializer = new AudioInitializer();
-      this.visualizer = new HeartVisualizer(this.audioInitializer);
-      window.addEventListener('resize', this.visualizer.OnResize, false);
-      this.visualizer.Render();
+      visualizers = [new Visualizer(this.audioInitializer), new HeartVisualizer(this.audioInitializer)];
+      this.renderController = new RenderController(visualizers);
+      window.addEventListener('resize', this.renderController.OnResize, false);
+      this.renderController.Render();
+      setInterval(this.renderController.FadeToNext, 60000);
       playButton = document.getElementById('play-button');
       stopButton = document.getElementById('stop-button');
       playButton.style.visibility = "hidden";

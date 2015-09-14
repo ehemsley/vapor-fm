@@ -4,11 +4,8 @@
 
   this.HeartVisualizer = (function() {
     function HeartVisualizer(audioInitializer) {
-      this.OnResize = bind(this.OnResize, this);
-      this.Render = bind(this.Render, this);
-      this.RenderProcess = bind(this.RenderProcess, this);
+      this.Update = bind(this.Update, this);
       this.audioInitializer = audioInitializer;
-      this.visualizerElement = $('#visualizer');
       this.timer = 0;
       this.scene = new THREE.Scene;
       this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -17,13 +14,8 @@
       this.pointLight = new THREE.PointLight(0xffffff, 1, 100);
       this.pointLight.position.set(10, 20, 20);
       this.scene.add(this.pointLight);
-      this.renderer = new THREE.WebGLRenderer;
-      this.renderer.setClearColor(0x07020a);
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.visualizerElement.append(this.renderer.domElement);
       this.Hearts(80);
       this.camera.position.z = 20;
-      this.RenderProcess();
       return;
     }
 
@@ -106,63 +98,8 @@
       return results;
     };
 
-    HeartVisualizer.prototype.RenderProcess = function() {
-      var bloomPass, film, horizontalBlur, renderPass, renderTargetCube, renderTargetGlow, renderTargetParameters, verticalBlur, vignette;
-      renderTargetParameters = {
-        minFilter: THREE.LinearFilter,
-        magFilter: THREE.LinearFilter,
-        format: THREE.RGBFormat,
-        stencilBuffer: false
-      };
-      renderTargetCube = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
-      this.cubeComposer = new THREE.EffectComposer(this.renderer, renderTargetCube);
-      renderPass = new THREE.RenderPass(this.scene, this.camera);
-      this.cubeComposer.addPass(renderPass);
-      renderTargetGlow = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
-      this.glowComposer = new THREE.EffectComposer(this.renderer, renderTargetGlow);
-      horizontalBlur = new THREE.ShaderPass(THREE.HorizontalBlurShader);
-      horizontalBlur.uniforms['h'].value = 1.0 / window.innerWidth;
-      verticalBlur = new THREE.ShaderPass(THREE.VerticalBlurShader);
-      verticalBlur.uniforms['v'].value = 1.0 / window.innerHeight;
-      this.glowComposer.addPass(renderPass);
-      this.glowComposer.addPass(horizontalBlur);
-      this.glowComposer.addPass(verticalBlur);
-      this.glowComposer.addPass(horizontalBlur);
-      this.glowComposer.addPass(verticalBlur);
-      this.blendPass = new THREE.ShaderPass(THREE.AdditiveBlendShader);
-      this.blendPass.uniforms['tBase'].value = this.cubeComposer.renderTarget1;
-      this.blendPass.uniforms['tAdd'].value = this.glowComposer.renderTarget1;
-      this.blendPass.uniforms['amount'].value = 2.0;
-      this.blendComposer = new THREE.EffectComposer(this.renderer);
-      this.blendComposer.addPass(this.blendPass);
-      bloomPass = new THREE.BloomPass(3, 12, 2.0, 512);
-      this.blendComposer.addPass(bloomPass);
-      this.badTV = new THREE.ShaderPass(THREE.BadTVShader);
-      this.badTV.uniforms['distortion'].value = 1.0;
-      this.badTV.uniforms['distortion2'].value = 1.0;
-      this.badTV.uniforms['speed'].value = 0.1;
-      this.badTV.uniforms['rollSpeed'].value = 0.0;
-      this.blendComposer.addPass(this.badTV);
-      this.rgbEffect = new THREE.ShaderPass(THREE.RGBShiftShader);
-      this.rgbEffect.uniforms['amount'].value = 0.0015;
-      this.rgbEffect.uniforms['angle'].value = 0;
-      this.blendComposer.addPass(this.rgbEffect);
-      film = new THREE.ShaderPass(THREE.FilmShader);
-      film.uniforms['sCount'].value = 800;
-      film.uniforms['sIntensity'].value = 0.9;
-      film.uniforms['nIntensity'].value = 0.4;
-      film.uniforms['grayscale'].value = 0;
-      this.blendComposer.addPass(film);
-      vignette = new THREE.ShaderPass(THREE.VignetteShader);
-      vignette.uniforms['darkness'].value = 1;
-      vignette.uniforms['offset'].value = 1.1;
-      vignette.renderToScreen = true;
-      this.blendComposer.addPass(vignette);
-    };
-
-    HeartVisualizer.prototype.Render = function() {
+    HeartVisualizer.prototype.Update = function() {
       var heartObject, j, k, len, len1, randomHeart, ref, ref1;
-      requestAnimationFrame(this.Render);
       this.timer += 0.01;
       this.audioInitializer.analyser.getByteFrequencyData(this.audioInitializer.frequencyData);
       this.audioInitializer.analyser.getFloatTimeDomainData(this.audioInitializer.floats);
@@ -203,20 +140,6 @@
       }
       this.camera.position.set(40 * Math.cos(this.timer * 0.5), 0, 40 * Math.sin(this.timer * 0.5));
       this.camera.lookAt(this.scene.position);
-      this.cubeComposer.render(0.1);
-      this.glowComposer.render(0.1);
-      this.blendComposer.render(0.1);
-    };
-
-    HeartVisualizer.prototype.OnResize = function() {
-      var renderH, renderW;
-      renderW = window.innerWidth;
-      renderH = window.innerHeight;
-      this.camera.aspect = renderW / renderH;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(renderW, renderH);
-      this.renderer.domElement.width = renderW;
-      this.renderer.domElement.height = renderH;
     };
 
     HeartVisualizer.prototype.RandomFloat = function(min, max) {

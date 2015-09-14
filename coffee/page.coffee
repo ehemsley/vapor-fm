@@ -1,10 +1,13 @@
 class @Page
   constructor: ->
     @audioInitializer = new AudioInitializer()
+    visualizers = [new Visualizer(@audioInitializer), new HeartVisualizer(@audioInitializer)]
 
-    @visualizer = new HeartVisualizer(@audioInitializer)
-    window.addEventListener('resize', @visualizer.OnResize, false)
-    @visualizer.Render()
+    @renderController = new RenderController(visualizers)
+    window.addEventListener('resize', @renderController.OnResize, false)
+    @renderController.Render()
+
+    setInterval(@renderController.FadeToNext, 60000)
 
     playButton = document.getElementById('play-button')
     stopButton = document.getElementById('stop-button')

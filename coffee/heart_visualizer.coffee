@@ -2,7 +2,6 @@ class @HeartVisualizer
   constructor: (audioInitializer) ->
     @audioInitializer = audioInitializer
 
-    @visualizerElement = $('#visualizer')
     @timer = 0
 
     @scene = new THREE.Scene
@@ -19,16 +18,10 @@ class @HeartVisualizer
     @pointLight.position.set(10, 20, 20)
     @scene.add(@pointLight)
 
-    @renderer = new THREE.WebGLRenderer
-    @renderer.setClearColor(0x07020a)
-    @renderer.setSize(window.innerWidth, window.innerHeight)
-    @visualizerElement.append(@renderer.domElement)
-
     @Hearts(80)
 
     @camera.position.z = 20
 
-    @RenderProcess()
     return
 
   Heart: ->
@@ -81,67 +74,7 @@ class @HeartVisualizer
       positions.push(newPosition)
       heart.position.set(newPosition.x, newPosition.y, newPosition.z)
 
-  RenderProcess: =>
-    renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: false };
-
-    renderTargetCube = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
-    @cubeComposer = new (THREE.EffectComposer)(@renderer, renderTargetCube)
-    renderPass = new (THREE.RenderPass)(@scene, @camera)
-    @cubeComposer.addPass renderPass
-
-    renderTargetGlow = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
-    @glowComposer = new (THREE.EffectComposer)(@renderer, renderTargetGlow)
-
-    horizontalBlur = new (THREE.ShaderPass)(THREE.HorizontalBlurShader)
-    horizontalBlur.uniforms['h'].value = 1.0 / window.innerWidth
-    verticalBlur = new (THREE.ShaderPass)(THREE.VerticalBlurShader)
-    verticalBlur.uniforms['v'].value = 1.0 / window.innerHeight
-
-    @glowComposer.addPass renderPass
-    @glowComposer.addPass horizontalBlur
-    @glowComposer.addPass verticalBlur
-    @glowComposer.addPass horizontalBlur
-    @glowComposer.addPass verticalBlur
-
-    @blendPass = new (THREE.ShaderPass)(THREE.AdditiveBlendShader)
-    @blendPass.uniforms['tBase'].value = @cubeComposer.renderTarget1
-    @blendPass.uniforms['tAdd'].value = @glowComposer.renderTarget1
-    @blendPass.uniforms['amount'].value = 2.0
-
-    @blendComposer = new (THREE.EffectComposer)(@renderer)
-    @blendComposer.addPass @blendPass
-    bloomPass = new (THREE.BloomPass)(3, 12, 2.0, 512)
-    @blendComposer.addPass bloomPass
-
-    @badTV = new (THREE.ShaderPass)(THREE.BadTVShader)
-    @badTV.uniforms['distortion'].value = 1.0
-    @badTV.uniforms['distortion2'].value = 1.0
-    @badTV.uniforms['speed'].value = 0.1
-    @badTV.uniforms['rollSpeed'].value = 0.0
-    @blendComposer.addPass @badTV
-
-    @rgbEffect = new (THREE.ShaderPass)(THREE.RGBShiftShader)
-    @rgbEffect.uniforms['amount'].value = 0.0015
-    @rgbEffect.uniforms['angle'].value = 0
-    @blendComposer.addPass @rgbEffect
-
-    film = new (THREE.ShaderPass)(THREE.FilmShader)
-    film.uniforms['sCount'].value = 800
-    film.uniforms['sIntensity'].value = 0.9
-    film.uniforms['nIntensity'].value = 0.4
-    film.uniforms['grayscale'].value = 0
-    @blendComposer.addPass film
-
-    vignette = new (THREE.ShaderPass)(THREE.VignetteShader)
-    vignette.uniforms['darkness'].value = 1
-    vignette.uniforms['offset'].value = 1.1
-    vignette.renderToScreen = true
-    @blendComposer.addPass vignette
-    return
-
-  Render: =>
-    requestAnimationFrame(@Render)
-
+  Update: =>
     @timer += 0.01
 
     @audioInitializer.analyser.getByteFrequencyData(@audioInitializer.frequencyData)
@@ -173,22 +106,6 @@ class @HeartVisualizer
     @camera.position.set(40 * Math.cos(@timer * 0.5), 0, 40 * Math.sin(@timer * 0.5))
     @camera.lookAt(@scene.position)
 
-    @cubeComposer.render(0.1)
-    @glowComposer.render(0.1)
-    @blendComposer.render(0.1)
-
-    return
-
-  OnResize: =>
-    renderW = window.innerWidth
-    renderH = window.innerHeight
-
-    @camera.aspect = renderW / renderH
-    @camera.updateProjectionMatrix()
-
-    @renderer.setSize renderW, renderH
-    @renderer.domElement.width = renderW
-    @renderer.domElement.height = renderH
     return
 
   RandomFloat: (min, max) ->
