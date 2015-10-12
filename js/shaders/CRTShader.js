@@ -1,6 +1,7 @@
 THREE.CRTShader = {
   uniforms: {
     "tDiffuse": { type: "t", value: null },
+    "resolution": { type: "vec2", value: null },
     "time": { type: "f", value: 0.0}
   },
 
@@ -16,6 +17,7 @@ THREE.CRTShader = {
   fragmentShader: [
     "uniform sampler2D tDiffuse;",
     "uniform float time;",
+    "uniform vec2 resolution;",
     "varying vec2 vUv;",
 
     "vec2 curve(vec2 uv)",
@@ -49,11 +51,17 @@ THREE.CRTShader = {
       "color *= vec3(0.95, 1.05, 0.95);",
       "color *= 2.8;",
 
+      "float scans = clamp(0.35 + 0.35 * sin(3.5 * time + uv.y * resolution.y * 1.5), 0.0, 1.0);",
+      "float s = pow(scans, 1.7);",
+      "color = color * vec3(0.4 + 0.7 * s);",
+
       "color *= 1.0+0.01*sin(110.0*time);",
       "if (uv.x < 0.0 || uv.x > 1.0)",
         "color *= 0.0;",
       "if (uv.y < 0.0 || uv.y > 1.0)",
         "color *= 0.0;",
+
+      "color *= 1.0 - 0.65 * vec3(clamp((mod(gl_FragCoord.x, 2.0) - 1.0) * 2.0, 0.0, 1.0));",
 
       "gl_FragColor = vec4(color, 1.0);",
 
