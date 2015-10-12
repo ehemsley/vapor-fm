@@ -87,28 +87,31 @@ class @RenderController
     @badTV.uniforms['speed'].value = 0.1
     @badTV.uniforms['rollSpeed'].value = 0.0
     @blendComposer.addPass @badTV
+    #
+    # @rgbEffect = new (THREE.ShaderPass)(THREE.RGBShiftShader)
+    # @rgbEffect.uniforms['amount'].value = 0.0015
+    # @rgbEffect.uniforms['angle'].value = 0
+    # @blendComposer.addPass @rgbEffect
 
-    @rgbEffect = new (THREE.ShaderPass)(THREE.RGBShiftShader)
-    @rgbEffect.uniforms['amount'].value = 0.0015
-    @rgbEffect.uniforms['angle'].value = 0
-    @blendComposer.addPass @rgbEffect
-
-    film = new (THREE.ShaderPass)(THREE.FilmShader)
-    film.uniforms['sCount'].value = 800
-    film.uniforms['sIntensity'].value = 0.9
-    film.uniforms['nIntensity'].value = 0.4
-    film.uniforms['grayscale'].value = 0
-    @blendComposer.addPass film
-
-    vignette = new (THREE.ShaderPass)(THREE.VignetteShader)
-    vignette.uniforms['darkness'].value = 0.9
-    vignette.uniforms['offset'].value = 1.1
-    @blendComposer.addPass vignette
+    # film = new (THREE.ShaderPass)(THREE.FilmShader)
+    # film.uniforms['sCount'].value = 800
+    # film.uniforms['sIntensity'].value = 0.9
+    # film.uniforms['nIntensity'].value = 0.4
+    # film.uniforms['grayscale'].value = 0
+    # @blendComposer.addPass film
+    #
+    # vignette = new (THREE.ShaderPass)(THREE.VignetteShader)
+    # vignette.uniforms['darkness'].value = 0.9
+    # vignette.uniforms['offset'].value = 1.1
+    # @blendComposer.addPass vignette
 
     @fade = new THREE.ShaderPass(THREE.FadeToBlackShader)
     @fade.uniforms['fade'].value = @fadeValue
-    @fade.renderToScreen = true
     @blendComposer.addPass @fade
+
+    @crtEffect = new THREE.ShaderPass(THREE.CRTShader)
+    @crtEffect.renderToScreen = true
+    @blendComposer.addPass @crtEffect
     return
 
   Render: =>
@@ -150,8 +153,9 @@ class @RenderController
     return
 
   UpdateEffects: =>
-    @rgbEffect.uniforms['amount'].value = Math.sin(@timer * 2) * 0.01
+    # @rgbEffect.uniforms['amount'].value = Math.sin(@timer * 2) * 0.01
     @badTV.uniforms['time'].value = @timer
+    @crtEffect.uniforms['time'].value = @timer
 
     if @activeVisualizer.beatDistortionEffect
       if @audioInitializer.beatdetect.isKick()

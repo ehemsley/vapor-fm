@@ -60,7 +60,7 @@
     };
 
     RenderController.prototype.RenderProcess = function(scene, camera) {
-      var bloomPass, film, horizontalBlur, renderPass, renderTargetCube, renderTargetGlow, renderTargetParameters, verticalBlur, vignette;
+      var bloomPass, horizontalBlur, renderPass, renderTargetCube, renderTargetGlow, renderTargetParameters, verticalBlur;
       renderTargetParameters = {
         minFilter: THREE.LinearFilter,
         magFilter: THREE.LinearFilter,
@@ -96,24 +96,12 @@
       this.badTV.uniforms['speed'].value = 0.1;
       this.badTV.uniforms['rollSpeed'].value = 0.0;
       this.blendComposer.addPass(this.badTV);
-      this.rgbEffect = new THREE.ShaderPass(THREE.RGBShiftShader);
-      this.rgbEffect.uniforms['amount'].value = 0.0015;
-      this.rgbEffect.uniforms['angle'].value = 0;
-      this.blendComposer.addPass(this.rgbEffect);
-      film = new THREE.ShaderPass(THREE.FilmShader);
-      film.uniforms['sCount'].value = 800;
-      film.uniforms['sIntensity'].value = 0.9;
-      film.uniforms['nIntensity'].value = 0.4;
-      film.uniforms['grayscale'].value = 0;
-      this.blendComposer.addPass(film);
-      vignette = new THREE.ShaderPass(THREE.VignetteShader);
-      vignette.uniforms['darkness'].value = 0.9;
-      vignette.uniforms['offset'].value = 1.1;
-      this.blendComposer.addPass(vignette);
       this.fade = new THREE.ShaderPass(THREE.FadeToBlackShader);
       this.fade.uniforms['fade'].value = this.fadeValue;
-      this.fade.renderToScreen = true;
       this.blendComposer.addPass(this.fade);
+      this.crtEffect = new THREE.ShaderPass(THREE.CRTShader);
+      this.crtEffect.renderToScreen = true;
+      this.blendComposer.addPass(this.crtEffect);
     };
 
     RenderController.prototype.Render = function() {
@@ -155,7 +143,6 @@
     };
 
     RenderController.prototype.UpdateEffects = function() {
-      this.rgbEffect.uniforms['amount'].value = Math.sin(this.timer * 2) * 0.01;
       this.badTV.uniforms['time'].value = this.timer;
       if (this.activeVisualizer.beatDistortionEffect) {
         if (this.audioInitializer.beatdetect.isKick()) {
