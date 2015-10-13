@@ -1,7 +1,7 @@
 THREE.CRTShader = {
   uniforms: {
     "tDiffuse": { type: "t", value: null },
-    "resolution": { type: "vec2", value: null },
+    "resolution": { type: "v2", value: new THREE.Vector2() },
     "time": { type: "f", value: 0.0}
   },
 

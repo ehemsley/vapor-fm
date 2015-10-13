@@ -4,6 +4,7 @@ class @RenderController
     @audioInitializer = audioInitializer
 
     @timer = 0
+    @frameCount = 0
 
     @renderer = new THREE.WebGLRenderer
     @renderer.setClearColor(0x07020a)
@@ -17,6 +18,46 @@ class @RenderController
     @fadingIn = false
     @fadingOut = false
     @fadeValue = 0.0
+
+    @hud = new THREE.Scene()
+    @hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+
+    @ambientLights = new THREE.AmbientLight(0x404040)
+    @hud.add(@ambientLights)
+
+    @pointLight = new THREE.PointLight(0xffffff, 1, 100)
+    @pointLight.position.set(10, 20, 20)
+    @hud.add(@pointLight)
+
+    @canvas1 = document.createElement('canvas')
+    @context1 = @canvas1.getContext('2d')
+    @context1.font = "16px Courier"
+    @context1.fillStyle = "rgba(255,255,255,0.95)"
+    @context1.fillText('N/A', 0, 50)
+
+    @texture1 = new THREE.Texture(@canvas1)
+    @texture1.needsUpdate = true
+    @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide })
+    @material1.transparent = true
+    @mesh1 = new THREE.Mesh(new THREE.PlaneBufferGeometry(@canvas1.width, @canvas1.height), @material1)
+    @mesh1.position.set(20,-70,-80)
+    @hud.add(@mesh1)
+
+    @canvas2 = document.createElement('canvas')
+    @context2 = @canvas2.getContext('2d')
+    @context2.font = '16px Courier'
+    @context2.fillStyle = 'rgba(255,255,255,0.95)'
+    @context2.fillText('N/A', 0, 50)
+
+    @texture2 = new THREE.Texture(@canvas2)
+    @texture2.needsUpdate = true
+    @material2 = new THREE.MeshBasicMaterial({map: @texture2, side: THREE.DoubleSide })
+    @material2.transparent = true
+    @mesh2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(@canvas2.width, @canvas2.height), @material2)
+    @mesh2.position.set(20,-95,-80)
+    @hud.add(@mesh2)
+
+    @hudCamera.position.set(0,0,20)
 
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
 
@@ -50,11 +91,13 @@ class @RenderController
     return
 
   RenderProcess: (scene, camera) =>
-    renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, stencilBuffer: false };
+    renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, stencilBuffer: true }
 
     renderTargetCube = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
     @cubeComposer = new (THREE.EffectComposer)(@renderer, renderTargetCube)
     renderPass = new (THREE.RenderPass)(scene, camera)
+    hudPass = new (THREE.RenderPass)(@hud, @hudCamera)
+
     @cubeComposer.addPass renderPass
 
     renderTargetGlow = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
@@ -76,7 +119,9 @@ class @RenderController
     @blendPass.uniforms['tAdd'].value = @glowComposer.renderTarget1
     @blendPass.uniforms['amount'].value = 2.0
 
-    @blendComposer = new (THREE.EffectComposer)(@renderer)
+    renderTargetBlend = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
+
+    @blendComposer = new (THREE.EffectComposer)(@renderer, renderTargetBlend)
     @blendComposer.addPass @blendPass
     bloomPass = new (THREE.BloomPass)(3, 12, 2.0, 512)
     @blendComposer.addPass bloomPass
@@ -87,31 +132,32 @@ class @RenderController
     @badTV.uniforms['speed'].value = 0.1
     @badTV.uniforms['rollSpeed'].value = 0.0
     @blendComposer.addPass @badTV
-    #
+
     # @rgbEffect = new (THREE.ShaderPass)(THREE.RGBShiftShader)
     # @rgbEffect.uniforms['amount'].value = 0.0015
     # @rgbEffect.uniforms['angle'].value = 0
     # @blendComposer.addPass @rgbEffect
 
-    # film = new (THREE.ShaderPass)(THREE.FilmShader)
-    # film.uniforms['sCount'].value = 800
-    # film.uniforms['sIntensity'].value = 0.9
-    # film.uniforms['nIntensity'].value = 0.4
-    # film.uniforms['grayscale'].value = 0
-    # @blendComposer.addPass film
-    #
-    # vignette = new (THREE.ShaderPass)(THREE.VignetteShader)
-    # vignette.uniforms['darkness'].value = 0.9
-    # vignette.uniforms['offset'].value = 1.1
-    # @blendComposer.addPass vignette
-
     @fade = new THREE.ShaderPass(THREE.FadeToBlackShader)
     @fade.uniforms['fade'].value = @fadeValue
     @blendComposer.addPass @fade
 
+    renderTargetHud = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
+    @hudComposer = new (THREE.EffectComposer)(@renderer, renderTargetHud)
+    @hudComposer.addPass hudPass
+
+    @overlayComposer = new (THREE.EffectComposer)(@renderer)
+    @hudBlendPass = new (THREE.ShaderPass)(THREE.AdditiveBlendShader)
+    @hudBlendPass.uniforms['tBase'].value = @blendComposer.renderTarget1
+    @hudBlendPass.uniforms['tAdd'].value = @hudComposer.renderTarget2
+    @hudBlendPass.uniforms['amount'].value = 1.0
+
+    @overlayComposer.addPass @hudBlendPass
+
     @crtEffect = new THREE.ShaderPass(THREE.CRTShader)
+    @crtEffect.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight)
     @crtEffect.renderToScreen = true
-    @blendComposer.addPass @crtEffect
+    @overlayComposer.addPass @crtEffect
     return
 
   Render: =>
@@ -119,9 +165,12 @@ class @RenderController
 
     @timer += 0.01
 
+    @frameCount += 1
+
     @FadeOut() if @fadingOut
     @FadeIn() if @fadingIn
 
+    @UpdateText() if @frameCount % 120 == 0
     @UpdateAudioAnalyzer()
     @UpdateEffects()
     @activeVisualizer.Update()
@@ -129,6 +178,8 @@ class @RenderController
     @cubeComposer.render(0.1)
     @glowComposer.render(0.1)
     @blendComposer.render(0.1)
+    @hudComposer.render(0.1)
+    @overlayComposer.render(0.1)
 
     return
 
@@ -139,6 +190,8 @@ class @RenderController
     for visualizer in @visualizers
       visualizer.camera.aspect = renderW / renderH
       visualizer.camera.updateProjectionMatrix()
+
+    @crtEffect.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight)
 
     @renderer.setSize renderW, renderH
     @renderer.domElement.width = renderW
@@ -164,11 +217,24 @@ class @RenderController
         if Math.random() < 0.05
           @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then -1 else 1) * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
       else
-        @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 1)
-        @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 1)
+        @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0)
+        @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0)
         if @badTV.uniforms['rollSpeed'].value > 0
           @badTV.uniforms['rollSpeed'].value = Math.max(@badTV.uniforms['rollSpeed'].value - 0.001, 0)
         else
           @badTV.uniforms['rollSpeed'].value = Math.min(@badTV.uniforms['rollSpeed'].value + 0.001, 0)
+
+    return
+
+  UpdateText: =>
+    @context1.clearRect(0, 0, @canvas1.width, @canvas1.height)
+    @context1.fillText(document.getElementById('title').innerHTML.split(' - ')[0], 0, 50)
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+
+    @context2.clearRect(0, 0, @canvas2.width, @canvas2.height)
+    @context2.fillText(document.getElementById('title').innerHTML.split(' - ')[1], 0, 50)
+    @mesh2.material.map.needsUpdate = true
+    @mesh2.material.needsUpdate = true
 
     return

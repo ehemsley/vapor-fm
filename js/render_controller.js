@@ -4,6 +4,7 @@
 
   this.RenderController = (function() {
     function RenderController(audioInitializer) {
+      this.UpdateText = bind(this.UpdateText, this);
       this.UpdateEffects = bind(this.UpdateEffects, this);
       this.UpdateAudioAnalyzer = bind(this.UpdateAudioAnalyzer, this);
       this.OnResize = bind(this.OnResize, this);
@@ -16,6 +17,7 @@
       this.visualizerElement = $('#visualizer');
       this.audioInitializer = audioInitializer;
       this.timer = 0;
+      this.frameCount = 0;
       this.renderer = new THREE.WebGLRenderer;
       this.renderer.setClearColor(0x07020a);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -26,6 +28,44 @@
       this.fadingIn = false;
       this.fadingOut = false;
       this.fadeValue = 0.0;
+      this.hud = new THREE.Scene();
+      this.hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      this.ambientLights = new THREE.AmbientLight(0x404040);
+      this.hud.add(this.ambientLights);
+      this.pointLight = new THREE.PointLight(0xffffff, 1, 100);
+      this.pointLight.position.set(10, 20, 20);
+      this.hud.add(this.pointLight);
+      this.canvas1 = document.createElement('canvas');
+      this.context1 = this.canvas1.getContext('2d');
+      this.context1.font = "16px Courier";
+      this.context1.fillStyle = "rgba(255,255,255,0.95)";
+      this.context1.fillText('N/A', 0, 50);
+      this.texture1 = new THREE.Texture(this.canvas1);
+      this.texture1.needsUpdate = true;
+      this.material1 = new THREE.MeshBasicMaterial({
+        map: this.texture1,
+        side: THREE.DoubleSide
+      });
+      this.material1.transparent = true;
+      this.mesh1 = new THREE.Mesh(new THREE.PlaneBufferGeometry(this.canvas1.width, this.canvas1.height), this.material1);
+      this.mesh1.position.set(20, -70, -80);
+      this.hud.add(this.mesh1);
+      this.canvas2 = document.createElement('canvas');
+      this.context2 = this.canvas2.getContext('2d');
+      this.context2.font = '16px Courier';
+      this.context2.fillStyle = 'rgba(255,255,255,0.95)';
+      this.context2.fillText('N/A', 0, 50);
+      this.texture2 = new THREE.Texture(this.canvas2);
+      this.texture2.needsUpdate = true;
+      this.material2 = new THREE.MeshBasicMaterial({
+        map: this.texture2,
+        side: THREE.DoubleSide
+      });
+      this.material2.transparent = true;
+      this.mesh2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(this.canvas2.width, this.canvas2.height), this.material2);
+      this.mesh2.position.set(20, -95, -80);
+      this.hud.add(this.mesh2);
+      this.hudCamera.position.set(0, 0, 20);
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
     }
 
@@ -60,16 +100,17 @@
     };
 
     RenderController.prototype.RenderProcess = function(scene, camera) {
-      var bloomPass, horizontalBlur, renderPass, renderTargetCube, renderTargetGlow, renderTargetParameters, verticalBlur;
+      var bloomPass, horizontalBlur, hudPass, renderPass, renderTargetBlend, renderTargetCube, renderTargetGlow, renderTargetHud, renderTargetParameters, verticalBlur;
       renderTargetParameters = {
         minFilter: THREE.LinearFilter,
         magFilter: THREE.LinearFilter,
-        format: THREE.RGBFormat,
-        stencilBuffer: false
+        format: THREE.RGBAFormat,
+        stencilBuffer: true
       };
       renderTargetCube = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
       this.cubeComposer = new THREE.EffectComposer(this.renderer, renderTargetCube);
       renderPass = new THREE.RenderPass(scene, camera);
+      hudPass = new THREE.RenderPass(this.hud, this.hudCamera);
       this.cubeComposer.addPass(renderPass);
       renderTargetGlow = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
       this.glowComposer = new THREE.EffectComposer(this.renderer, renderTargetGlow);
@@ -86,7 +127,8 @@
       this.blendPass.uniforms['tBase'].value = this.cubeComposer.renderTarget1;
       this.blendPass.uniforms['tAdd'].value = this.glowComposer.renderTarget1;
       this.blendPass.uniforms['amount'].value = 2.0;
-      this.blendComposer = new THREE.EffectComposer(this.renderer);
+      renderTargetBlend = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
+      this.blendComposer = new THREE.EffectComposer(this.renderer, renderTargetBlend);
       this.blendComposer.addPass(this.blendPass);
       bloomPass = new THREE.BloomPass(3, 12, 2.0, 512);
       this.blendComposer.addPass(bloomPass);
@@ -99,19 +141,33 @@
       this.fade = new THREE.ShaderPass(THREE.FadeToBlackShader);
       this.fade.uniforms['fade'].value = this.fadeValue;
       this.blendComposer.addPass(this.fade);
+      renderTargetHud = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
+      this.hudComposer = new THREE.EffectComposer(this.renderer, renderTargetHud);
+      this.hudComposer.addPass(hudPass);
+      this.overlayComposer = new THREE.EffectComposer(this.renderer);
+      this.hudBlendPass = new THREE.ShaderPass(THREE.AdditiveBlendShader);
+      this.hudBlendPass.uniforms['tBase'].value = this.blendComposer.renderTarget1;
+      this.hudBlendPass.uniforms['tAdd'].value = this.hudComposer.renderTarget2;
+      this.hudBlendPass.uniforms['amount'].value = 1.0;
+      this.overlayComposer.addPass(this.hudBlendPass);
       this.crtEffect = new THREE.ShaderPass(THREE.CRTShader);
+      this.crtEffect.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight);
       this.crtEffect.renderToScreen = true;
-      this.blendComposer.addPass(this.crtEffect);
+      this.overlayComposer.addPass(this.crtEffect);
     };
 
     RenderController.prototype.Render = function() {
       requestAnimationFrame(this.Render);
       this.timer += 0.01;
+      this.frameCount += 1;
       if (this.fadingOut) {
         this.FadeOut();
       }
       if (this.fadingIn) {
         this.FadeIn();
+      }
+      if (this.frameCount % 120 === 0) {
+        this.UpdateText();
       }
       this.UpdateAudioAnalyzer();
       this.UpdateEffects();
@@ -119,6 +175,8 @@
       this.cubeComposer.render(0.1);
       this.glowComposer.render(0.1);
       this.blendComposer.render(0.1);
+      this.hudComposer.render(0.1);
+      this.overlayComposer.render(0.1);
     };
 
     RenderController.prototype.OnResize = function() {
@@ -131,6 +189,7 @@
         visualizer.camera.aspect = renderW / renderH;
         visualizer.camera.updateProjectionMatrix();
       }
+      this.crtEffect.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight);
       this.renderer.setSize(renderW, renderH);
       this.renderer.domElement.width = renderW;
       this.renderer.domElement.height = renderH;
@@ -144,6 +203,7 @@
 
     RenderController.prototype.UpdateEffects = function() {
       this.badTV.uniforms['time'].value = this.timer;
+      this.crtEffect.uniforms['time'].value = this.timer;
       if (this.activeVisualizer.beatDistortionEffect) {
         if (this.audioInitializer.beatdetect.isKick()) {
           this.badTV.uniforms['distortion'].value = 5 * Math.random();
@@ -152,8 +212,8 @@
             this.badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? -1 : 1) * this.audioInitializer.GetAverageVolume(this.audioInitializer.frequencyData) / 5000;
           }
         } else {
-          this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 1);
-          this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 1);
+          this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 0);
+          this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 0);
           if (this.badTV.uniforms['rollSpeed'].value > 0) {
             this.badTV.uniforms['rollSpeed'].value = Math.max(this.badTV.uniforms['rollSpeed'].value - 0.001, 0);
           } else {
@@ -161,6 +221,17 @@
           }
         }
       }
+    };
+
+    RenderController.prototype.UpdateText = function() {
+      this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height);
+      this.context1.fillText(document.getElementById('title').innerHTML.split(' - ')[0], 0, 50);
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+      this.context2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
+      this.context2.fillText(document.getElementById('title').innerHTML.split(' - ')[1], 0, 50);
+      this.mesh2.material.map.needsUpdate = true;
+      this.mesh2.material.needsUpdate = true;
     };
 
     return RenderController;
