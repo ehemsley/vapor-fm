@@ -29,18 +29,23 @@
       this.fadingOut = false;
       this.fadeValue = 0.0;
       this.hud = new THREE.Scene();
-      this.hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      this.hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerWidth / 2, -2, 1000);
       this.ambientLights = new THREE.AmbientLight(0x404040);
       this.hud.add(this.ambientLights);
       this.pointLight = new THREE.PointLight(0xffffff, 1, 100);
       this.pointLight.position.set(10, 20, 20);
       this.hud.add(this.pointLight);
       this.canvas1 = document.createElement('canvas');
+      this.canvas1.width = window.innerWidth;
+      this.canvas1.height = window.innerHeight;
       this.context1 = this.canvas1.getContext('2d');
-      this.context1.font = "16px Courier";
+      this.context1.font = "60px TelegramaRaw";
+      this.context1.textAlign = "left";
       this.context1.fillStyle = "rgba(255,255,255,0.95)";
-      this.context1.fillText('N/A', 0, 50);
+      this.context1.fillText('Loading...', 0, 60);
       this.texture1 = new THREE.Texture(this.canvas1);
+      this.texture1.minFilter = THREE.LinearFilter;
+      this.texture1.magFilter = THREE.LinearFilter;
       this.texture1.needsUpdate = true;
       this.material1 = new THREE.MeshBasicMaterial({
         map: this.texture1,
@@ -48,14 +53,19 @@
       });
       this.material1.transparent = true;
       this.mesh1 = new THREE.Mesh(new THREE.PlaneBufferGeometry(this.canvas1.width, this.canvas1.height), this.material1);
-      this.mesh1.position.set(20, -70, -80);
+      this.mesh1.position.set(10, -window.innerHeight, 0);
       this.hud.add(this.mesh1);
       this.canvas2 = document.createElement('canvas');
+      this.canvas2.width = window.innerWidth;
+      this.canvas2.height = window.innerHeight;
       this.context2 = this.canvas2.getContext('2d');
-      this.context2.font = '16px Courier';
+      this.context2.font = '60px TelegramaRaw';
+      this.context2.textAlign = "left";
       this.context2.fillStyle = 'rgba(255,255,255,0.95)';
-      this.context2.fillText('N/A', 0, 50);
+      this.context2.fillText('', 0, 60);
       this.texture2 = new THREE.Texture(this.canvas2);
+      this.texture2.minFilter = THREE.LinearFilter;
+      this.texture2.magFilter = THREE.LinearFilter;
       this.texture2.needsUpdate = true;
       this.material2 = new THREE.MeshBasicMaterial({
         map: this.texture2,
@@ -63,9 +73,9 @@
       });
       this.material2.transparent = true;
       this.mesh2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(this.canvas2.width, this.canvas2.height), this.material2);
-      this.mesh2.position.set(20, -95, -80);
+      this.mesh2.position.set(10, -window.innerHeight * 1.2, 0);
       this.hud.add(this.mesh2);
-      this.hudCamera.position.set(0, 0, 20);
+      this.hudCamera.position.set(0, 0, 0);
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
     }
 
@@ -180,12 +190,12 @@
     };
 
     RenderController.prototype.OnResize = function() {
-      var i, len, ref, renderH, renderW, visualizer;
+      var j, len, ref, renderH, renderW, visualizer;
       renderW = window.innerWidth;
       renderH = window.innerHeight;
       ref = this.visualizers;
-      for (i = 0, len = ref.length; i < len; i++) {
-        visualizer = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        visualizer = ref[j];
         visualizer.camera.aspect = renderW / renderH;
         visualizer.camera.updateProjectionMatrix();
       }
@@ -212,8 +222,8 @@
             this.badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? -1 : 1) * this.audioInitializer.GetAverageVolume(this.audioInitializer.frequencyData) / 5000;
           }
         } else {
-          this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 0);
-          this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 0);
+          this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 0.001);
+          this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 0.001);
           if (this.badTV.uniforms['rollSpeed'].value > 0) {
             this.badTV.uniforms['rollSpeed'].value = Math.max(this.badTV.uniforms['rollSpeed'].value - 0.001, 0);
           } else {
@@ -224,14 +234,40 @@
     };
 
     RenderController.prototype.UpdateText = function() {
+      var artistName, artistSubStringLocation, songData, songName, songSubStringLocation;
+      songData = document.getElementById('title').innerHTML;
+      if (this.CountOccurrences(songData, ' - ') < 1) {
+        artistName = 'N/A';
+        songName = 'N/A';
+      } else if (this.CountOccurrences(songData, ' - ') === 1) {
+        artistName = songData.split(' - ')[0];
+        songName = songData.split(' - ')[1];
+      } else {
+        artistSubStringLocation = this.GetNthOccurrence(songData, ' - ', 1);
+        songSubStringLocation = this.GetNthOccurrence(songData, ' - ', 2);
+        artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation);
+        songName = songData.substring(songSubStringLocation + 3, songData.length);
+      }
       this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height);
-      this.context1.fillText(document.getElementById('title').innerHTML.split(' - ')[0], 0, 50);
+      this.context1.font = '60px TelegramaRaw';
+      this.context1.fillText(artistName, 0, 60);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
       this.context2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
-      this.context2.fillText(document.getElementById('title').innerHTML.split(' - ')[1], 0, 50);
+      this.context2.font = '60px TelegramaRaw';
+      this.context2.fillText(songName, 0, 60);
       this.mesh2.material.map.needsUpdate = true;
       this.mesh2.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.GetNthOccurrence = function(str, m, i) {
+      return str.split(m, i).join(m).length;
+    };
+
+    RenderController.prototype.CountOccurrences = function(str, value) {
+      var regExp;
+      regExp = new RegExp(value, "gi");
+      return (str.match(regExp) || []).length;
     };
 
     return RenderController;

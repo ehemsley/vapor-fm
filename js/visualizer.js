@@ -21,7 +21,7 @@
         i++;
       }
       this.beatDistortionEffect = true;
-      this.camera.position.z = 5;
+      this.camera.position.z = 6;
       return;
     }
 

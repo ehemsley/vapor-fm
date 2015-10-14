@@ -20,7 +20,8 @@ class @RenderController
     @fadeValue = 0.0
 
     @hud = new THREE.Scene()
-    @hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+    # @hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+    @hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerWidth / 2, -2, 1000)
 
     @ambientLights = new THREE.AmbientLight(0x404040)
     @hud.add(@ambientLights)
@@ -30,34 +31,44 @@ class @RenderController
     @hud.add(@pointLight)
 
     @canvas1 = document.createElement('canvas')
+    @canvas1.width = window.innerWidth
+    @canvas1.height = window.innerHeight
     @context1 = @canvas1.getContext('2d')
-    @context1.font = "16px Courier"
+    @context1.font = "60px TelegramaRaw"
+    @context1.textAlign = "left"
     @context1.fillStyle = "rgba(255,255,255,0.95)"
-    @context1.fillText('N/A', 0, 50)
+    @context1.fillText('Loading...', 0, 60)
 
     @texture1 = new THREE.Texture(@canvas1)
+    @texture1.minFilter = THREE.LinearFilter
+    @texture1.magFilter = THREE.LinearFilter
     @texture1.needsUpdate = true
     @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide })
     @material1.transparent = true
     @mesh1 = new THREE.Mesh(new THREE.PlaneBufferGeometry(@canvas1.width, @canvas1.height), @material1)
-    @mesh1.position.set(20,-70,-80)
+    @mesh1.position.set(10,-window.innerHeight,0)
     @hud.add(@mesh1)
 
     @canvas2 = document.createElement('canvas')
+    @canvas2.width = window.innerWidth
+    @canvas2.height = window.innerHeight
     @context2 = @canvas2.getContext('2d')
-    @context2.font = '16px Courier'
+    @context2.font = '60px TelegramaRaw'
+    @context2.textAlign = "left"
     @context2.fillStyle = 'rgba(255,255,255,0.95)'
-    @context2.fillText('N/A', 0, 50)
+    @context2.fillText('', 0, 60)
 
     @texture2 = new THREE.Texture(@canvas2)
+    @texture2.minFilter = THREE.LinearFilter
+    @texture2.magFilter = THREE.LinearFilter
     @texture2.needsUpdate = true
     @material2 = new THREE.MeshBasicMaterial({map: @texture2, side: THREE.DoubleSide })
     @material2.transparent = true
     @mesh2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(@canvas2.width, @canvas2.height), @material2)
-    @mesh2.position.set(20,-95,-80)
+    @mesh2.position.set(10,-window.innerHeight * 1.2,0)
     @hud.add(@mesh2)
 
-    @hudCamera.position.set(0,0,20)
+    @hudCamera.position.set(0,0,0)
 
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
 
@@ -217,8 +228,8 @@ class @RenderController
         if Math.random() < 0.05
           @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then -1 else 1) * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
       else
-        @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0)
-        @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0)
+        @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0.001)
+        @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0.001)
         if @badTV.uniforms['rollSpeed'].value > 0
           @badTV.uniforms['rollSpeed'].value = Math.max(@badTV.uniforms['rollSpeed'].value - 0.001, 0)
         else
@@ -227,14 +238,36 @@ class @RenderController
     return
 
   UpdateText: =>
+    songData = document.getElementById('title').innerHTML
+    if (@CountOccurrences(songData, ' - ') < 1)
+      artistName = 'N/A'
+      songName = 'N/A'
+    else if (@CountOccurrences(songData, ' - ') == 1)
+      artistName = songData.split(' - ')[0]
+      songName = songData.split(' - ')[1]
+    else
+      artistSubStringLocation = @GetNthOccurrence(songData, ' - ', 1)
+      songSubStringLocation = @GetNthOccurrence(songData, ' - ', 2)
+      artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation)
+      songName = songData.substring(songSubStringLocation + 3, songData.length)
+
     @context1.clearRect(0, 0, @canvas1.width, @canvas1.height)
-    @context1.fillText(document.getElementById('title').innerHTML.split(' - ')[0], 0, 50)
+    @context1.font = '60px TelegramaRaw'
+    @context1.fillText(artistName, 0, 60)
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
 
     @context2.clearRect(0, 0, @canvas2.width, @canvas2.height)
-    @context2.fillText(document.getElementById('title').innerHTML.split(' - ')[1], 0, 50)
+    @context2.font = '60px TelegramaRaw'
+    @context2.fillText(songName, 0, 60)
     @mesh2.material.map.needsUpdate = true
     @mesh2.material.needsUpdate = true
 
     return
+
+  GetNthOccurrence: (str, m, i) ->
+    return str.split(m, i).join(m).length
+
+  CountOccurrences: (str, value) ->
+    regExp = new RegExp(value, "gi")
+    return (str.match(regExp) || []).length
