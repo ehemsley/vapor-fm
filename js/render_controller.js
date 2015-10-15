@@ -41,8 +41,9 @@
       this.context1 = this.canvas1.getContext('2d');
       this.context1.font = "60px TelegramaRaw";
       this.context1.textAlign = "left";
+      this.context1.textBaseline = "top";
       this.context1.fillStyle = "rgba(255,255,255,0.95)";
-      this.context1.fillText('Loading...', 0, 60);
+      this.context1.fillText('Loading...', 10, 10);
       this.texture1 = new THREE.Texture(this.canvas1);
       this.texture1.minFilter = THREE.LinearFilter;
       this.texture1.magFilter = THREE.LinearFilter;
@@ -52,29 +53,9 @@
         side: THREE.DoubleSide
       });
       this.material1.transparent = true;
-      this.mesh1 = new THREE.Mesh(new THREE.PlaneBufferGeometry(this.canvas1.width, this.canvas1.height), this.material1);
-      this.mesh1.position.set(10, -window.innerHeight, 0);
+      this.mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(this.canvas1.width, this.canvas1.height), this.material1);
+      this.mesh1.position.set(0, 0, 0);
       this.hud.add(this.mesh1);
-      this.canvas2 = document.createElement('canvas');
-      this.canvas2.width = window.innerWidth;
-      this.canvas2.height = window.innerHeight;
-      this.context2 = this.canvas2.getContext('2d');
-      this.context2.font = '60px TelegramaRaw';
-      this.context2.textAlign = "left";
-      this.context2.fillStyle = 'rgba(255,255,255,0.95)';
-      this.context2.fillText('', 0, 60);
-      this.texture2 = new THREE.Texture(this.canvas2);
-      this.texture2.minFilter = THREE.LinearFilter;
-      this.texture2.magFilter = THREE.LinearFilter;
-      this.texture2.needsUpdate = true;
-      this.material2 = new THREE.MeshBasicMaterial({
-        map: this.texture2,
-        side: THREE.DoubleSide
-      });
-      this.material2.transparent = true;
-      this.mesh2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(this.canvas2.width, this.canvas2.height), this.material2);
-      this.mesh2.position.set(10, -window.innerHeight * 1.2, 0);
-      this.hud.add(this.mesh2);
       this.hudCamera.position.set(0, 0, 0);
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
     }
@@ -250,14 +231,10 @@
       }
       this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height);
       this.context1.font = '60px TelegramaRaw';
-      this.context1.fillText(artistName, 0, 60);
+      this.context1.fillText(artistName, 10, 10);
+      this.context1.fillText(songName, 10, 80);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
-      this.context2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
-      this.context2.font = '60px TelegramaRaw';
-      this.context2.fillText(songName, 0, 60);
-      this.mesh2.material.map.needsUpdate = true;
-      this.mesh2.material.needsUpdate = true;
     };
 
     RenderController.prototype.GetNthOccurrence = function(str, m, i) {

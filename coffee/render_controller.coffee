@@ -36,8 +36,9 @@ class @RenderController
     @context1 = @canvas1.getContext('2d')
     @context1.font = "60px TelegramaRaw"
     @context1.textAlign = "left"
+    @context1.textBaseline = "top"
     @context1.fillStyle = "rgba(255,255,255,0.95)"
-    @context1.fillText('Loading...', 0, 60)
+    @context1.fillText('Loading...', 10, 10)
 
     @texture1 = new THREE.Texture(@canvas1)
     @texture1.minFilter = THREE.LinearFilter
@@ -45,28 +46,10 @@ class @RenderController
     @texture1.needsUpdate = true
     @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide })
     @material1.transparent = true
-    @mesh1 = new THREE.Mesh(new THREE.PlaneBufferGeometry(@canvas1.width, @canvas1.height), @material1)
-    @mesh1.position.set(10,-window.innerHeight,0)
+    @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(@canvas1.width, @canvas1.height), @material1)
+    # @mesh1.position.set(10,-window.innerHeight,0)
+    @mesh1.position.set(0, 0, 0)
     @hud.add(@mesh1)
-
-    @canvas2 = document.createElement('canvas')
-    @canvas2.width = window.innerWidth
-    @canvas2.height = window.innerHeight
-    @context2 = @canvas2.getContext('2d')
-    @context2.font = '60px TelegramaRaw'
-    @context2.textAlign = "left"
-    @context2.fillStyle = 'rgba(255,255,255,0.95)'
-    @context2.fillText('', 0, 60)
-
-    @texture2 = new THREE.Texture(@canvas2)
-    @texture2.minFilter = THREE.LinearFilter
-    @texture2.magFilter = THREE.LinearFilter
-    @texture2.needsUpdate = true
-    @material2 = new THREE.MeshBasicMaterial({map: @texture2, side: THREE.DoubleSide })
-    @material2.transparent = true
-    @mesh2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(@canvas2.width, @canvas2.height), @material2)
-    @mesh2.position.set(10,-window.innerHeight * 1.2,0)
-    @hud.add(@mesh2)
 
     @hudCamera.position.set(0,0,0)
 
@@ -238,6 +221,8 @@ class @RenderController
     return
 
   UpdateText: =>
+    #still broken if song has dash in it but not multiple artsts
+    # maybe check for duplication of artist name instead and base it on that
     songData = document.getElementById('title').innerHTML
     if (@CountOccurrences(songData, ' - ') < 1)
       artistName = 'N/A'
@@ -253,15 +238,10 @@ class @RenderController
 
     @context1.clearRect(0, 0, @canvas1.width, @canvas1.height)
     @context1.font = '60px TelegramaRaw'
-    @context1.fillText(artistName, 0, 60)
+    @context1.fillText(artistName, 10, 10)
+    @context1.fillText(songName, 10, 80)
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
-
-    @context2.clearRect(0, 0, @canvas2.width, @canvas2.height)
-    @context2.font = '60px TelegramaRaw'
-    @context2.fillText(songName, 0, 60)
-    @mesh2.material.map.needsUpdate = true
-    @mesh2.material.needsUpdate = true
 
     return
 
