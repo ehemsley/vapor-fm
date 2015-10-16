@@ -4,6 +4,7 @@
 
   this.RenderController = (function() {
     function RenderController(audioInitializer) {
+      this.GetIcecastData = bind(this.GetIcecastData, this);
       this.UpdateText = bind(this.UpdateText, this);
       this.UpdateEffects = bind(this.UpdateEffects, this);
       this.UpdateAudioAnalyzer = bind(this.UpdateAudioAnalyzer, this);
@@ -16,8 +17,10 @@
       this.FadeToNext = bind(this.FadeToNext, this);
       this.visualizerElement = $('#visualizer');
       this.audioInitializer = audioInitializer;
+      this.clock = new THREE.Clock;
+      this.clock.start();
       this.timer = 0;
-      this.frameCount = 0;
+      this.lastTestUpdateTime = this.clock.getElapsedTime();
       this.renderer = new THREE.WebGLRenderer;
       this.renderer.setClearColor(0x07020a);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -29,7 +32,7 @@
       this.fadingOut = false;
       this.fadeValue = 0.0;
       this.hud = new THREE.Scene();
-      this.hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerWidth / 2, -2, 1000);
+      this.hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000);
       this.ambientLights = new THREE.AmbientLight(0x404040);
       this.hud.add(this.ambientLights);
       this.pointLight = new THREE.PointLight(0xffffff, 1, 100);
@@ -39,11 +42,11 @@
       this.canvas1.width = window.innerWidth;
       this.canvas1.height = window.innerHeight;
       this.context1 = this.canvas1.getContext('2d');
-      this.context1.font = "60px TelegramaRaw";
+      this.context1.font = "50px TelegramaRaw";
       this.context1.textAlign = "left";
       this.context1.textBaseline = "top";
       this.context1.fillStyle = "rgba(255,255,255,0.95)";
-      this.context1.fillText('Loading...', 10, 10);
+      this.context1.fillText('Loading...', 10, this.canvas1.height * 0.9 - 50);
       this.texture1 = new THREE.Texture(this.canvas1);
       this.texture1.minFilter = THREE.LinearFilter;
       this.texture1.magFilter = THREE.LinearFilter;
@@ -56,7 +59,8 @@
       this.mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(this.canvas1.width, this.canvas1.height), this.material1);
       this.mesh1.position.set(0, 0, 0);
       this.hud.add(this.mesh1);
-      this.hudCamera.position.set(0, 0, 0);
+      this.hudCamera.position.set(0, 0, 2);
+      this.GetIcecastData();
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
     }
 
@@ -123,12 +127,6 @@
       this.blendComposer.addPass(this.blendPass);
       bloomPass = new THREE.BloomPass(3, 12, 2.0, 512);
       this.blendComposer.addPass(bloomPass);
-      this.badTV = new THREE.ShaderPass(THREE.BadTVShader);
-      this.badTV.uniforms['distortion'].value = 1.0;
-      this.badTV.uniforms['distortion2'].value = 1.0;
-      this.badTV.uniforms['speed'].value = 0.1;
-      this.badTV.uniforms['rollSpeed'].value = 0.0;
-      this.blendComposer.addPass(this.badTV);
       this.fade = new THREE.ShaderPass(THREE.FadeToBlackShader);
       this.fade.uniforms['fade'].value = this.fadeValue;
       this.blendComposer.addPass(this.fade);
@@ -141,6 +139,12 @@
       this.hudBlendPass.uniforms['tAdd'].value = this.hudComposer.renderTarget2;
       this.hudBlendPass.uniforms['amount'].value = 1.0;
       this.overlayComposer.addPass(this.hudBlendPass);
+      this.badTV = new THREE.ShaderPass(THREE.BadTVShader);
+      this.badTV.uniforms['distortion'].value = 0.001;
+      this.badTV.uniforms['distortion2'].value = 0.001;
+      this.badTV.uniforms['speed'].value = 0.1;
+      this.badTV.uniforms['rollSpeed'].value = 0.0;
+      this.overlayComposer.addPass(this.badTV);
       this.crtEffect = new THREE.ShaderPass(THREE.CRTShader);
       this.crtEffect.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight);
       this.crtEffect.renderToScreen = true;
@@ -149,16 +153,16 @@
 
     RenderController.prototype.Render = function() {
       requestAnimationFrame(this.Render);
-      this.timer += 0.01;
-      this.frameCount += 1;
+      this.timer += this.clock.getDelta();
       if (this.fadingOut) {
         this.FadeOut();
       }
       if (this.fadingIn) {
         this.FadeIn();
       }
-      if (this.frameCount % 120 === 0) {
-        this.UpdateText();
+      if (this.clock.getElapsedTime() > this.lastTestUpdateTime + 5) {
+        this.GetIcecastData();
+        this.lastTestUpdateTime = this.clock.getElapsedTime();
       }
       this.UpdateAudioAnalyzer();
       this.UpdateEffects();
@@ -214,9 +218,8 @@
       }
     };
 
-    RenderController.prototype.UpdateText = function() {
-      var artistName, artistSubStringLocation, songData, songName, songSubStringLocation;
-      songData = document.getElementById('title').innerHTML;
+    RenderController.prototype.UpdateText = function(songData) {
+      var artistName, artistSubStringLocation, songName, songSubStringLocation;
       if (this.CountOccurrences(songData, ' - ') < 1) {
         artistName = 'N/A';
         songName = 'N/A';
@@ -230,11 +233,28 @@
         songName = songData.substring(songSubStringLocation + 3, songData.length);
       }
       this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height);
-      this.context1.font = '60px TelegramaRaw';
-      this.context1.fillText(artistName, 10, 10);
-      this.context1.fillText(songName, 10, 80);
+      this.context1.font = '50px TelegramaRaw';
+      this.context1.fillText(artistName, 10, this.canvas1.height * 0.9 - 50);
+      this.context1.fillText(songName, 10, this.canvas1.height * 0.98 - 50);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.GetIcecastData = function() {
+      $.ajax({
+        url: 'http://vapor.fm:8000/status-json.xsl',
+        type: 'GET',
+        success: (function(_this) {
+          return function(data) {
+            return _this.UpdateText(data.icestats.source.title);
+          };
+        })(this),
+        failure: function(status) {
+          return console.log('status: ' + status);
+        },
+        dataType: 'json',
+        timeout: 2000
+      });
     };
 
     RenderController.prototype.GetNthOccurrence = function(str, m, i) {

@@ -3,8 +3,10 @@ class @RenderController
     @visualizerElement = $('#visualizer')
     @audioInitializer = audioInitializer
 
+    @clock = new THREE.Clock
+    @clock.start()
     @timer = 0
-    @frameCount = 0
+    @lastTestUpdateTime = @clock.getElapsedTime()
 
     @renderer = new THREE.WebGLRenderer
     @renderer.setClearColor(0x07020a)
@@ -21,7 +23,7 @@ class @RenderController
 
     @hud = new THREE.Scene()
     # @hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-    @hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerWidth / 2, -2, 1000)
+    @hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000)
 
     @ambientLights = new THREE.AmbientLight(0x404040)
     @hud.add(@ambientLights)
@@ -34,11 +36,11 @@ class @RenderController
     @canvas1.width = window.innerWidth
     @canvas1.height = window.innerHeight
     @context1 = @canvas1.getContext('2d')
-    @context1.font = "60px TelegramaRaw"
+    @context1.font = "50px TelegramaRaw"
     @context1.textAlign = "left"
     @context1.textBaseline = "top"
     @context1.fillStyle = "rgba(255,255,255,0.95)"
-    @context1.fillText('Loading...', 10, 10)
+    @context1.fillText('Loading...', 10, @canvas1.height * 0.9 - 50)
 
     @texture1 = new THREE.Texture(@canvas1)
     @texture1.minFilter = THREE.LinearFilter
@@ -51,7 +53,9 @@ class @RenderController
     @mesh1.position.set(0, 0, 0)
     @hud.add(@mesh1)
 
-    @hudCamera.position.set(0,0,0)
+    @hudCamera.position.set(0,0,2)
+
+    @GetIcecastData()
 
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
 
@@ -120,13 +124,6 @@ class @RenderController
     bloomPass = new (THREE.BloomPass)(3, 12, 2.0, 512)
     @blendComposer.addPass bloomPass
 
-    @badTV = new (THREE.ShaderPass)(THREE.BadTVShader)
-    @badTV.uniforms['distortion'].value = 1.0
-    @badTV.uniforms['distortion2'].value = 1.0
-    @badTV.uniforms['speed'].value = 0.1
-    @badTV.uniforms['rollSpeed'].value = 0.0
-    @blendComposer.addPass @badTV
-
     # @rgbEffect = new (THREE.ShaderPass)(THREE.RGBShiftShader)
     # @rgbEffect.uniforms['amount'].value = 0.0015
     # @rgbEffect.uniforms['angle'].value = 0
@@ -148,6 +145,13 @@ class @RenderController
 
     @overlayComposer.addPass @hudBlendPass
 
+    @badTV = new (THREE.ShaderPass)(THREE.BadTVShader)
+    @badTV.uniforms['distortion'].value = 0.001
+    @badTV.uniforms['distortion2'].value = 0.001
+    @badTV.uniforms['speed'].value = 0.1
+    @badTV.uniforms['rollSpeed'].value = 0.0
+    @overlayComposer.addPass @badTV
+
     @crtEffect = new THREE.ShaderPass(THREE.CRTShader)
     @crtEffect.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight)
     @crtEffect.renderToScreen = true
@@ -157,14 +161,15 @@ class @RenderController
   Render: =>
     requestAnimationFrame(@Render)
 
-    @timer += 0.01
-
-    @frameCount += 1
+    @timer += @clock.getDelta()
 
     @FadeOut() if @fadingOut
     @FadeIn() if @fadingIn
 
-    @UpdateText() if @frameCount % 120 == 0
+    if @clock.getElapsedTime() > @lastTestUpdateTime + 5
+      @GetIcecastData()
+      @lastTestUpdateTime = @clock.getElapsedTime()
+
     @UpdateAudioAnalyzer()
     @UpdateEffects()
     @activeVisualizer.Update()
@@ -220,10 +225,9 @@ class @RenderController
 
     return
 
-  UpdateText: =>
+  UpdateText: (songData) =>
     #still broken if song has dash in it but not multiple artsts
     # maybe check for duplication of artist name instead and base it on that
-    songData = document.getElementById('title').innerHTML
     if (@CountOccurrences(songData, ' - ') < 1)
       artistName = 'N/A'
       songName = 'N/A'
@@ -237,12 +241,26 @@ class @RenderController
       songName = songData.substring(songSubStringLocation + 3, songData.length)
 
     @context1.clearRect(0, 0, @canvas1.width, @canvas1.height)
-    @context1.font = '60px TelegramaRaw'
-    @context1.fillText(artistName, 10, 10)
-    @context1.fillText(songName, 10, 80)
+    @context1.font = '50px TelegramaRaw'
+    @context1.fillText(artistName, 10, @canvas1.height * 0.9 - 50)
+    @context1.fillText(songName, 10, @canvas1.height * 0.98 - 50)
+
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
 
+    return
+
+  GetIcecastData: =>
+    $.ajax({
+      url: 'http://vapor.fm:8000/status-json.xsl',
+      type: 'GET',
+      success: (data) =>
+        @UpdateText(data.icestats.source.title)
+      failure: (status) ->
+        console.log('status: ' + status)
+      dataType: 'json',
+      timeout: 2000
+    })
     return
 
   GetNthOccurrence: (str, m, i) ->
