@@ -5,6 +5,9 @@
   this.RenderController = (function() {
     function RenderController(audioInitializer) {
       this.GetIcecastData = bind(this.GetIcecastData, this);
+      this.UpdateVolumeDisplay = bind(this.UpdateVolumeDisplay, this);
+      this.ClearVolumeDisplay = bind(this.ClearVolumeDisplay, this);
+      this.UpdateOverlay = bind(this.UpdateOverlay, this);
       this.UpdateText = bind(this.UpdateText, this);
       this.UpdateEffects = bind(this.UpdateEffects, this);
       this.UpdateAudioAnalyzer = bind(this.UpdateAudioAnalyzer, this);
@@ -20,7 +23,9 @@
       this.clock = new THREE.Clock;
       this.clock.start();
       this.timer = 0;
-      this.lastTestUpdateTime = this.clock.getElapsedTime();
+      this.lastIcecastUpdateTime = this.clock.getElapsedTime();
+      this.lastVolumeUpdatetime = this.clock.getElapsedTime();
+      this.lastVisualizerChangeTime = this.clock.getElapsedTime();
       this.renderer = new THREE.WebGLRenderer;
       this.renderer.setClearColor(0x07020a);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -154,15 +159,22 @@
     RenderController.prototype.Render = function() {
       requestAnimationFrame(this.Render);
       this.timer += this.clock.getDelta();
+      if (this.clock.getElapsedTime() > this.lastIcecastUpdateTime + 5) {
+        this.GetIcecastData();
+        this.lastIcecastUpdateTime = this.clock.getElapsedTime();
+      }
+      if (this.clock.getElapsedTime() > this.lastVolumeUpdateTime + 2) {
+        this.ClearVolumeDisplay();
+      }
+      if (this.clock.getElapsedTime() > this.lastVisualizerChangeTime + 60) {
+        this.FadeToNext();
+        this.lastVisualizerChangeTime = this.clock.getElapsedTime();
+      }
       if (this.fadingOut) {
         this.FadeOut();
       }
       if (this.fadingIn) {
         this.FadeIn();
-      }
-      if (this.clock.getElapsedTime() > this.lastTestUpdateTime + 5) {
-        this.GetIcecastData();
-        this.lastTestUpdateTime = this.clock.getElapsedTime();
       }
       this.UpdateAudioAnalyzer();
       this.UpdateEffects();
@@ -219,25 +231,65 @@
     };
 
     RenderController.prototype.UpdateText = function(songData) {
-      var artistName, artistSubStringLocation, songName, songSubStringLocation;
+      var artistSubStringLocation, songSubStringLocation;
       if (this.CountOccurrences(songData, ' - ') < 1) {
-        artistName = 'N/A';
-        songName = 'N/A';
+        this.artistName = 'N/A';
+        this.songName = 'N/A';
       } else if (this.CountOccurrences(songData, ' - ') === 1) {
-        artistName = songData.split(' - ')[0];
-        songName = songData.split(' - ')[1];
+        this.artistName = songData.split(' - ')[0];
+        this.songName = songData.split(' - ')[1];
       } else {
         artistSubStringLocation = this.GetNthOccurrence(songData, ' - ', 1);
         songSubStringLocation = this.GetNthOccurrence(songData, ' - ', 2);
-        artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation);
-        songName = songData.substring(songSubStringLocation + 3, songData.length);
+        this.artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation);
+        this.songName = songData.substring(songSubStringLocation + 3, songData.length);
       }
-      this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height);
+      this.UpdateOverlay();
+    };
+
+    RenderController.prototype.UpdateOverlay = function() {
+      this.context1.clearRect(0, this.canvas1.height / 2, this.canvas1.width, this.canvas1.height / 2);
       this.context1.font = '50px TelegramaRaw';
-      this.context1.fillText(artistName, 10, this.canvas1.height * 0.9 - 50);
-      this.context1.fillText(songName, 10, this.canvas1.height * 0.98 - 50);
+      this.context1.fillStyle = 'white';
+      this.context1.fillText(this.artistName, 10, this.canvas1.height * 0.9 - 50);
+      this.context1.fillText(this.songName, 10, this.canvas1.height * 0.98 - 50);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.ClearVolumeDisplay = function() {
+      this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height / 2);
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.UpdateVolumeDisplay = function(filledBarAmount) {
+      var i, rectangleStartX, rectangleStartY, volumeBarHeight, volumeBarWidth, xOffset;
+      this.ClearVolumeDisplay();
+      filledBarAmount = Math.min(Math.round(filledBarAmount), 10);
+      rectangleStartX = 10;
+      rectangleStartY = 70;
+      volumeBarWidth = Math.round(this.canvas1.width * 0.02);
+      volumeBarHeight = Math.round(this.canvas1.height * 0.1);
+      xOffset = 0;
+      this.context1.font = '60px TelegramaRaw';
+      this.context1.fillStyle = 'green';
+      this.context1.fillText('Volume', 10, 0);
+      i = 0;
+      while (i < filledBarAmount) {
+        this.context1.fillRect(rectangleStartX + xOffset + i * volumeBarWidth, rectangleStartY, volumeBarWidth, volumeBarHeight);
+        xOffset += volumeBarWidth * 0.5;
+        i += 1;
+      }
+      i = filledBarAmount;
+      while (i < 10) {
+        this.context1.fillRect(rectangleStartX + xOffset + i * volumeBarWidth, rectangleStartY + volumeBarHeight * 0.5 - volumeBarHeight * 0.1, volumeBarWidth, volumeBarHeight * 0.1);
+        xOffset += volumeBarWidth * 0.5;
+        i += 1;
+      }
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+      this.lastVolumeUpdateTime = this.clock.getElapsedTime();
     };
 
     RenderController.prototype.GetIcecastData = function() {

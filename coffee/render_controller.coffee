@@ -6,7 +6,9 @@ class @RenderController
     @clock = new THREE.Clock
     @clock.start()
     @timer = 0
-    @lastTestUpdateTime = @clock.getElapsedTime()
+    @lastIcecastUpdateTime = @clock.getElapsedTime()
+    @lastVolumeUpdatetime = @clock.getElapsedTime()
+    @lastVisualizerChangeTime = @clock.getElapsedTime()
 
     @renderer = new THREE.WebGLRenderer
     @renderer.setClearColor(0x07020a)
@@ -163,12 +165,19 @@ class @RenderController
 
     @timer += @clock.getDelta()
 
+    if @clock.getElapsedTime() > @lastIcecastUpdateTime + 5
+      @GetIcecastData()
+      @lastIcecastUpdateTime = @clock.getElapsedTime()
+
+    if @clock.getElapsedTime() > @lastVolumeUpdateTime + 2
+      @ClearVolumeDisplay()
+
+    if @clock.getElapsedTime() > @lastVisualizerChangeTime + 60
+      @FadeToNext()
+      @lastVisualizerChangeTime = @clock.getElapsedTime()
+
     @FadeOut() if @fadingOut
     @FadeIn() if @fadingIn
-
-    if @clock.getElapsedTime() > @lastTestUpdateTime + 5
-      @GetIcecastData()
-      @lastTestUpdateTime = @clock.getElapsedTime()
 
     @UpdateAudioAnalyzer()
     @UpdateEffects()
@@ -229,24 +238,73 @@ class @RenderController
     #still broken if song has dash in it but not multiple artsts
     # maybe check for duplication of artist name instead and base it on that
     if (@CountOccurrences(songData, ' - ') < 1)
-      artistName = 'N/A'
-      songName = 'N/A'
+      @artistName = 'N/A'
+      @songName = 'N/A'
     else if (@CountOccurrences(songData, ' - ') == 1)
-      artistName = songData.split(' - ')[0]
-      songName = songData.split(' - ')[1]
+      @artistName = songData.split(' - ')[0]
+      @songName = songData.split(' - ')[1]
     else
       artistSubStringLocation = @GetNthOccurrence(songData, ' - ', 1)
       songSubStringLocation = @GetNthOccurrence(songData, ' - ', 2)
-      artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation)
-      songName = songData.substring(songSubStringLocation + 3, songData.length)
+      @artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation)
+      @songName = songData.substring(songSubStringLocation + 3, songData.length)
 
-    @context1.clearRect(0, 0, @canvas1.width, @canvas1.height)
+    @UpdateOverlay()
+    return
+
+  UpdateOverlay: =>
+    @context1.clearRect(0, @canvas1.height / 2, @canvas1.width, @canvas1.height / 2)
     @context1.font = '50px TelegramaRaw'
-    @context1.fillText(artistName, 10, @canvas1.height * 0.9 - 50)
-    @context1.fillText(songName, 10, @canvas1.height * 0.98 - 50)
+    @context1.fillStyle = 'white'
+    @context1.fillText(@artistName, 10, @canvas1.height * 0.9 - 50)
+    @context1.fillText(@songName, 10, @canvas1.height * 0.98 - 50)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
+
+    return
+
+  ClearVolumeDisplay: =>
+    @context1.clearRect(0, 0, @canvas1.width, @canvas1.height / 2)
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+
+    return
+
+  UpdateVolumeDisplay: (filledBarAmount) =>
+    @ClearVolumeDisplay()
+
+    filledBarAmount = Math.min(Math.round(filledBarAmount), 10)
+
+    rectangleStartX = 10
+    rectangleStartY = 70
+
+    volumeBarWidth = Math.round(@canvas1.width * 0.02)
+    volumeBarHeight = Math.round(@canvas1.height * 0.1)
+
+    xOffset = 0
+
+    @context1.font = '60px TelegramaRaw'
+    @context1.fillStyle = 'green'
+    @context1.fillText('Volume', 10, 0)
+
+    i = 0
+    while i < filledBarAmount
+      @context1.fillRect(rectangleStartX + xOffset + i*volumeBarWidth, rectangleStartY, volumeBarWidth, volumeBarHeight)
+      xOffset += volumeBarWidth * 0.5
+      i += 1
+
+    i = filledBarAmount
+    while i < 10
+      @context1.fillRect(rectangleStartX + xOffset + i*volumeBarWidth, rectangleStartY + volumeBarHeight * 0.5 - volumeBarHeight * 0.1, volumeBarWidth, volumeBarHeight * 0.1)
+      xOffset += volumeBarWidth * 0.5
+      i += 1
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+
+    @lastVolumeUpdateTime = @clock.getElapsedTime()
 
     return
 
