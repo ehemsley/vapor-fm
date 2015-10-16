@@ -4,6 +4,10 @@
 
   this.RenderController = (function() {
     function RenderController(audioInitializer) {
+      this.GetIcecastData = bind(this.GetIcecastData, this);
+      this.UpdateVolumeDisplay = bind(this.UpdateVolumeDisplay, this);
+      this.ClearVolumeDisplay = bind(this.ClearVolumeDisplay, this);
+      this.UpdateOverlay = bind(this.UpdateOverlay, this);
       this.UpdateText = bind(this.UpdateText, this);
       this.UpdateEffects = bind(this.UpdateEffects, this);
       this.UpdateAudioAnalyzer = bind(this.UpdateAudioAnalyzer, this);
@@ -16,8 +20,12 @@
       this.FadeToNext = bind(this.FadeToNext, this);
       this.visualizerElement = $('#visualizer');
       this.audioInitializer = audioInitializer;
+      this.clock = new THREE.Clock;
+      this.clock.start();
       this.timer = 0;
-      this.frameCount = 0;
+      this.lastIcecastUpdateTime = this.clock.getElapsedTime();
+      this.lastVolumeUpdatetime = this.clock.getElapsedTime();
+      this.lastVisualizerChangeTime = this.clock.getElapsedTime();
       this.renderer = new THREE.WebGLRenderer;
       this.renderer.setClearColor(0x07020a);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -29,43 +37,35 @@
       this.fadingOut = false;
       this.fadeValue = 0.0;
       this.hud = new THREE.Scene();
-      this.hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      this.hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000);
       this.ambientLights = new THREE.AmbientLight(0x404040);
       this.hud.add(this.ambientLights);
       this.pointLight = new THREE.PointLight(0xffffff, 1, 100);
       this.pointLight.position.set(10, 20, 20);
       this.hud.add(this.pointLight);
       this.canvas1 = document.createElement('canvas');
+      this.canvas1.width = window.innerWidth;
+      this.canvas1.height = window.innerHeight;
       this.context1 = this.canvas1.getContext('2d');
-      this.context1.font = "16px Courier";
+      this.context1.font = "50px TelegramaRaw";
+      this.context1.textAlign = "left";
+      this.context1.textBaseline = "top";
       this.context1.fillStyle = "rgba(255,255,255,0.95)";
-      this.context1.fillText('N/A', 0, 50);
+      this.context1.fillText('Loading...', 10, this.canvas1.height * 0.9 - 50);
       this.texture1 = new THREE.Texture(this.canvas1);
+      this.texture1.minFilter = THREE.LinearFilter;
+      this.texture1.magFilter = THREE.LinearFilter;
       this.texture1.needsUpdate = true;
       this.material1 = new THREE.MeshBasicMaterial({
         map: this.texture1,
         side: THREE.DoubleSide
       });
       this.material1.transparent = true;
-      this.mesh1 = new THREE.Mesh(new THREE.PlaneBufferGeometry(this.canvas1.width, this.canvas1.height), this.material1);
-      this.mesh1.position.set(20, -70, -80);
+      this.mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(this.canvas1.width, this.canvas1.height), this.material1);
+      this.mesh1.position.set(0, 0, 0);
       this.hud.add(this.mesh1);
-      this.canvas2 = document.createElement('canvas');
-      this.context2 = this.canvas2.getContext('2d');
-      this.context2.font = '16px Courier';
-      this.context2.fillStyle = 'rgba(255,255,255,0.95)';
-      this.context2.fillText('N/A', 0, 50);
-      this.texture2 = new THREE.Texture(this.canvas2);
-      this.texture2.needsUpdate = true;
-      this.material2 = new THREE.MeshBasicMaterial({
-        map: this.texture2,
-        side: THREE.DoubleSide
-      });
-      this.material2.transparent = true;
-      this.mesh2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(this.canvas2.width, this.canvas2.height), this.material2);
-      this.mesh2.position.set(20, -95, -80);
-      this.hud.add(this.mesh2);
-      this.hudCamera.position.set(0, 0, 20);
+      this.hudCamera.position.set(0, 0, 2);
+      this.GetIcecastData();
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
     }
 
@@ -132,12 +132,6 @@
       this.blendComposer.addPass(this.blendPass);
       bloomPass = new THREE.BloomPass(3, 12, 2.0, 512);
       this.blendComposer.addPass(bloomPass);
-      this.badTV = new THREE.ShaderPass(THREE.BadTVShader);
-      this.badTV.uniforms['distortion'].value = 1.0;
-      this.badTV.uniforms['distortion2'].value = 1.0;
-      this.badTV.uniforms['speed'].value = 0.1;
-      this.badTV.uniforms['rollSpeed'].value = 0.0;
-      this.blendComposer.addPass(this.badTV);
       this.fade = new THREE.ShaderPass(THREE.FadeToBlackShader);
       this.fade.uniforms['fade'].value = this.fadeValue;
       this.blendComposer.addPass(this.fade);
@@ -150,6 +144,12 @@
       this.hudBlendPass.uniforms['tAdd'].value = this.hudComposer.renderTarget2;
       this.hudBlendPass.uniforms['amount'].value = 1.0;
       this.overlayComposer.addPass(this.hudBlendPass);
+      this.badTV = new THREE.ShaderPass(THREE.BadTVShader);
+      this.badTV.uniforms['distortion'].value = 0.001;
+      this.badTV.uniforms['distortion2'].value = 0.001;
+      this.badTV.uniforms['speed'].value = 0.1;
+      this.badTV.uniforms['rollSpeed'].value = 0.0;
+      this.overlayComposer.addPass(this.badTV);
       this.crtEffect = new THREE.ShaderPass(THREE.CRTShader);
       this.crtEffect.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight);
       this.crtEffect.renderToScreen = true;
@@ -158,16 +158,23 @@
 
     RenderController.prototype.Render = function() {
       requestAnimationFrame(this.Render);
-      this.timer += 0.01;
-      this.frameCount += 1;
+      this.timer += this.clock.getDelta();
+      if (this.clock.getElapsedTime() > this.lastIcecastUpdateTime + 5) {
+        this.GetIcecastData();
+        this.lastIcecastUpdateTime = this.clock.getElapsedTime();
+      }
+      if (this.clock.getElapsedTime() > this.lastVolumeUpdateTime + 2) {
+        this.ClearVolumeDisplay();
+      }
+      if (this.clock.getElapsedTime() > this.lastVisualizerChangeTime + 60) {
+        this.FadeToNext();
+        this.lastVisualizerChangeTime = this.clock.getElapsedTime();
+      }
       if (this.fadingOut) {
         this.FadeOut();
       }
       if (this.fadingIn) {
         this.FadeIn();
-      }
-      if (this.frameCount % 120 === 0) {
-        this.UpdateText();
       }
       this.UpdateAudioAnalyzer();
       this.UpdateEffects();
@@ -180,12 +187,12 @@
     };
 
     RenderController.prototype.OnResize = function() {
-      var i, len, ref, renderH, renderW, visualizer;
+      var j, len, ref, renderH, renderW, visualizer;
       renderW = window.innerWidth;
       renderH = window.innerHeight;
       ref = this.visualizers;
-      for (i = 0, len = ref.length; i < len; i++) {
-        visualizer = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        visualizer = ref[j];
         visualizer.camera.aspect = renderW / renderH;
         visualizer.camera.updateProjectionMatrix();
       }
@@ -212,8 +219,8 @@
             this.badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? -1 : 1) * this.audioInitializer.GetAverageVolume(this.audioInitializer.frequencyData) / 5000;
           }
         } else {
-          this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 0);
-          this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 0);
+          this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 0.001);
+          this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 0.001);
           if (this.badTV.uniforms['rollSpeed'].value > 0) {
             this.badTV.uniforms['rollSpeed'].value = Math.max(this.badTV.uniforms['rollSpeed'].value - 0.001, 0);
           } else {
@@ -223,15 +230,93 @@
       }
     };
 
-    RenderController.prototype.UpdateText = function() {
-      this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height);
-      this.context1.fillText(document.getElementById('title').innerHTML.split(' - ')[0], 0, 50);
+    RenderController.prototype.UpdateText = function(songData) {
+      var artistSubStringLocation, songSubStringLocation;
+      if (this.CountOccurrences(songData, ' - ') < 1) {
+        this.artistName = 'N/A';
+        this.songName = 'N/A';
+      } else if (this.CountOccurrences(songData, ' - ') === 1) {
+        this.artistName = songData.split(' - ')[0];
+        this.songName = songData.split(' - ')[1];
+      } else {
+        artistSubStringLocation = this.GetNthOccurrence(songData, ' - ', 1);
+        songSubStringLocation = this.GetNthOccurrence(songData, ' - ', 2);
+        this.artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation);
+        this.songName = songData.substring(songSubStringLocation + 3, songData.length);
+      }
+      this.UpdateOverlay();
+    };
+
+    RenderController.prototype.UpdateOverlay = function() {
+      this.context1.clearRect(0, this.canvas1.height / 2, this.canvas1.width, this.canvas1.height / 2);
+      this.context1.font = '50px TelegramaRaw';
+      this.context1.fillStyle = 'white';
+      this.context1.fillText(this.artistName, 10, this.canvas1.height * 0.9 - 50);
+      this.context1.fillText(this.songName, 10, this.canvas1.height * 0.98 - 50);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
-      this.context2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
-      this.context2.fillText(document.getElementById('title').innerHTML.split(' - ')[1], 0, 50);
-      this.mesh2.material.map.needsUpdate = true;
-      this.mesh2.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.ClearVolumeDisplay = function() {
+      this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height / 2);
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.UpdateVolumeDisplay = function(filledBarAmount) {
+      var i, rectangleStartX, rectangleStartY, volumeBarHeight, volumeBarWidth, xOffset;
+      this.ClearVolumeDisplay();
+      filledBarAmount = Math.min(Math.round(filledBarAmount), 10);
+      rectangleStartX = 10;
+      rectangleStartY = 70;
+      volumeBarWidth = Math.round(this.canvas1.width * 0.02);
+      volumeBarHeight = Math.round(this.canvas1.height * 0.1);
+      xOffset = 0;
+      this.context1.font = '60px TelegramaRaw';
+      this.context1.fillStyle = 'green';
+      this.context1.fillText('Volume', 10, 0);
+      i = 0;
+      while (i < filledBarAmount) {
+        this.context1.fillRect(rectangleStartX + xOffset + i * volumeBarWidth, rectangleStartY, volumeBarWidth, volumeBarHeight);
+        xOffset += volumeBarWidth * 0.5;
+        i += 1;
+      }
+      i = filledBarAmount;
+      while (i < 10) {
+        this.context1.fillRect(rectangleStartX + xOffset + i * volumeBarWidth, rectangleStartY + volumeBarHeight * 0.5 - volumeBarHeight * 0.1, volumeBarWidth, volumeBarHeight * 0.1);
+        xOffset += volumeBarWidth * 0.5;
+        i += 1;
+      }
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+      this.lastVolumeUpdateTime = this.clock.getElapsedTime();
+    };
+
+    RenderController.prototype.GetIcecastData = function() {
+      $.ajax({
+        url: 'http://vapor.fm:8000/status-json.xsl',
+        type: 'GET',
+        success: (function(_this) {
+          return function(data) {
+            return _this.UpdateText(data.icestats.source.title);
+          };
+        })(this),
+        failure: function(status) {
+          return console.log('status: ' + status);
+        },
+        dataType: 'json',
+        timeout: 2000
+      });
+    };
+
+    RenderController.prototype.GetNthOccurrence = function(str, m, i) {
+      return str.split(m, i).join(m).length;
+    };
+
+    RenderController.prototype.CountOccurrences = function(str, value) {
+      var regExp;
+      regExp = new RegExp(value, "gi");
+      return (str.match(regExp) || []).length;
     };
 
     return RenderController;

@@ -21,7 +21,7 @@ class @Visualizer
 
     @beatDistortionEffect = true
 
-    @camera.position.z = 5
+    @camera.position.z = 6
     return
 
   Cube: ->

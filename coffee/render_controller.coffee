@@ -3,8 +3,12 @@ class @RenderController
     @visualizerElement = $('#visualizer')
     @audioInitializer = audioInitializer
 
+    @clock = new THREE.Clock
+    @clock.start()
     @timer = 0
-    @frameCount = 0
+    @lastIcecastUpdateTime = @clock.getElapsedTime()
+    @lastVolumeUpdatetime = @clock.getElapsedTime()
+    @lastVisualizerChangeTime = @clock.getElapsedTime()
 
     @renderer = new THREE.WebGLRenderer
     @renderer.setClearColor(0x07020a)
@@ -20,7 +24,8 @@ class @RenderController
     @fadeValue = 0.0
 
     @hud = new THREE.Scene()
-    @hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+    # @hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+    @hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000)
 
     @ambientLights = new THREE.AmbientLight(0x404040)
     @hud.add(@ambientLights)
@@ -30,34 +35,29 @@ class @RenderController
     @hud.add(@pointLight)
 
     @canvas1 = document.createElement('canvas')
+    @canvas1.width = window.innerWidth
+    @canvas1.height = window.innerHeight
     @context1 = @canvas1.getContext('2d')
-    @context1.font = "16px Courier"
+    @context1.font = "50px TelegramaRaw"
+    @context1.textAlign = "left"
+    @context1.textBaseline = "top"
     @context1.fillStyle = "rgba(255,255,255,0.95)"
-    @context1.fillText('N/A', 0, 50)
+    @context1.fillText('Loading...', 10, @canvas1.height * 0.9 - 50)
 
     @texture1 = new THREE.Texture(@canvas1)
+    @texture1.minFilter = THREE.LinearFilter
+    @texture1.magFilter = THREE.LinearFilter
     @texture1.needsUpdate = true
     @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide })
     @material1.transparent = true
-    @mesh1 = new THREE.Mesh(new THREE.PlaneBufferGeometry(@canvas1.width, @canvas1.height), @material1)
-    @mesh1.position.set(20,-70,-80)
+    @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(@canvas1.width, @canvas1.height), @material1)
+    # @mesh1.position.set(10,-window.innerHeight,0)
+    @mesh1.position.set(0, 0, 0)
     @hud.add(@mesh1)
 
-    @canvas2 = document.createElement('canvas')
-    @context2 = @canvas2.getContext('2d')
-    @context2.font = '16px Courier'
-    @context2.fillStyle = 'rgba(255,255,255,0.95)'
-    @context2.fillText('N/A', 0, 50)
+    @hudCamera.position.set(0,0,2)
 
-    @texture2 = new THREE.Texture(@canvas2)
-    @texture2.needsUpdate = true
-    @material2 = new THREE.MeshBasicMaterial({map: @texture2, side: THREE.DoubleSide })
-    @material2.transparent = true
-    @mesh2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(@canvas2.width, @canvas2.height), @material2)
-    @mesh2.position.set(20,-95,-80)
-    @hud.add(@mesh2)
-
-    @hudCamera.position.set(0,0,20)
+    @GetIcecastData()
 
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
 
@@ -126,13 +126,6 @@ class @RenderController
     bloomPass = new (THREE.BloomPass)(3, 12, 2.0, 512)
     @blendComposer.addPass bloomPass
 
-    @badTV = new (THREE.ShaderPass)(THREE.BadTVShader)
-    @badTV.uniforms['distortion'].value = 1.0
-    @badTV.uniforms['distortion2'].value = 1.0
-    @badTV.uniforms['speed'].value = 0.1
-    @badTV.uniforms['rollSpeed'].value = 0.0
-    @blendComposer.addPass @badTV
-
     # @rgbEffect = new (THREE.ShaderPass)(THREE.RGBShiftShader)
     # @rgbEffect.uniforms['amount'].value = 0.0015
     # @rgbEffect.uniforms['angle'].value = 0
@@ -154,6 +147,13 @@ class @RenderController
 
     @overlayComposer.addPass @hudBlendPass
 
+    @badTV = new (THREE.ShaderPass)(THREE.BadTVShader)
+    @badTV.uniforms['distortion'].value = 0.001
+    @badTV.uniforms['distortion2'].value = 0.001
+    @badTV.uniforms['speed'].value = 0.1
+    @badTV.uniforms['rollSpeed'].value = 0.0
+    @overlayComposer.addPass @badTV
+
     @crtEffect = new THREE.ShaderPass(THREE.CRTShader)
     @crtEffect.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight)
     @crtEffect.renderToScreen = true
@@ -163,14 +163,22 @@ class @RenderController
   Render: =>
     requestAnimationFrame(@Render)
 
-    @timer += 0.01
+    @timer += @clock.getDelta()
 
-    @frameCount += 1
+    if @clock.getElapsedTime() > @lastIcecastUpdateTime + 5
+      @GetIcecastData()
+      @lastIcecastUpdateTime = @clock.getElapsedTime()
+
+    if @clock.getElapsedTime() > @lastVolumeUpdateTime + 2
+      @ClearVolumeDisplay()
+
+    if @clock.getElapsedTime() > @lastVisualizerChangeTime + 60
+      @FadeToNext()
+      @lastVisualizerChangeTime = @clock.getElapsedTime()
 
     @FadeOut() if @fadingOut
     @FadeIn() if @fadingIn
 
-    @UpdateText() if @frameCount % 120 == 0
     @UpdateAudioAnalyzer()
     @UpdateEffects()
     @activeVisualizer.Update()
@@ -217,8 +225,8 @@ class @RenderController
         if Math.random() < 0.05
           @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then -1 else 1) * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
       else
-        @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0)
-        @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0)
+        @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0.001)
+        @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0.001)
         if @badTV.uniforms['rollSpeed'].value > 0
           @badTV.uniforms['rollSpeed'].value = Math.max(@badTV.uniforms['rollSpeed'].value - 0.001, 0)
         else
@@ -226,15 +234,96 @@ class @RenderController
 
     return
 
-  UpdateText: =>
-    @context1.clearRect(0, 0, @canvas1.width, @canvas1.height)
-    @context1.fillText(document.getElementById('title').innerHTML.split(' - ')[0], 0, 50)
+  UpdateText: (songData) =>
+    #still broken if song has dash in it but not multiple artsts
+    # maybe check for duplication of artist name instead and base it on that
+    if (@CountOccurrences(songData, ' - ') < 1)
+      @artistName = 'N/A'
+      @songName = 'N/A'
+    else if (@CountOccurrences(songData, ' - ') == 1)
+      @artistName = songData.split(' - ')[0]
+      @songName = songData.split(' - ')[1]
+    else
+      artistSubStringLocation = @GetNthOccurrence(songData, ' - ', 1)
+      songSubStringLocation = @GetNthOccurrence(songData, ' - ', 2)
+      @artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation)
+      @songName = songData.substring(songSubStringLocation + 3, songData.length)
+
+    @UpdateOverlay()
+    return
+
+  UpdateOverlay: =>
+    @context1.clearRect(0, @canvas1.height / 2, @canvas1.width, @canvas1.height / 2)
+    @context1.font = '50px TelegramaRaw'
+    @context1.fillStyle = 'white'
+    @context1.fillText(@artistName, 10, @canvas1.height * 0.9 - 50)
+    @context1.fillText(@songName, 10, @canvas1.height * 0.98 - 50)
+
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
 
-    @context2.clearRect(0, 0, @canvas2.width, @canvas2.height)
-    @context2.fillText(document.getElementById('title').innerHTML.split(' - ')[1], 0, 50)
-    @mesh2.material.map.needsUpdate = true
-    @mesh2.material.needsUpdate = true
+    return
+
+  ClearVolumeDisplay: =>
+    @context1.clearRect(0, 0, @canvas1.width, @canvas1.height / 2)
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
 
     return
+
+  UpdateVolumeDisplay: (filledBarAmount) =>
+    @ClearVolumeDisplay()
+
+    filledBarAmount = Math.min(Math.round(filledBarAmount), 10)
+
+    rectangleStartX = 10
+    rectangleStartY = 70
+
+    volumeBarWidth = Math.round(@canvas1.width * 0.02)
+    volumeBarHeight = Math.round(@canvas1.height * 0.1)
+
+    xOffset = 0
+
+    @context1.font = '60px TelegramaRaw'
+    @context1.fillStyle = 'green'
+    @context1.fillText('Volume', 10, 0)
+
+    i = 0
+    while i < filledBarAmount
+      @context1.fillRect(rectangleStartX + xOffset + i*volumeBarWidth, rectangleStartY, volumeBarWidth, volumeBarHeight)
+      xOffset += volumeBarWidth * 0.5
+      i += 1
+
+    i = filledBarAmount
+    while i < 10
+      @context1.fillRect(rectangleStartX + xOffset + i*volumeBarWidth, rectangleStartY + volumeBarHeight * 0.5 - volumeBarHeight * 0.1, volumeBarWidth, volumeBarHeight * 0.1)
+      xOffset += volumeBarWidth * 0.5
+      i += 1
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+
+    @lastVolumeUpdateTime = @clock.getElapsedTime()
+
+    return
+
+  GetIcecastData: =>
+    $.ajax({
+      url: 'http://vapor.fm:8000/status-json.xsl',
+      type: 'GET',
+      success: (data) =>
+        @UpdateText(data.icestats.source.title)
+      failure: (status) ->
+        console.log('status: ' + status)
+      dataType: 'json',
+      timeout: 2000
+    })
+    return
+
+  GetNthOccurrence: (str, m, i) ->
+    return str.split(m, i).join(m).length
+
+  CountOccurrences: (str, value) ->
+    regExp = new RegExp(value, "gi")
+    return (str.match(regExp) || []).length
