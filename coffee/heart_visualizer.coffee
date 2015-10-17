@@ -14,7 +14,7 @@ class @HeartVisualizer
     @pointLight.position.set(10, 20, 20)
     @scene.add(@pointLight)
 
-    @Hearts(80)
+    @Hearts(40)
 
     @beatDistortionEffect = false
 

@@ -14,7 +14,7 @@
       this.pointLight = new THREE.PointLight(0xffffff, 1, 100);
       this.pointLight.position.set(10, 20, 20);
       this.scene.add(this.pointLight);
-      this.Hearts(80);
+      this.Hearts(40);
       this.beatDistortionEffect = false;
       this.camera.position.z = 20;
       return;

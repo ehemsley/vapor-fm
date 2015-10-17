@@ -10,8 +10,8 @@ class @RenderController
     @lastVolumeUpdatetime = @clock.getElapsedTime()
     @lastVisualizerChangeTime = @clock.getElapsedTime()
 
-    @renderer = new THREE.WebGLRenderer
-    @renderer.setClearColor(0x07020a)
+    @renderer = new THREE.WebGLRenderer( {alpha: true });
+    @renderer.setClearColor(0x000000, 0)
     @renderer.setSize(window.innerWidth, window.innerHeight)
     @visualizerElement.append(@renderer.domElement)
 
@@ -48,8 +48,7 @@ class @RenderController
     @texture1.minFilter = THREE.LinearFilter
     @texture1.magFilter = THREE.LinearFilter
     @texture1.needsUpdate = true
-    @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide })
-    @material1.transparent = true
+    @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide, transparent: true, opacity: 1.0})
     @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(@canvas1.width, @canvas1.height), @material1)
     # @mesh1.position.set(10,-window.innerHeight,0)
     @mesh1.position.set(0, 0, 0)
@@ -140,10 +139,9 @@ class @RenderController
     @hudComposer.addPass hudPass
 
     @overlayComposer = new (THREE.EffectComposer)(@renderer)
-    @hudBlendPass = new (THREE.ShaderPass)(THREE.AdditiveBlendShader)
-    @hudBlendPass.uniforms['tBase'].value = @blendComposer.renderTarget1
-    @hudBlendPass.uniforms['tAdd'].value = @hudComposer.renderTarget2
-    @hudBlendPass.uniforms['amount'].value = 1.0
+    @hudBlendPass = new (THREE.ShaderPass)(THREE.DestOverlayBlendShader)
+    @hudBlendPass.uniforms['tSource'].value = @blendComposer.renderTarget1
+    @hudBlendPass.uniforms['tDest'].value = @hudComposer.renderTarget2
 
     @overlayComposer.addPass @hudBlendPass
 

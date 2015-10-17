@@ -26,8 +26,10 @@
       this.lastIcecastUpdateTime = this.clock.getElapsedTime();
       this.lastVolumeUpdatetime = this.clock.getElapsedTime();
       this.lastVisualizerChangeTime = this.clock.getElapsedTime();
-      this.renderer = new THREE.WebGLRenderer;
-      this.renderer.setClearColor(0x07020a);
+      this.renderer = new THREE.WebGLRenderer({
+        alpha: true
+      });
+      this.renderer.setClearColor(0x000000, 0);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.visualizerElement.append(this.renderer.domElement);
       this.visualizers = [new Visualizer(this.audioInitializer), new HeartVisualizer(this.audioInitializer)];
@@ -58,9 +60,10 @@
       this.texture1.needsUpdate = true;
       this.material1 = new THREE.MeshBasicMaterial({
         map: this.texture1,
-        side: THREE.DoubleSide
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 1.0
       });
-      this.material1.transparent = true;
       this.mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(this.canvas1.width, this.canvas1.height), this.material1);
       this.mesh1.position.set(0, 0, 0);
       this.hud.add(this.mesh1);
@@ -139,10 +142,9 @@
       this.hudComposer = new THREE.EffectComposer(this.renderer, renderTargetHud);
       this.hudComposer.addPass(hudPass);
       this.overlayComposer = new THREE.EffectComposer(this.renderer);
-      this.hudBlendPass = new THREE.ShaderPass(THREE.AdditiveBlendShader);
-      this.hudBlendPass.uniforms['tBase'].value = this.blendComposer.renderTarget1;
-      this.hudBlendPass.uniforms['tAdd'].value = this.hudComposer.renderTarget2;
-      this.hudBlendPass.uniforms['amount'].value = 1.0;
+      this.hudBlendPass = new THREE.ShaderPass(THREE.DestOverlayBlendShader);
+      this.hudBlendPass.uniforms['tSource'].value = this.blendComposer.renderTarget1;
+      this.hudBlendPass.uniforms['tDest'].value = this.hudComposer.renderTarget2;
       this.overlayComposer.addPass(this.hudBlendPass);
       this.badTV = new THREE.ShaderPass(THREE.BadTVShader);
       this.badTV.uniforms['distortion'].value = 0.001;
