@@ -18,7 +18,7 @@
       this.AddCanPlayListener();
       this.loaded = false;
       this.loading = true;
-      setTimeout(this.CheckLoaded, 8000);
+      this.loadCheckTimeout = setTimeout(this.CheckLoaded, 8000);
     }
 
     AudioInitializer.prototype.GetAverageVolume = function(array) {
@@ -35,6 +35,7 @@
     };
 
     AudioInitializer.prototype.StopAndUnloadAudio = function() {
+      clearTimeout(this.loadCheckTimeout);
       this.audioElement.pause();
       this.originalSrc = this.audioElement.src;
       this.audioElement.src = 'about:blank';
@@ -51,6 +52,7 @@
     AudioInitializer.prototype.LoadAndPlayAudio = function() {
       this.loading = true;
       this.audioElement.load();
+      clearTimeout(this.loadCheckTimeout);
       setTimeout(this.CheckLoaded, 8000);
     };
 
@@ -64,7 +66,7 @@
     AudioInitializer.prototype.AddCanPlayListener = function() {
       var audioLoaded;
       audioLoaded = new Event('audioLoaded');
-      return this.audioElement.addEventListener('canplay', (function(_this) {
+      this.audioElement.addEventListener('canplay', (function(_this) {
         return function() {
           var sampleRate, source;
           window.dispatchEvent(audioLoaded);

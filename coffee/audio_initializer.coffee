@@ -12,7 +12,7 @@ class @AudioInitializer
     @loaded = false
     @loading = true
 
-    setTimeout @CheckLoaded, 8000
+    @loadCheckTimeout = setTimeout @CheckLoaded, 8000
 
   GetAverageVolume: (array) =>
     values = 0
@@ -27,6 +27,8 @@ class @AudioInitializer
   #have to do a lot of dumb shit because html5 doesnt
   #define a mechanism to stop buffering an element LOL
   StopAndUnloadAudio: =>
+    clearTimeout @loadCheckTimeout
+
     @audioElement.pause()
     @originalSrc = @audioElement.src
     @audioElement.src = 'about:blank'
@@ -46,6 +48,7 @@ class @AudioInitializer
   LoadAndPlayAudio: =>
     @loading = true
     @audioElement.load()
+    clearTimeout @loadCheckTimeout
     setTimeout @CheckLoaded, 8000
 
     return
@@ -72,3 +75,5 @@ class @AudioInitializer
       @beatdetect.setSensitivity(500)
       @audioElement.play()
       return
+
+    return

@@ -11,6 +11,9 @@ class @RenderController
     @lastIcecastUpdateTime = @clock.getElapsedTime()
     @lastVolumeUpdatetime = @clock.getElapsedTime()
     @lastVisualizerChangeTime = @clock.getElapsedTime()
+    @lastPlayStatusToggleTime = 0
+
+    @playStatusTimerRunning = false
 
     @renderer = new THREE.WebGLRenderer( {alpha: true })
     @renderer.setClearColor(0x000000, 0)
@@ -179,14 +182,19 @@ class @RenderController
       @FadeToNext()
       @lastVisualizerChangeTime = @clock.getElapsedTime()
 
+    if @playStatusTimerRunning
+      if @clock.getElapsedTime() > @lastPlayStatusToggleTime + 4
+        @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+        @playStatusTimerRunning = false
+
     @FadeOut() if @fadingOut
     @FadeIn() if @fadingIn
 
     if @paused
       @vhsPause.uniforms['time'].value = @clock.getElapsedTime()
       if @audioInitializer.loading
-        @ClearSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
-        @UpdateSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+        @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+        @DrawSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
     else
       deltaTime = @clock.getDelta()
       @timer += deltaTime
@@ -281,7 +289,7 @@ class @RenderController
 
     return
 
-  ClearSpinner: (startX, startY, width, height) =>
+  ClearCanvasArea: (startX, startY, width, height) =>
     @context1.clearRect(startX, startY, width, height)
 
     @mesh1.material.map.needsUpdate = true
@@ -289,7 +297,7 @@ class @RenderController
 
     return
 
-  UpdateSpinner: (startX, startY, width, height) =>
+  DrawSpinner: (startX, startY, width, height) =>
     lines = 16
     rotation = parseInt(@clock.getElapsedTime() * lines) / lines
     @context1.save()
@@ -303,6 +311,33 @@ class @RenderController
       @context1.lineWidth = Math.min(width, height) / 30
       @context1.strokeStyle = "rgba(255,255,255," + i / lines + ")"
       @context1.stroke()
+    @context1.restore()
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+    return
+
+  DrawPlayIcon: (startX, startY, width, height) =>
+    @context1.save()
+    @context1.beginPath()
+    @context1.translate(startX + width * 0.5, startY + height * 0.5)
+    @context1.moveTo(width * 0.2, 0)
+    @context1.lineTo(-width * 0.05, Math.min(width, height) * 0.25)
+    @context1.lineTo(-width * 0.05, -Math.min(width, height) * 0.25)
+    @context1.fill()
+    @context1.restore()
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+
+    return
+
+  DrawPauseIcon: (startX, startY, width, height) =>
+    @context1.save()
+    @context1.beginPath()
+    @context1.translate(startX + width * 0.5, startY + height * 0.5)
+    @context1.fillRect(-width * 0.1, -height * 0.2, width * 0.1, height * 0.4)
+    @context1.fillRect(width * 0.1, -height * 0.2, width * 0.1, height * 0.4)
     @context1.restore()
 
     @mesh1.material.map.needsUpdate = true
@@ -376,9 +411,21 @@ class @RenderController
   Pause: =>
     @paused = true
     @vhsPause.uniforms['amount'].value = 1.0
+    @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+    @DrawPauseIcon(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+    @lastPlayStatusToggleTime = @clock.getElapsedTime()
+    @playStatusTimerRunning = true
+
+    return
 
   AudioLoadedHandler: =>
     @paused = false
     @vhsPause.uniforms['amount'].value = 0.0
-    @ClearSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+    @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+    @DrawPlayIcon(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+    @lastPlayStatusToggleTime = @clock.getElapsedTime()
+    @playStatusTimerRunning = true
+
     @GetIcecastData()
+
+    return

@@ -9,8 +9,10 @@
       this.GetIcecastData = bind(this.GetIcecastData, this);
       this.UpdateVolumeDisplay = bind(this.UpdateVolumeDisplay, this);
       this.ClearVolumeDisplay = bind(this.ClearVolumeDisplay, this);
-      this.UpdateSpinner = bind(this.UpdateSpinner, this);
-      this.ClearSpinner = bind(this.ClearSpinner, this);
+      this.DrawPauseIcon = bind(this.DrawPauseIcon, this);
+      this.DrawPlayIcon = bind(this.DrawPlayIcon, this);
+      this.DrawSpinner = bind(this.DrawSpinner, this);
+      this.ClearCanvasArea = bind(this.ClearCanvasArea, this);
       this.UpdateOverlay = bind(this.UpdateOverlay, this);
       this.UpdateText = bind(this.UpdateText, this);
       this.UpdateEffects = bind(this.UpdateEffects, this);
@@ -32,6 +34,8 @@
       this.lastIcecastUpdateTime = this.clock.getElapsedTime();
       this.lastVolumeUpdatetime = this.clock.getElapsedTime();
       this.lastVisualizerChangeTime = this.clock.getElapsedTime();
+      this.lastPlayStatusToggleTime = 0;
+      this.playStatusTimerRunning = false;
       this.renderer = new THREE.WebGLRenderer({
         alpha: true
       });
@@ -187,6 +191,12 @@
         this.FadeToNext();
         this.lastVisualizerChangeTime = this.clock.getElapsedTime();
       }
+      if (this.playStatusTimerRunning) {
+        if (this.clock.getElapsedTime() > this.lastPlayStatusToggleTime + 4) {
+          this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+          this.playStatusTimerRunning = false;
+        }
+      }
       if (this.fadingOut) {
         this.FadeOut();
       }
@@ -196,8 +206,8 @@
       if (this.paused) {
         this.vhsPause.uniforms['time'].value = this.clock.getElapsedTime();
         if (this.audioInitializer.loading) {
-          this.ClearSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
-          this.UpdateSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+          this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+          this.DrawSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
         }
       } else {
         deltaTime = this.clock.getDelta();
@@ -288,13 +298,13 @@
       this.mesh1.material.needsUpdate = true;
     };
 
-    RenderController.prototype.ClearSpinner = function(startX, startY, width, height) {
+    RenderController.prototype.ClearCanvasArea = function(startX, startY, width, height) {
       this.context1.clearRect(startX, startY, width, height);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
     };
 
-    RenderController.prototype.UpdateSpinner = function(startX, startY, width, height) {
+    RenderController.prototype.DrawSpinner = function(startX, startY, width, height) {
       var i, j, lines, ref, rotation;
       lines = 16;
       rotation = parseInt(this.clock.getElapsedTime() * lines) / lines;
@@ -310,6 +320,30 @@
         this.context1.strokeStyle = "rgba(255,255,255," + i / lines + ")";
         this.context1.stroke();
       }
+      this.context1.restore();
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.DrawPlayIcon = function(startX, startY, width, height) {
+      this.context1.save();
+      this.context1.beginPath();
+      this.context1.translate(startX + width * 0.5, startY + height * 0.5);
+      this.context1.moveTo(width * 0.2, 0);
+      this.context1.lineTo(-width * 0.05, Math.min(width, height) * 0.25);
+      this.context1.lineTo(-width * 0.05, -Math.min(width, height) * 0.25);
+      this.context1.fill();
+      this.context1.restore();
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.DrawPauseIcon = function(startX, startY, width, height) {
+      this.context1.save();
+      this.context1.beginPath();
+      this.context1.translate(startX + width * 0.5, startY + height * 0.5);
+      this.context1.fillRect(-width * 0.1, -height * 0.2, width * 0.1, height * 0.4);
+      this.context1.fillRect(width * 0.1, -height * 0.2, width * 0.1, height * 0.4);
       this.context1.restore();
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
@@ -379,14 +413,21 @@
 
     RenderController.prototype.Pause = function() {
       this.paused = true;
-      return this.vhsPause.uniforms['amount'].value = 1.0;
+      this.vhsPause.uniforms['amount'].value = 1.0;
+      this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+      this.DrawPauseIcon(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+      this.lastPlayStatusToggleTime = this.clock.getElapsedTime();
+      this.playStatusTimerRunning = true;
     };
 
     RenderController.prototype.AudioLoadedHandler = function() {
       this.paused = false;
       this.vhsPause.uniforms['amount'].value = 0.0;
-      this.ClearSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
-      return this.GetIcecastData();
+      this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+      this.DrawPlayIcon(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+      this.lastPlayStatusToggleTime = this.clock.getElapsedTime();
+      this.playStatusTimerRunning = true;
+      this.GetIcecastData();
     };
 
     return RenderController;
