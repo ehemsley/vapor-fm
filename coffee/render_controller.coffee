@@ -13,6 +13,7 @@ class @RenderController
     @lastPlayStatusToggleTime = 0
 
     @playStatusTimerRunning = false
+    @volumeDisplayActive = false
 
     @renderer = new THREE.WebGLRenderer( {alpha: true })
     @renderer.setClearColor(0x000000, 0)
@@ -140,9 +141,10 @@ class @RenderController
       @GetIcecastData() unless @paused
       @lastIcecastUpdateTime = @clock.getElapsedTime()
 
-    #clears every frame after time + 2, optimize pls
-    if @clock.getElapsedTime() > @lastVolumeUpdateTime + 2
-      @ClearVolumeDisplay()
+    if @volumeDisplayActive
+      if @clock.getElapsedTime() > @lastVolumeUpdateTime + 2
+        @ClearVolumeDisplay()
+        @volumeDisplayActive = false
 
     if @playStatusTimerRunning
       if @clock.getElapsedTime() > @lastPlayStatusToggleTime + 4
@@ -305,6 +307,7 @@ class @RenderController
     return
 
   ClearVolumeDisplay: =>
+    @volumeDisplayActive = true
     @context1.clearRect(0, 0, @canvas1.width / 2, @canvas1.height / 2)
 
     @mesh1.material.map.needsUpdate = true

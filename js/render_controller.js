@@ -32,6 +32,7 @@
       this.lastVolumeUpdatetime = this.clock.getElapsedTime();
       this.lastPlayStatusToggleTime = 0;
       this.playStatusTimerRunning = false;
+      this.volumeDisplayActive = false;
       this.renderer = new THREE.WebGLRenderer({
         alpha: true
       });
@@ -151,8 +152,11 @@
         }
         this.lastIcecastUpdateTime = this.clock.getElapsedTime();
       }
-      if (this.clock.getElapsedTime() > this.lastVolumeUpdateTime + 2) {
-        this.ClearVolumeDisplay();
+      if (this.volumeDisplayActive) {
+        if (this.clock.getElapsedTime() > this.lastVolumeUpdateTime + 2) {
+          this.ClearVolumeDisplay();
+          this.volumeDisplayActive = false;
+        }
       }
       if (this.playStatusTimerRunning) {
         if (this.clock.getElapsedTime() > this.lastPlayStatusToggleTime + 4) {
@@ -307,6 +311,7 @@
     };
 
     RenderController.prototype.ClearVolumeDisplay = function() {
+      this.volumeDisplayActive = true;
       this.context1.clearRect(0, 0, this.canvas1.width / 2, this.canvas1.height / 2);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
