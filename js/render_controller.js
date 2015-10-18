@@ -329,6 +329,7 @@
       this.context1.save();
       this.context1.beginPath();
       this.context1.translate(startX + width * 0.5, startY + height * 0.5);
+      this.context1.fillStyle = 'white';
       this.context1.moveTo(width * 0.2, 0);
       this.context1.lineTo(-width * 0.05, Math.min(width, height) * 0.25);
       this.context1.lineTo(-width * 0.05, -Math.min(width, height) * 0.25);
@@ -342,6 +343,7 @@
       this.context1.save();
       this.context1.beginPath();
       this.context1.translate(startX + width * 0.5, startY + height * 0.5);
+      this.context1.fillStyle = 'white';
       this.context1.fillRect(-width * 0.1, -height * 0.2, width * 0.1, height * 0.4);
       this.context1.fillRect(width * 0.1, -height * 0.2, width * 0.1, height * 0.4);
       this.context1.restore();

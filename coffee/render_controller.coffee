@@ -175,6 +175,7 @@ class @RenderController
       @GetIcecastData() unless @paused
       @lastIcecastUpdateTime = @clock.getElapsedTime()
 
+    #clears every frame after time + 2, optimize pls
     if @clock.getElapsedTime() > @lastVolumeUpdateTime + 2
       @ClearVolumeDisplay()
 
@@ -321,6 +322,7 @@ class @RenderController
     @context1.save()
     @context1.beginPath()
     @context1.translate(startX + width * 0.5, startY + height * 0.5)
+    @context1.fillStyle = 'white'
     @context1.moveTo(width * 0.2, 0)
     @context1.lineTo(-width * 0.05, Math.min(width, height) * 0.25)
     @context1.lineTo(-width * 0.05, -Math.min(width, height) * 0.25)
@@ -336,6 +338,7 @@ class @RenderController
     @context1.save()
     @context1.beginPath()
     @context1.translate(startX + width * 0.5, startY + height * 0.5)
+    @context1.fillStyle = 'white'
     @context1.fillRect(-width * 0.1, -height * 0.2, width * 0.1, height * 0.4)
     @context1.fillRect(width * 0.1, -height * 0.2, width * 0.1, height * 0.4)
     @context1.restore()
