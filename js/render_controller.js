@@ -21,9 +21,6 @@
       this.Render = bind(this.Render, this);
       this.RenderProcess = bind(this.RenderProcess, this);
       this.NextVisualizer = bind(this.NextVisualizer, this);
-      this.FadeIn = bind(this.FadeIn, this);
-      this.FadeOut = bind(this.FadeOut, this);
-      this.FadeToNext = bind(this.FadeToNext, this);
       var j, len, ref, visualizer;
       this.visualizerElement = $('#visualizer');
       this.audioInitializer = audioInitializer;
@@ -33,7 +30,6 @@
       this.timer = 0;
       this.lastIcecastUpdateTime = this.clock.getElapsedTime();
       this.lastVolumeUpdatetime = this.clock.getElapsedTime();
-      this.lastVisualizerChangeTime = this.clock.getElapsedTime();
       this.lastPlayStatusToggleTime = 0;
       this.playStatusTimerRunning = false;
       this.renderer = new THREE.WebGLRenderer({
@@ -50,9 +46,6 @@
         visualizer = ref[j];
         visualizer.Update();
       }
-      this.fadingIn = false;
-      this.fadingOut = false;
-      this.fadeValue = 0.0;
       this.hud = new THREE.Scene();
       this.hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000);
       this.ambientLights = new THREE.AmbientLight(0x404040);
@@ -87,34 +80,11 @@
       this.vhsPause.uniforms['amount'].value = 1.0;
     }
 
-    RenderController.prototype.FadeToNext = function() {
-      this.fadingOut = true;
-    };
-
-    RenderController.prototype.FadeOut = function() {
-      if (this.fadeValue === 1.0) {
-        this.fadingOut = false;
-        this.NextVisualizer();
-        this.fadingIn = true;
-      } else {
-        this.fadeValue = Math.min(this.fadeValue + 0.01, 1.0);
-      }
-      this.fade.uniforms['fade'].value = this.fadeValue;
-    };
-
-    RenderController.prototype.FadeIn = function() {
-      if (this.fadeValue === 0.0) {
-        this.fadingIn = false;
-      } else {
-        this.fadeValue = Math.max(this.fadeValue - 0.01, 0.0);
-      }
-      this.fade.uniforms['fade'].value = this.fadeValue;
-    };
-
     RenderController.prototype.NextVisualizer = function() {
       this.visualizerCounter = (this.visualizerCounter + 1) % this.visualizers.length;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
+      this.badTV.uniforms['distortion'].value = 10.0;
     };
 
     RenderController.prototype.RenderProcess = function(scene, camera) {
@@ -150,9 +120,6 @@
       this.blendComposer.addPass(this.blendPass);
       bloomPass = new THREE.BloomPass(3, 12, 2.0, 512);
       this.blendComposer.addPass(bloomPass);
-      this.fade = new THREE.ShaderPass(THREE.FadeToBlackShader);
-      this.fade.uniforms['fade'].value = this.fadeValue;
-      this.blendComposer.addPass(this.fade);
       this.vhsPause = new THREE.ShaderPass(THREE.VHSPauseShader);
       this.blendComposer.addPass(this.vhsPause);
       renderTargetHud = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
@@ -160,7 +127,7 @@
       this.hudComposer.addPass(hudPass);
       this.overlayComposer = new THREE.EffectComposer(this.renderer);
       this.hudBlendPass = new THREE.ShaderPass(THREE.DestOverlayBlendShader);
-      this.hudBlendPass.uniforms['tSource'].value = this.blendComposer.renderTarget1;
+      this.hudBlendPass.uniforms['tSource'].value = this.blendComposer.renderTarget2;
       this.hudBlendPass.uniforms['tDest'].value = this.hudComposer.renderTarget2;
       this.overlayComposer.addPass(this.hudBlendPass);
       this.badTV = new THREE.ShaderPass(THREE.BadTVShader);
@@ -187,21 +154,11 @@
       if (this.clock.getElapsedTime() > this.lastVolumeUpdateTime + 2) {
         this.ClearVolumeDisplay();
       }
-      if (this.clock.getElapsedTime() > this.lastVisualizerChangeTime + 60) {
-        this.FadeToNext();
-        this.lastVisualizerChangeTime = this.clock.getElapsedTime();
-      }
       if (this.playStatusTimerRunning) {
         if (this.clock.getElapsedTime() > this.lastPlayStatusToggleTime + 4) {
           this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
           this.playStatusTimerRunning = false;
         }
-      }
-      if (this.fadingOut) {
-        this.FadeOut();
-      }
-      if (this.fadingIn) {
-        this.FadeIn();
       }
       if (this.paused) {
         this.vhsPause.uniforms['time'].value = this.clock.getElapsedTime();
@@ -248,21 +205,19 @@
     RenderController.prototype.UpdateEffects = function() {
       this.badTV.uniforms['time'].value = this.timer;
       this.crtEffect.uniforms['time'].value = this.timer;
-      if (this.activeVisualizer.beatDistortionEffect) {
-        if (this.audioInitializer.beatdetect.isKick()) {
-          this.badTV.uniforms['distortion'].value = 5 * Math.random();
-          this.badTV.uniforms['distortion2'].value = 5 * Math.random();
-          if (Math.random() < 0.05) {
-            this.badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? -1 : 1) * this.audioInitializer.GetAverageVolume(this.audioInitializer.frequencyData) / 5000;
-          }
+      if (this.audioInitializer.beatdetect.isKick() && this.activeVisualizer.beatDistortionEffect) {
+        this.badTV.uniforms['distortion'].value = 5 * Math.random();
+        this.badTV.uniforms['distortion2'].value = 5 * Math.random();
+        if (Math.random() < 0.05) {
+          this.badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? -1 : 1) * this.audioInitializer.GetAverageVolume(this.audioInitializer.frequencyData) / 5000;
+        }
+      } else {
+        this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 0.001);
+        this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 0.001);
+        if (this.badTV.uniforms['rollSpeed'].value > 0) {
+          this.badTV.uniforms['rollSpeed'].value = Math.max(this.badTV.uniforms['rollSpeed'].value - 0.001, 0);
         } else {
-          this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 0.001);
-          this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 0.001);
-          if (this.badTV.uniforms['rollSpeed'].value > 0) {
-            this.badTV.uniforms['rollSpeed'].value = Math.max(this.badTV.uniforms['rollSpeed'].value - 0.001, 0);
-          } else {
-            this.badTV.uniforms['rollSpeed'].value = Math.min(this.badTV.uniforms['rollSpeed'].value + 0.001, 0);
-          }
+          this.badTV.uniforms['rollSpeed'].value = Math.min(this.badTV.uniforms['rollSpeed'].value + 0.001, 0);
         }
       }
     };

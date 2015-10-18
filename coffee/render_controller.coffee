@@ -10,7 +10,6 @@ class @RenderController
     @timer = 0
     @lastIcecastUpdateTime = @clock.getElapsedTime()
     @lastVolumeUpdatetime = @clock.getElapsedTime()
-    @lastVisualizerChangeTime = @clock.getElapsedTime()
     @lastPlayStatusToggleTime = 0
 
     @playStatusTimerRunning = false
@@ -25,10 +24,6 @@ class @RenderController
     @activeVisualizer = @visualizers[@visualizerCounter]
     for visualizer in @visualizers
       visualizer.Update()
-
-    @fadingIn = false
-    @fadingOut = false
-    @fadeValue = 0.0
 
     @hud = new THREE.Scene()
     # @hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -67,33 +62,12 @@ class @RenderController
 
     @vhsPause.uniforms['amount'].value = 1.0
 
-  FadeToNext: =>
-    @fadingOut = true
-    return
-
-  FadeOut: =>
-    if @fadeValue == 1.0
-      @fadingOut = false
-      @NextVisualizer()
-      @fadingIn = true
-    else
-      @fadeValue = Math.min(@fadeValue + 0.01, 1.0)
-    @fade.uniforms['fade'].value = @fadeValue
-    return
-
-  FadeIn: =>
-    if @fadeValue == 0.0
-      @fadingIn = false
-    else
-      @fadeValue = Math.max(@fadeValue - 0.01, 0.0)
-    @fade.uniforms['fade'].value = @fadeValue
-    return
-
   NextVisualizer: =>
     @visualizerCounter = (@visualizerCounter + 1) % @visualizers.length
     @activeVisualizer = @visualizers[@visualizerCounter]
 
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
+    @badTV.uniforms['distortion'].value = 10.0
     return
 
   RenderProcess: (scene, camera) =>
@@ -132,15 +106,6 @@ class @RenderController
     bloomPass = new (THREE.BloomPass)(3, 12, 2.0, 512)
     @blendComposer.addPass bloomPass
 
-    # @rgbEffect = new (THREE.ShaderPass)(THREE.RGBShiftShader)
-    # @rgbEffect.uniforms['amount'].value = 0.0015
-    # @rgbEffect.uniforms['angle'].value = 0
-    # @blendComposer.addPass @rgbEffect
-
-    @fade = new THREE.ShaderPass(THREE.FadeToBlackShader)
-    @fade.uniforms['fade'].value = @fadeValue
-    @blendComposer.addPass @fade
-
     @vhsPause = new THREE.ShaderPass(THREE.VHSPauseShader)
     @blendComposer.addPass @vhsPause
 
@@ -150,7 +115,7 @@ class @RenderController
 
     @overlayComposer = new (THREE.EffectComposer)(@renderer)
     @hudBlendPass = new (THREE.ShaderPass)(THREE.DestOverlayBlendShader)
-    @hudBlendPass.uniforms['tSource'].value = @blendComposer.renderTarget1
+    @hudBlendPass.uniforms['tSource'].value = @blendComposer.renderTarget2
     @hudBlendPass.uniforms['tDest'].value = @hudComposer.renderTarget2
 
     @overlayComposer.addPass @hudBlendPass
@@ -179,17 +144,10 @@ class @RenderController
     if @clock.getElapsedTime() > @lastVolumeUpdateTime + 2
       @ClearVolumeDisplay()
 
-    if @clock.getElapsedTime() > @lastVisualizerChangeTime + 60
-      @FadeToNext()
-      @lastVisualizerChangeTime = @clock.getElapsedTime()
-
     if @playStatusTimerRunning
       if @clock.getElapsedTime() > @lastPlayStatusToggleTime + 4
         @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
         @playStatusTimerRunning = false
-
-    @FadeOut() if @fadingOut
-    @FadeIn() if @fadingIn
 
     if @paused
       @vhsPause.uniforms['time'].value = @clock.getElapsedTime()
@@ -238,19 +196,18 @@ class @RenderController
     @badTV.uniforms['time'].value = @timer
     @crtEffect.uniforms['time'].value = @timer
 
-    if @activeVisualizer.beatDistortionEffect
-      if @audioInitializer.beatdetect.isKick()
-        @badTV.uniforms['distortion'].value = 5 * Math.random()
-        @badTV.uniforms['distortion2'].value = 5 * Math.random()
-        if Math.random() < 0.05
-          @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then -1 else 1) * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
+    if @audioInitializer.beatdetect.isKick() and @activeVisualizer.beatDistortionEffect
+      @badTV.uniforms['distortion'].value = 5 * Math.random()
+      @badTV.uniforms['distortion2'].value = 5 * Math.random()
+      if Math.random() < 0.05
+        @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then -1 else 1) * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
+    else
+      @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0.001)
+      @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0.001)
+      if @badTV.uniforms['rollSpeed'].value > 0
+        @badTV.uniforms['rollSpeed'].value = Math.max(@badTV.uniforms['rollSpeed'].value - 0.001, 0)
       else
-        @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0.001)
-        @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0.001)
-        if @badTV.uniforms['rollSpeed'].value > 0
-          @badTV.uniforms['rollSpeed'].value = Math.max(@badTV.uniforms['rollSpeed'].value - 0.001, 0)
-        else
-          @badTV.uniforms['rollSpeed'].value = Math.min(@badTV.uniforms['rollSpeed'].value + 0.001, 0)
+        @badTV.uniforms['rollSpeed'].value = Math.min(@badTV.uniforms['rollSpeed'].value + 0.001, 0)
 
     return
 

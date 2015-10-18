@@ -43,6 +43,8 @@ class @Page
       @DecreaseVolume()
     else if (e.keyCode == 32) #spacebar
       @TogglePause()
+    else if (e.keyCode == 39) #rightarrow
+      @renderController.NextVisualizer() if @audioInitializer.loaded
 
     return
 

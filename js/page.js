@@ -45,6 +45,10 @@
         this.DecreaseVolume();
       } else if (e.keyCode === 32) {
         this.TogglePause();
+      } else if (e.keyCode === 39) {
+        if (this.audioInitializer.loaded) {
+          this.renderController.NextVisualizer();
+        }
       }
     };
 
