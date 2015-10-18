@@ -9,9 +9,11 @@ class @Visualizer
     @scene = new THREE.Scene
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 
+    @skyBox = @SkyBox()
     @cube = @Cube()
     @lineBoxes = @LineBoxes()
 
+    @scene.add(@skyBox)
     @scene.add(@cube)
 
     i = 0
@@ -46,7 +48,13 @@ class @Visualizer
       i++
     lineBoxes
 
-  Update: =>
+  SkyBox: ->
+    geometry = new THREE.BoxGeometry(500, 500, 500)
+    material = new THREE.MeshBasicMaterial({color: 0x07020a, side: THREE.BackSide})
+    skybox = new THREE.Mesh(geometry, material)
+    skybox
+
+  Update: () =>
     @timer += 0.01
 
     rotationAddition = @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 2000

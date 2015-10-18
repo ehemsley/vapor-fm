@@ -14,13 +14,14 @@ class @HeartVisualizer
     @pointLight.position.set(10, 20, 20)
     @scene.add(@pointLight)
 
+    @skyBox = @SkyBox()
+    @scene.add(@skyBox)
+
     @Hearts(40)
 
     @beatDistortionEffect = false
 
     @camera.position.z = 20
-
-    return
 
   Heart: ->
     heartMaterial = new THREE.MeshPhongMaterial({color: 0xff00000})
@@ -71,6 +72,14 @@ class @HeartVisualizer
 
       positions.push(newPosition)
       heart.position.set(newPosition.x, newPosition.y, newPosition.z)
+
+    return
+
+  SkyBox: ->
+    geometry = new THREE.BoxGeometry(500, 500, 500)
+    material = new THREE.MeshBasicMaterial({color: 0x07020a, side: THREE.BackSide})
+    skybox = new THREE.Mesh(geometry, material)
+    skybox
 
   Update: =>
     @timer += 0.01

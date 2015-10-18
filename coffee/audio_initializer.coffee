@@ -6,18 +6,13 @@ class @AudioInitializer
     @floats = new Float32Array(@analyser.frequencyBinCount)
     @beatdetect = new FFT.BeatDetect(1024, 44100)
 
-    @audioElement = document.getElementById('stream')
+    @audioElement = $('#stream').get(0)
+    @AddCanPlayListener()
 
-    @audioElement.addEventListener 'canplay', =>
-      source = @context.createMediaElementSource(@audioElement)
-      source.connect(@analyser)
-      source.connect(@context.destination)
+    @loaded = false
+    @loading = true
 
-      sampleRate = @context.sampleRate
-      @beatdetect = new FFT.BeatDetect(@analyser.frequencyBinCount, sampleRate)
-      @beatdetect.setSensitivity(500)
-      @audioElement.play()
-      return
+    setTimeout @CheckLoaded, 8000
 
   GetAverageVolume: (array) =>
     values = 0
@@ -28,3 +23,52 @@ class @AudioInitializer
       i++
     average = values / array.length
     average
+
+  #have to do a lot of dumb shit because html5 doesnt
+  #define a mechanism to stop buffering an element LOL
+  StopAndUnloadAudio: =>
+    @audioElement.pause()
+    @originalSrc = @audioElement.src
+    @audioElement.src = 'about:blank'
+    @audioElement.load()
+    $('#stream').remove()
+    $('#audioContainer').append("<audio id='stream' preload='none' crossorigin='anonymous'></audio>")
+    @audioElement = $('#stream').get(0)
+    @audioElement.src = @originalSrc
+
+    @AddCanPlayListener()
+
+    @loaded = false
+    @loading = false
+
+    return
+
+  LoadAndPlayAudio: =>
+    @loading = true
+    @audioElement.load()
+    setTimeout @CheckLoaded, 8000
+
+    return
+
+  CheckLoaded: =>
+    if @loading
+      @audioElement.load()
+      setTimeout @CheckLoaded, 8000
+
+    return
+
+  AddCanPlayListener: =>
+    audioLoaded = new Event('audioLoaded')
+    @audioElement.addEventListener 'canplay', =>
+      window.dispatchEvent(audioLoaded)
+      @loaded = true
+      @loading = false
+      source = @context.createMediaElementSource(@audioElement)
+      source.connect(@analyser)
+      source.connect(@context.destination)
+
+      sampleRate = @context.sampleRate
+      @beatdetect = new FFT.BeatDetect(@analyser.frequencyBinCount, sampleRate)
+      @beatdetect.setSensitivity(500)
+      @audioElement.play()
+      return

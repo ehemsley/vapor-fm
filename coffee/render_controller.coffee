@@ -3,6 +3,8 @@ class @RenderController
     @visualizerElement = $('#visualizer')
     @audioInitializer = audioInitializer
 
+    @paused = true
+
     @clock = new THREE.Clock
     @clock.start()
     @timer = 0
@@ -10,14 +12,16 @@ class @RenderController
     @lastVolumeUpdatetime = @clock.getElapsedTime()
     @lastVisualizerChangeTime = @clock.getElapsedTime()
 
-    @renderer = new THREE.WebGLRenderer( {alpha: true });
+    @renderer = new THREE.WebGLRenderer( {alpha: true })
     @renderer.setClearColor(0x000000, 0)
     @renderer.setSize(window.innerWidth, window.innerHeight)
     @visualizerElement.append(@renderer.domElement)
 
     @visualizers = [new Visualizer(@audioInitializer), new HeartVisualizer(@audioInitializer)]
-    @visualizerCounter = 1
+    @visualizerCounter = 0
     @activeVisualizer = @visualizers[@visualizerCounter]
+    for visualizer in @visualizers
+      visualizer.Update()
 
     @fadingIn = false
     @fadingOut = false
@@ -42,7 +46,7 @@ class @RenderController
     @context1.textAlign = "left"
     @context1.textBaseline = "top"
     @context1.fillStyle = "rgba(255,255,255,0.95)"
-    @context1.fillText('Loading...', 10, @canvas1.height * 0.9 - 50)
+    @context1.fillText('press h for help...', 10, @canvas1.height * 0.9 - 50)
 
     @texture1 = new THREE.Texture(@canvas1)
     @texture1.minFilter = THREE.LinearFilter
@@ -56,9 +60,9 @@ class @RenderController
 
     @hudCamera.position.set(0,0,2)
 
-    @GetIcecastData()
-
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
+
+    @vhsPause.uniforms['amount'].value = 1.0
 
   FadeToNext: =>
     @fadingOut = true
@@ -94,10 +98,10 @@ class @RenderController
 
     renderTargetCube = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
     @cubeComposer = new (THREE.EffectComposer)(@renderer, renderTargetCube)
-    renderPass = new (THREE.RenderPass)(scene, camera)
+    @renderPass = new (THREE.RenderPass)(scene, camera)
     hudPass = new (THREE.RenderPass)(@hud, @hudCamera)
 
-    @cubeComposer.addPass renderPass
+    @cubeComposer.addPass @renderPass
 
     renderTargetGlow = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
     @glowComposer = new (THREE.EffectComposer)(@renderer, renderTargetGlow)
@@ -107,7 +111,7 @@ class @RenderController
     verticalBlur = new (THREE.ShaderPass)(THREE.VerticalBlurShader)
     verticalBlur.uniforms['v'].value = 2.0 / window.innerHeight
 
-    @glowComposer.addPass renderPass
+    @glowComposer.addPass @renderPass
     @glowComposer.addPass horizontalBlur
     @glowComposer.addPass verticalBlur
     @glowComposer.addPass horizontalBlur
@@ -133,6 +137,9 @@ class @RenderController
     @fade = new THREE.ShaderPass(THREE.FadeToBlackShader)
     @fade.uniforms['fade'].value = @fadeValue
     @blendComposer.addPass @fade
+
+    @vhsPause = new THREE.ShaderPass(THREE.VHSPauseShader)
+    @blendComposer.addPass @vhsPause
 
     renderTargetHud = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
     @hudComposer = new (THREE.EffectComposer)(@renderer, renderTargetHud)
@@ -161,10 +168,8 @@ class @RenderController
   Render: =>
     requestAnimationFrame(@Render)
 
-    @timer += @clock.getDelta()
-
     if @clock.getElapsedTime() > @lastIcecastUpdateTime + 5
-      @GetIcecastData()
+      @GetIcecastData() unless @paused
       @lastIcecastUpdateTime = @clock.getElapsedTime()
 
     if @clock.getElapsedTime() > @lastVolumeUpdateTime + 2
@@ -177,9 +182,17 @@ class @RenderController
     @FadeOut() if @fadingOut
     @FadeIn() if @fadingIn
 
-    @UpdateAudioAnalyzer()
-    @UpdateEffects()
-    @activeVisualizer.Update()
+    if @paused
+      @vhsPause.uniforms['time'].value = @clock.getElapsedTime()
+      if @audioInitializer.loading
+        @ClearSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+        @UpdateSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+    else
+      deltaTime = @clock.getDelta()
+      @timer += deltaTime
+      @UpdateAudioAnalyzer()
+      @UpdateEffects()
+      @activeVisualizer.Update()
 
     @cubeComposer.render(0.1)
     @glowComposer.render(0.1)
@@ -253,6 +266,12 @@ class @RenderController
   UpdateOverlay: =>
     @context1.clearRect(0, @canvas1.height / 2, @canvas1.width, @canvas1.height / 2)
     @context1.font = '50px TelegramaRaw'
+
+    @context1.strokeStyle = 'black'
+    @context1.lineWidth = 8
+    @context1.strokeText(@artistName, 10, @canvas1.height * 0.9 - 50)
+    @context1.strokeText(@songName, 10, @canvas1.height * 0.98 - 50)
+
     @context1.fillStyle = 'white'
     @context1.fillText(@artistName, 10, @canvas1.height * 0.9 - 50)
     @context1.fillText(@songName, 10, @canvas1.height * 0.98 - 50)
@@ -262,8 +281,36 @@ class @RenderController
 
     return
 
+  ClearSpinner: (startX, startY, width, height) =>
+    @context1.clearRect(startX, startY, width, height)
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+
+    return
+
+  UpdateSpinner: (startX, startY, width, height) =>
+    lines = 16
+    rotation = parseInt(@clock.getElapsedTime() * lines) / lines
+    @context1.save()
+    @context1.translate(startX + width * 0.5, startY + height * 0.5)
+    @context1.rotate(Math.PI * 2 * rotation)
+    for i in [0..lines-1]
+      @context1.beginPath()
+      @context1.rotate(Math.PI * 2 / lines)
+      @context1.moveTo(Math.min(width, height) / 10, 0)
+      @context1.lineTo(Math.min(width, height) / 4, 0)
+      @context1.lineWidth = Math.min(width, height) / 30
+      @context1.strokeStyle = "rgba(255,255,255," + i / lines + ")"
+      @context1.stroke()
+    @context1.restore()
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+    return
+
   ClearVolumeDisplay: =>
-    @context1.clearRect(0, 0, @canvas1.width, @canvas1.height / 2)
+    @context1.clearRect(0, 0, @canvas1.width / 2, @canvas1.height / 2)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
@@ -325,3 +372,13 @@ class @RenderController
   CountOccurrences: (str, value) ->
     regExp = new RegExp(value, "gi")
     return (str.match(regExp) || []).length
+
+  Pause: =>
+    @paused = true
+    @vhsPause.uniforms['amount'].value = 1.0
+
+  AudioLoadedHandler: =>
+    @paused = false
+    @vhsPause.uniforms['amount'].value = 0.0
+    @ClearSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+    @GetIcecastData()

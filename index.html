@@ -30,6 +30,7 @@
     <script src="js/shaders/CRTShader.js"></script>
     <script src="js/shaders/PassThroughShader.js"></script>
     <script src="js/shaders/DestOverlayBlendShader.js"></script>
+    <script src="js/shaders/VHSPauseShader.js"></script>
     <script src="js/lib/loaders/OBJLoader.js"></script>
 
     <script type="text/javascript" src="js/lib/beatdetect/fft.js"></script>
@@ -40,7 +41,9 @@
     <script src="js/render_controller.js"></script>
     <script src="js/page.js"></script>
 
-    <audio id="stream" src="http://vapor.fm:8000/stream" crossorigin="anonymous"></audio>
+    <div id="audioContainer" style="display:none;">
+      <audio id="stream" src="http://vapor.fm:8000/stream" crossorigin="anonymous"></audio>
+    </div>
 
     <div id="visualizer"></div>
 

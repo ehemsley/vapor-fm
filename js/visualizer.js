@@ -12,8 +12,10 @@
       this.yRotationDirection = -1;
       this.scene = new THREE.Scene;
       this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      this.skyBox = this.SkyBox();
       this.cube = this.Cube();
       this.lineBoxes = this.LineBoxes();
+      this.scene.add(this.skyBox);
       this.scene.add(this.cube);
       i = 0;
       while (i < this.lineBoxes.length) {
@@ -55,6 +57,17 @@
         i++;
       }
       return lineBoxes;
+    };
+
+    Visualizer.prototype.SkyBox = function() {
+      var geometry, material, skybox;
+      geometry = new THREE.BoxGeometry(500, 500, 500);
+      material = new THREE.MeshBasicMaterial({
+        color: 0x07020a,
+        side: THREE.BackSide
+      });
+      skybox = new THREE.Mesh(geometry, material);
+      return skybox;
     };
 
     Visualizer.prototype.Update = function() {

@@ -14,10 +14,11 @@
       this.pointLight = new THREE.PointLight(0xffffff, 1, 100);
       this.pointLight.position.set(10, 20, 20);
       this.scene.add(this.pointLight);
+      this.skyBox = this.SkyBox();
+      this.scene.add(this.skyBox);
       this.Hearts(40);
       this.beatDistortionEffect = false;
       this.camera.position.z = 20;
-      return;
     }
 
     HeartVisualizer.prototype.Heart = function() {
@@ -70,10 +71,9 @@
     };
 
     HeartVisualizer.prototype.SetHeartsPositions = function() {
-      var heart, j, k, len, len1, newPosition, overlapping, position, positions, ref, results;
+      var heart, j, k, len, len1, newPosition, overlapping, position, positions, ref;
       positions = [];
       ref = this.hearts;
-      results = [];
       for (j = 0, len = ref.length; j < len; j++) {
         heart = ref[j];
         newPosition = new THREE.Vector3(this.RandomInt(-40, 40), this.RandomInt(-40, 40), this.RandomInt(-40, 40));
@@ -94,9 +94,19 @@
           }
         }
         positions.push(newPosition);
-        results.push(heart.position.set(newPosition.x, newPosition.y, newPosition.z));
+        heart.position.set(newPosition.x, newPosition.y, newPosition.z);
       }
-      return results;
+    };
+
+    HeartVisualizer.prototype.SkyBox = function() {
+      var geometry, material, skybox;
+      geometry = new THREE.BoxGeometry(500, 500, 500);
+      material = new THREE.MeshBasicMaterial({
+        color: 0x07020a,
+        side: THREE.BackSide
+      });
+      skybox = new THREE.Mesh(geometry, material);
+      return skybox;
     };
 
     HeartVisualizer.prototype.Update = function() {

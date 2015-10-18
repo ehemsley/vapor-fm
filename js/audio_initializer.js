@@ -4,25 +4,21 @@
 
   this.AudioInitializer = (function() {
     function AudioInitializer() {
+      this.AddCanPlayListener = bind(this.AddCanPlayListener, this);
+      this.CheckLoaded = bind(this.CheckLoaded, this);
+      this.LoadAndPlayAudio = bind(this.LoadAndPlayAudio, this);
+      this.StopAndUnloadAudio = bind(this.StopAndUnloadAudio, this);
       this.GetAverageVolume = bind(this.GetAverageVolume, this);
       this.context = new AudioContext;
       this.analyser = this.context.createAnalyser();
       this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
       this.floats = new Float32Array(this.analyser.frequencyBinCount);
       this.beatdetect = new FFT.BeatDetect(1024, 44100);
-      this.audioElement = document.getElementById('stream');
-      this.audioElement.addEventListener('canplay', (function(_this) {
-        return function() {
-          var sampleRate, source;
-          source = _this.context.createMediaElementSource(_this.audioElement);
-          source.connect(_this.analyser);
-          source.connect(_this.context.destination);
-          sampleRate = _this.context.sampleRate;
-          _this.beatdetect = new FFT.BeatDetect(_this.analyser.frequencyBinCount, sampleRate);
-          _this.beatdetect.setSensitivity(500);
-          _this.audioElement.play();
-        };
-      })(this));
+      this.audioElement = $('#stream').get(0);
+      this.AddCanPlayListener();
+      this.loaded = false;
+      this.loading = true;
+      setTimeout(this.CheckLoaded, 8000);
     }
 
     AudioInitializer.prototype.GetAverageVolume = function(array) {
@@ -36,6 +32,53 @@
       }
       average = values / array.length;
       return average;
+    };
+
+    AudioInitializer.prototype.StopAndUnloadAudio = function() {
+      this.audioElement.pause();
+      this.originalSrc = this.audioElement.src;
+      this.audioElement.src = 'about:blank';
+      this.audioElement.load();
+      $('#stream').remove();
+      $('#audioContainer').append("<audio id='stream' preload='none' crossorigin='anonymous'></audio>");
+      this.audioElement = $('#stream').get(0);
+      this.audioElement.src = this.originalSrc;
+      this.AddCanPlayListener();
+      this.loaded = false;
+      this.loading = false;
+    };
+
+    AudioInitializer.prototype.LoadAndPlayAudio = function() {
+      this.loading = true;
+      this.audioElement.load();
+      setTimeout(this.CheckLoaded, 8000);
+    };
+
+    AudioInitializer.prototype.CheckLoaded = function() {
+      if (this.loading) {
+        this.audioElement.load();
+        setTimeout(this.CheckLoaded, 8000);
+      }
+    };
+
+    AudioInitializer.prototype.AddCanPlayListener = function() {
+      var audioLoaded;
+      audioLoaded = new Event('audioLoaded');
+      return this.audioElement.addEventListener('canplay', (function(_this) {
+        return function() {
+          var sampleRate, source;
+          window.dispatchEvent(audioLoaded);
+          _this.loaded = true;
+          _this.loading = false;
+          source = _this.context.createMediaElementSource(_this.audioElement);
+          source.connect(_this.analyser);
+          source.connect(_this.context.destination);
+          sampleRate = _this.context.sampleRate;
+          _this.beatdetect = new FFT.BeatDetect(_this.analyser.frequencyBinCount, sampleRate);
+          _this.beatdetect.setSensitivity(500);
+          _this.audioElement.play();
+        };
+      })(this));
     };
 
     return AudioInitializer;

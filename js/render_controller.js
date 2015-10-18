@@ -4,9 +4,13 @@
 
   this.RenderController = (function() {
     function RenderController(audioInitializer) {
+      this.AudioLoadedHandler = bind(this.AudioLoadedHandler, this);
+      this.Pause = bind(this.Pause, this);
       this.GetIcecastData = bind(this.GetIcecastData, this);
       this.UpdateVolumeDisplay = bind(this.UpdateVolumeDisplay, this);
       this.ClearVolumeDisplay = bind(this.ClearVolumeDisplay, this);
+      this.UpdateSpinner = bind(this.UpdateSpinner, this);
+      this.ClearSpinner = bind(this.ClearSpinner, this);
       this.UpdateOverlay = bind(this.UpdateOverlay, this);
       this.UpdateText = bind(this.UpdateText, this);
       this.UpdateEffects = bind(this.UpdateEffects, this);
@@ -18,8 +22,10 @@
       this.FadeIn = bind(this.FadeIn, this);
       this.FadeOut = bind(this.FadeOut, this);
       this.FadeToNext = bind(this.FadeToNext, this);
+      var j, len, ref, visualizer;
       this.visualizerElement = $('#visualizer');
       this.audioInitializer = audioInitializer;
+      this.paused = true;
       this.clock = new THREE.Clock;
       this.clock.start();
       this.timer = 0;
@@ -33,8 +39,13 @@
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.visualizerElement.append(this.renderer.domElement);
       this.visualizers = [new Visualizer(this.audioInitializer), new HeartVisualizer(this.audioInitializer)];
-      this.visualizerCounter = 1;
+      this.visualizerCounter = 0;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
+      ref = this.visualizers;
+      for (j = 0, len = ref.length; j < len; j++) {
+        visualizer = ref[j];
+        visualizer.Update();
+      }
       this.fadingIn = false;
       this.fadingOut = false;
       this.fadeValue = 0.0;
@@ -53,7 +64,7 @@
       this.context1.textAlign = "left";
       this.context1.textBaseline = "top";
       this.context1.fillStyle = "rgba(255,255,255,0.95)";
-      this.context1.fillText('Loading...', 10, this.canvas1.height * 0.9 - 50);
+      this.context1.fillText('press h for help...', 10, this.canvas1.height * 0.9 - 50);
       this.texture1 = new THREE.Texture(this.canvas1);
       this.texture1.minFilter = THREE.LinearFilter;
       this.texture1.magFilter = THREE.LinearFilter;
@@ -68,8 +79,8 @@
       this.mesh1.position.set(0, 0, 0);
       this.hud.add(this.mesh1);
       this.hudCamera.position.set(0, 0, 2);
-      this.GetIcecastData();
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
+      this.vhsPause.uniforms['amount'].value = 1.0;
     }
 
     RenderController.prototype.FadeToNext = function() {
@@ -103,7 +114,7 @@
     };
 
     RenderController.prototype.RenderProcess = function(scene, camera) {
-      var bloomPass, horizontalBlur, hudPass, renderPass, renderTargetBlend, renderTargetCube, renderTargetGlow, renderTargetHud, renderTargetParameters, verticalBlur;
+      var bloomPass, horizontalBlur, hudPass, renderTargetBlend, renderTargetCube, renderTargetGlow, renderTargetHud, renderTargetParameters, verticalBlur;
       renderTargetParameters = {
         minFilter: THREE.LinearFilter,
         magFilter: THREE.LinearFilter,
@@ -112,16 +123,16 @@
       };
       renderTargetCube = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
       this.cubeComposer = new THREE.EffectComposer(this.renderer, renderTargetCube);
-      renderPass = new THREE.RenderPass(scene, camera);
+      this.renderPass = new THREE.RenderPass(scene, camera);
       hudPass = new THREE.RenderPass(this.hud, this.hudCamera);
-      this.cubeComposer.addPass(renderPass);
+      this.cubeComposer.addPass(this.renderPass);
       renderTargetGlow = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
       this.glowComposer = new THREE.EffectComposer(this.renderer, renderTargetGlow);
       horizontalBlur = new THREE.ShaderPass(THREE.HorizontalBlurShader);
       horizontalBlur.uniforms['h'].value = 2.0 / window.innerWidth;
       verticalBlur = new THREE.ShaderPass(THREE.VerticalBlurShader);
       verticalBlur.uniforms['v'].value = 2.0 / window.innerHeight;
-      this.glowComposer.addPass(renderPass);
+      this.glowComposer.addPass(this.renderPass);
       this.glowComposer.addPass(horizontalBlur);
       this.glowComposer.addPass(verticalBlur);
       this.glowComposer.addPass(horizontalBlur);
@@ -138,6 +149,8 @@
       this.fade = new THREE.ShaderPass(THREE.FadeToBlackShader);
       this.fade.uniforms['fade'].value = this.fadeValue;
       this.blendComposer.addPass(this.fade);
+      this.vhsPause = new THREE.ShaderPass(THREE.VHSPauseShader);
+      this.blendComposer.addPass(this.vhsPause);
       renderTargetHud = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
       this.hudComposer = new THREE.EffectComposer(this.renderer, renderTargetHud);
       this.hudComposer.addPass(hudPass);
@@ -159,10 +172,12 @@
     };
 
     RenderController.prototype.Render = function() {
+      var deltaTime;
       requestAnimationFrame(this.Render);
-      this.timer += this.clock.getDelta();
       if (this.clock.getElapsedTime() > this.lastIcecastUpdateTime + 5) {
-        this.GetIcecastData();
+        if (!this.paused) {
+          this.GetIcecastData();
+        }
         this.lastIcecastUpdateTime = this.clock.getElapsedTime();
       }
       if (this.clock.getElapsedTime() > this.lastVolumeUpdateTime + 2) {
@@ -178,9 +193,19 @@
       if (this.fadingIn) {
         this.FadeIn();
       }
-      this.UpdateAudioAnalyzer();
-      this.UpdateEffects();
-      this.activeVisualizer.Update();
+      if (this.paused) {
+        this.vhsPause.uniforms['time'].value = this.clock.getElapsedTime();
+        if (this.audioInitializer.loading) {
+          this.ClearSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+          this.UpdateSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+        }
+      } else {
+        deltaTime = this.clock.getDelta();
+        this.timer += deltaTime;
+        this.UpdateAudioAnalyzer();
+        this.UpdateEffects();
+        this.activeVisualizer.Update();
+      }
       this.cubeComposer.render(0.1);
       this.glowComposer.render(0.1);
       this.blendComposer.render(0.1);
@@ -252,6 +277,10 @@
     RenderController.prototype.UpdateOverlay = function() {
       this.context1.clearRect(0, this.canvas1.height / 2, this.canvas1.width, this.canvas1.height / 2);
       this.context1.font = '50px TelegramaRaw';
+      this.context1.strokeStyle = 'black';
+      this.context1.lineWidth = 8;
+      this.context1.strokeText(this.artistName, 10, this.canvas1.height * 0.9 - 50);
+      this.context1.strokeText(this.songName, 10, this.canvas1.height * 0.98 - 50);
       this.context1.fillStyle = 'white';
       this.context1.fillText(this.artistName, 10, this.canvas1.height * 0.9 - 50);
       this.context1.fillText(this.songName, 10, this.canvas1.height * 0.98 - 50);
@@ -259,8 +288,35 @@
       this.mesh1.material.needsUpdate = true;
     };
 
+    RenderController.prototype.ClearSpinner = function(startX, startY, width, height) {
+      this.context1.clearRect(startX, startY, width, height);
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.UpdateSpinner = function(startX, startY, width, height) {
+      var i, j, lines, ref, rotation;
+      lines = 16;
+      rotation = parseInt(this.clock.getElapsedTime() * lines) / lines;
+      this.context1.save();
+      this.context1.translate(startX + width * 0.5, startY + height * 0.5);
+      this.context1.rotate(Math.PI * 2 * rotation);
+      for (i = j = 0, ref = lines - 1; 0 <= ref ? j <= ref : j >= ref; i = 0 <= ref ? ++j : --j) {
+        this.context1.beginPath();
+        this.context1.rotate(Math.PI * 2 / lines);
+        this.context1.moveTo(Math.min(width, height) / 10, 0);
+        this.context1.lineTo(Math.min(width, height) / 4, 0);
+        this.context1.lineWidth = Math.min(width, height) / 30;
+        this.context1.strokeStyle = "rgba(255,255,255," + i / lines + ")";
+        this.context1.stroke();
+      }
+      this.context1.restore();
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+    };
+
     RenderController.prototype.ClearVolumeDisplay = function() {
-      this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height / 2);
+      this.context1.clearRect(0, 0, this.canvas1.width / 2, this.canvas1.height / 2);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
     };
@@ -319,6 +375,18 @@
       var regExp;
       regExp = new RegExp(value, "gi");
       return (str.match(regExp) || []).length;
+    };
+
+    RenderController.prototype.Pause = function() {
+      this.paused = true;
+      return this.vhsPause.uniforms['amount'].value = 1.0;
+    };
+
+    RenderController.prototype.AudioLoadedHandler = function() {
+      this.paused = false;
+      this.vhsPause.uniforms['amount'].value = 0.0;
+      this.ClearSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+      return this.GetIcecastData();
     };
 
     return RenderController;
