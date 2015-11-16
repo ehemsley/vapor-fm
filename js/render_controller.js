@@ -124,9 +124,9 @@
       renderTargetGlow = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
       this.glowComposer = new THREE.EffectComposer(this.renderer, renderTargetGlow);
       horizontalBlur = new THREE.ShaderPass(THREE.HorizontalBlurShader);
-      horizontalBlur.uniforms['h'].value = 2.0 / window.innerWidth;
+      horizontalBlur.uniforms['h'].value = 1.0 / window.innerWidth;
       verticalBlur = new THREE.ShaderPass(THREE.VerticalBlurShader);
-      verticalBlur.uniforms['v'].value = 2.0 / window.innerHeight;
+      verticalBlur.uniforms['v'].value = 1.0 / window.innerHeight;
       this.glowComposer.addPass(this.renderPass);
       this.glowComposer.addPass(horizontalBlur);
       this.glowComposer.addPass(verticalBlur);
@@ -236,21 +236,17 @@
     };
 
     RenderController.prototype.UpdateEffects = function() {
-      this.badTV.uniforms['time'].value = this.timer;
-      this.crtEffect.uniforms['time'].value = this.timer;
+      this.badTV.uniforms['time'].value = this.clock.getElapsedTime();
+      this.crtEffect.uniforms['time'].value = this.clock.getElapsedTime();
       if (this.audioInitializer.beatdetect.isKick() && this.activeVisualizer.beatDistortionEffect) {
-        this.badTV.uniforms['distortion'].value = 5 * Math.random();
-        this.badTV.uniforms['distortion2'].value = 5 * Math.random();
         if (Math.random() < 0.05) {
-          this.badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? -1 : 1) * this.audioInitializer.GetAverageVolume(this.audioInitializer.frequencyData) / 5000;
+          this.badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? Math.random() : -Math.random());
         }
       } else {
-        this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 0.001);
-        this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 0.001);
         if (this.badTV.uniforms['rollSpeed'].value > 0) {
-          this.badTV.uniforms['rollSpeed'].value = Math.max(this.badTV.uniforms['rollSpeed'].value - 0.001, 0);
+          this.badTV.uniforms['rollSpeed'].value = Math.max(this.badTV.uniforms['rollSpeed'].value - 0.01, 0);
         } else {
-          this.badTV.uniforms['rollSpeed'].value = Math.min(this.badTV.uniforms['rollSpeed'].value + 0.001, 0);
+          this.badTV.uniforms['rollSpeed'].value = Math.min(this.badTV.uniforms['rollSpeed'].value + 0.01, 0);
         }
       }
     };

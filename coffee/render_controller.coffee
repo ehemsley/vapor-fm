@@ -103,9 +103,9 @@ class @RenderController
     @glowComposer = new (THREE.EffectComposer)(@renderer, renderTargetGlow)
 
     horizontalBlur = new (THREE.ShaderPass)(THREE.HorizontalBlurShader)
-    horizontalBlur.uniforms['h'].value = 2.0 / window.innerWidth
+    horizontalBlur.uniforms['h'].value = 1.0 / window.innerWidth
     verticalBlur = new (THREE.ShaderPass)(THREE.VerticalBlurShader)
-    verticalBlur.uniforms['v'].value = 2.0 / window.innerHeight
+    verticalBlur.uniforms['v'].value = 1.0 / window.innerHeight
 
     @glowComposer.addPass @renderPass
     @glowComposer.addPass horizontalBlur
@@ -220,21 +220,21 @@ class @RenderController
 
   UpdateEffects: =>
     # @rgbEffect.uniforms['amount'].value = Math.sin(@timer * 2) * 0.01
-    @badTV.uniforms['time'].value = @timer
-    @crtEffect.uniforms['time'].value = @timer
+    @badTV.uniforms['time'].value = @clock.getElapsedTime()
+    @crtEffect.uniforms['time'].value = @clock.getElapsedTime()
 
     if @audioInitializer.beatdetect.isKick() and @activeVisualizer.beatDistortionEffect
-      @badTV.uniforms['distortion'].value = 5 * Math.random()
-      @badTV.uniforms['distortion2'].value = 5 * Math.random()
+      # @badTV.uniforms['distortion'].value = 5 * Math.random()
+      # @badTV.uniforms['distortion2'].value = 5 * Math.random()
       if Math.random() < 0.05
-        @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then -1 else 1) * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
+        @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then Math.random() else -Math.random()) # * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
     else
-      @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0.001)
-      @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0.001)
+      # @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0.001)
+      # @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0.001)
       if @badTV.uniforms['rollSpeed'].value > 0
-        @badTV.uniforms['rollSpeed'].value = Math.max(@badTV.uniforms['rollSpeed'].value - 0.001, 0)
+        @badTV.uniforms['rollSpeed'].value = Math.max(@badTV.uniforms['rollSpeed'].value - 0.01, 0)
       else
-        @badTV.uniforms['rollSpeed'].value = Math.min(@badTV.uniforms['rollSpeed'].value + 0.001, 0)
+        @badTV.uniforms['rollSpeed'].value = Math.min(@badTV.uniforms['rollSpeed'].value + 0.01, 0)
 
     return
 
