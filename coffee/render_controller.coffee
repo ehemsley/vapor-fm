@@ -224,13 +224,13 @@ class @RenderController
     @crtEffect.uniforms['time'].value = @clock.getElapsedTime()
 
     if @audioInitializer.beatdetect.isKick() and @activeVisualizer.beatDistortionEffect
-      # @badTV.uniforms['distortion'].value = 5 * Math.random()
-      # @badTV.uniforms['distortion2'].value = 5 * Math.random()
-      if Math.random() < 0.05
+      @badTV.uniforms['distortion'].value = Math.random()
+      @badTV.uniforms['distortion2'].value = Math.random()
+      if Math.random() < 0.02
         @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then Math.random() else -Math.random()) # * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
     else
-      # @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0.001)
-      # @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0.001)
+      @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0.001)
+      @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0.001)
       if @badTV.uniforms['rollSpeed'].value > 0
         @badTV.uniforms['rollSpeed'].value = Math.max(@badTV.uniforms['rollSpeed'].value - 0.01, 0)
       else

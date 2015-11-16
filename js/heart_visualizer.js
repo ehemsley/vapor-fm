@@ -24,7 +24,7 @@
     HeartVisualizer.prototype.Heart = function() {
       var heartMaterial, loader;
       heartMaterial = new THREE.MeshPhongMaterial({
-        color: 0xff00000
+        color: 0xff0000
       });
       loader = new THREE.OBJLoader;
       loader.load('models/heart.obj', (function(_this) {
@@ -44,7 +44,7 @@
       var heartMaterial, loader;
       this.hearts = [];
       heartMaterial = new THREE.MeshPhongMaterial({
-        color: 0xff00000
+        color: 0xff0011
       });
       loader = new THREE.OBJLoader;
       loader.load('models/heart.obj', (function(_this) {
@@ -102,7 +102,7 @@
       var geometry, material, skybox;
       geometry = new THREE.BoxGeometry(500, 500, 500);
       material = new THREE.MeshBasicMaterial({
-        color: 0x07020a,
+        color: 0x0411ff,
         side: THREE.BackSide
       });
       skybox = new THREE.Mesh(geometry, material);

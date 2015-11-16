@@ -239,10 +239,14 @@
       this.badTV.uniforms['time'].value = this.clock.getElapsedTime();
       this.crtEffect.uniforms['time'].value = this.clock.getElapsedTime();
       if (this.audioInitializer.beatdetect.isKick() && this.activeVisualizer.beatDistortionEffect) {
-        if (Math.random() < 0.05) {
+        this.badTV.uniforms['distortion'].value = Math.random();
+        this.badTV.uniforms['distortion2'].value = Math.random();
+        if (Math.random() < 0.02) {
           this.badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? Math.random() : -Math.random());
         }
       } else {
+        this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 0.001);
+        this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 0.001);
         if (this.badTV.uniforms['rollSpeed'].value > 0) {
           this.badTV.uniforms['rollSpeed'].value = Math.max(this.badTV.uniforms['rollSpeed'].value - 0.01, 0);
         } else {

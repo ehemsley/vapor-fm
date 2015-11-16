@@ -24,7 +24,7 @@ class @HeartVisualizer
     @camera.position.z = 20
 
   Heart: ->
-    heartMaterial = new THREE.MeshPhongMaterial({color: 0xff00000})
+    heartMaterial = new THREE.MeshPhongMaterial({color: 0xff0000})
     loader = new THREE.OBJLoader
     loader.load 'models/heart.obj', (object) =>
       object.traverse (child) ->
@@ -37,7 +37,7 @@ class @HeartVisualizer
 
   Hearts: (number) ->
     @hearts = []
-    heartMaterial = new THREE.MeshPhongMaterial({color: 0xff00000})
+    heartMaterial = new THREE.MeshPhongMaterial({color: 0xff0011})
     loader = new THREE.OBJLoader
     loader.load 'models/heart.obj', (object) =>
       object.traverse (child) ->
@@ -77,7 +77,7 @@ class @HeartVisualizer
 
   SkyBox: ->
     geometry = new THREE.BoxGeometry(500, 500, 500)
-    material = new THREE.MeshBasicMaterial({color: 0x07020a, side: THREE.BackSide})
+    material = new THREE.MeshBasicMaterial({color: 0x0411ff, side: THREE.BackSide})
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
