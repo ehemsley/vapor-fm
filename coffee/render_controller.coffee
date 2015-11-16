@@ -11,6 +11,7 @@ class @RenderController
     @lastIcecastUpdateTime = @clock.getElapsedTime()
     @lastVolumeUpdatetime = @clock.getElapsedTime()
     @lastInfoUpdateTime = @clock.getElapsedTime()
+    @lastChannelUpdateTime = @clock.getElapsedTime()
     @lastPlayStatusToggleTime = 0
 
     @playStatusTimerRunning = false
@@ -69,8 +70,9 @@ class @RenderController
     @visualizerCounter = (@visualizerCounter + 1) % @visualizers.length
     @activeVisualizer = @visualizers[@visualizerCounter]
 
+    @ShowChannelDisplay(@visualizerCounter)
+
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
-    @badTV.uniforms['distortion'].value = 10.0
     return
 
   PreviousVisualizer: =>
@@ -82,8 +84,9 @@ class @RenderController
     @visualizerCounter = @visualizerCounter
     @activeVisualizer = @visualizers[@visualizerCounter]
 
+    @ShowChannelDisplay(@visualizerCounter)
+
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
-    @badTV.uniforms['distortion'].value = 10.0
     return
 
   RenderProcess: (scene, camera) =>
@@ -164,6 +167,10 @@ class @RenderController
       if @clock.getElapsedTime() > @lastPlayStatusToggleTime + 4
         @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
         @playStatusTimerRunning = false
+
+    if @channelDisplayActive
+      if @clock.getElapsedTime() > @lastChannelUpdateTime + 4
+        @ClearChannelDisplay()
 
     if @infoDisplayActive
       if @clock.getElapsedTime() > @lastInfoUpdateTime + 5
@@ -451,5 +458,31 @@ class @RenderController
   ClearInfoDisplay: =>
     @ClearCanvasArea(@canvas1.width * 0.02, @canvas1.height * 0.08 - 50, @canvas1.width * 0.75, @canvas1.height * 0.5 - 50)
     @infoDisplayActive = false
+    return
 
+  ShowChannelDisplay: (channelNum) =>
+    @ClearChannelDisplay()
+    @playStatusTimerRunning = false
+
+    @context1.save()
+
+    @context1.font = '100px TelegramaRaw'
+
+    @context1.strokeStyle = 'black'
+    @context1.strokeText(channelNum + 3, @canvas1.width * 0.9, @canvas1.height * 0.08 - 50)
+
+    @context1.fillStyle = 'white'
+    @context1.fillText(channelNum + 3, @canvas1.width * 0.9, @canvas1.height * 0.08 - 50)
+    @context1.restore()
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+
+    @channelDisplayActive = true
+    @lastChannelUpdateTime = @clock.getElapsedTime()
+    return
+
+  ClearChannelDisplay: =>
+    @ClearCanvasArea(@canvas1.width * 0.9, @canvas1.height * 0.08 - 50, @canvas1.width, @canvas1.height * 0.24 - 50)
+    @channelDisplayActive = false
     return

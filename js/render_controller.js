@@ -4,6 +4,8 @@
 
   this.RenderController = (function() {
     function RenderController(audioInitializer) {
+      this.ClearChannelDisplay = bind(this.ClearChannelDisplay, this);
+      this.ShowChannelDisplay = bind(this.ShowChannelDisplay, this);
       this.ClearInfoDisplay = bind(this.ClearInfoDisplay, this);
       this.ShowInfo = bind(this.ShowInfo, this);
       this.AudioLoadedHandler = bind(this.AudioLoadedHandler, this);
@@ -34,6 +36,7 @@
       this.lastIcecastUpdateTime = this.clock.getElapsedTime();
       this.lastVolumeUpdatetime = this.clock.getElapsedTime();
       this.lastInfoUpdateTime = this.clock.getElapsedTime();
+      this.lastChannelUpdateTime = this.clock.getElapsedTime();
       this.lastPlayStatusToggleTime = 0;
       this.playStatusTimerRunning = false;
       this.volumeDisplayActive = false;
@@ -89,8 +92,8 @@
     RenderController.prototype.NextVisualizer = function() {
       this.visualizerCounter = (this.visualizerCounter + 1) % this.visualizers.length;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
+      this.ShowChannelDisplay(this.visualizerCounter);
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
-      this.badTV.uniforms['distortion'].value = 10.0;
     };
 
     RenderController.prototype.PreviousVisualizer = function() {
@@ -101,8 +104,8 @@
       }
       this.visualizerCounter = this.visualizerCounter;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
+      this.ShowChannelDisplay(this.visualizerCounter);
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
-      this.badTV.uniforms['distortion'].value = 10.0;
     };
 
     RenderController.prototype.RenderProcess = function(scene, camera) {
@@ -178,6 +181,11 @@
         if (this.clock.getElapsedTime() > this.lastPlayStatusToggleTime + 4) {
           this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
           this.playStatusTimerRunning = false;
+        }
+      }
+      if (this.channelDisplayActive) {
+        if (this.clock.getElapsedTime() > this.lastChannelUpdateTime + 4) {
+          this.ClearChannelDisplay();
         }
       }
       if (this.infoDisplayActive) {
@@ -442,6 +450,27 @@
     RenderController.prototype.ClearInfoDisplay = function() {
       this.ClearCanvasArea(this.canvas1.width * 0.02, this.canvas1.height * 0.08 - 50, this.canvas1.width * 0.75, this.canvas1.height * 0.5 - 50);
       this.infoDisplayActive = false;
+    };
+
+    RenderController.prototype.ShowChannelDisplay = function(channelNum) {
+      this.ClearChannelDisplay();
+      this.playStatusTimerRunning = false;
+      this.context1.save();
+      this.context1.font = '100px TelegramaRaw';
+      this.context1.strokeStyle = 'black';
+      this.context1.strokeText(channelNum + 3, this.canvas1.width * 0.9, this.canvas1.height * 0.08 - 50);
+      this.context1.fillStyle = 'white';
+      this.context1.fillText(channelNum + 3, this.canvas1.width * 0.9, this.canvas1.height * 0.08 - 50);
+      this.context1.restore();
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+      this.channelDisplayActive = true;
+      this.lastChannelUpdateTime = this.clock.getElapsedTime();
+    };
+
+    RenderController.prototype.ClearChannelDisplay = function() {
+      this.ClearCanvasArea(this.canvas1.width * 0.9, this.canvas1.height * 0.08 - 50, this.canvas1.width, this.canvas1.height * 0.24 - 50);
+      this.channelDisplayActive = false;
     };
 
     return RenderController;
