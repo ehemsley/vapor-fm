@@ -45,7 +45,10 @@ class @Page
       @TogglePause()
     else if (e.keyCode == 39) #rightarrow
       @renderController.NextVisualizer() if @audioInitializer.loaded
-
+    else if (e.keyCode == 37) #leftarrow
+      @renderController.PreviousVisualizer() if @audioInitializer.loaded
+    else if (e.keyCode == 73) #i
+      @renderController.ShowInfo()
     return
 
 $ ->

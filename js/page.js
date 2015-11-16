@@ -49,6 +49,12 @@
         if (this.audioInitializer.loaded) {
           this.renderController.NextVisualizer();
         }
+      } else if (e.keyCode === 37) {
+        if (this.audioInitializer.loaded) {
+          this.renderController.PreviousVisualizer();
+        }
+      } else if (e.keyCode === 73) {
+        this.renderController.ShowInfo();
       }
     };
 

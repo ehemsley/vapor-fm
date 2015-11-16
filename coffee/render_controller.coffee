@@ -10,10 +10,12 @@ class @RenderController
     @timer = 0
     @lastIcecastUpdateTime = @clock.getElapsedTime()
     @lastVolumeUpdatetime = @clock.getElapsedTime()
+    @lastInfoUpdateTime = @clock.getElapsedTime()
     @lastPlayStatusToggleTime = 0
 
     @playStatusTimerRunning = false
     @volumeDisplayActive = false
+    @infoDisplayActive = false
 
     @renderer = new THREE.WebGLRenderer( {alpha: true })
     @renderer.setClearColor(0x000000, 0)
@@ -45,7 +47,7 @@ class @RenderController
     @context1.textAlign = "left"
     @context1.textBaseline = "top"
     @context1.fillStyle = "rgba(255,255,255,0.95)"
-    @context1.fillText('press h for help...', 10, @canvas1.height * 0.9 - 50)
+    @context1.fillText('press i for info...', 10, @canvas1.height * 0.9 - 50)
 
     @texture1 = new THREE.Texture(@canvas1)
     @texture1.minFilter = THREE.LinearFilter
@@ -65,6 +67,19 @@ class @RenderController
 
   NextVisualizer: =>
     @visualizerCounter = (@visualizerCounter + 1) % @visualizers.length
+    @activeVisualizer = @visualizers[@visualizerCounter]
+
+    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
+    @badTV.uniforms['distortion'].value = 10.0
+    return
+
+  PreviousVisualizer: =>
+    if @visualizerCounter == 0
+      @visualizerCounter = @visualizers.length - 1
+    else
+      @visualizerCounter = @visualizerCounter - 1
+
+    @visualizerCounter = @visualizerCounter
     @activeVisualizer = @visualizers[@visualizerCounter]
 
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
@@ -144,12 +159,15 @@ class @RenderController
     if @volumeDisplayActive
       if @clock.getElapsedTime() > @lastVolumeUpdateTime + 2
         @ClearVolumeDisplay()
-        @volumeDisplayActive = false
 
     if @playStatusTimerRunning
       if @clock.getElapsedTime() > @lastPlayStatusToggleTime + 4
         @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
         @playStatusTimerRunning = false
+
+    if @infoDisplayActive
+      if @clock.getElapsedTime() > @lastInfoUpdateTime + 5
+        @ClearInfoDisplay()
 
     if @paused
       @vhsPause.uniforms['time'].value = @clock.getElapsedTime()
@@ -307,7 +325,7 @@ class @RenderController
     return
 
   ClearVolumeDisplay: =>
-    @volumeDisplayActive = true
+    @volumeDisplayActive = false
     @context1.clearRect(0, 0, @canvas1.width / 2, @canvas1.height / 2)
 
     @mesh1.material.map.needsUpdate = true
@@ -317,6 +335,7 @@ class @RenderController
 
   UpdateVolumeDisplay: (filledBarAmount) =>
     @ClearVolumeDisplay()
+    @ClearInfoDisplay()
 
     filledBarAmount = Math.min(Math.round(filledBarAmount), 10)
 
@@ -348,6 +367,7 @@ class @RenderController
     @mesh1.material.needsUpdate = true
 
     @lastVolumeUpdateTime = @clock.getElapsedTime()
+    @volumeDisplayActive = true
 
     return
 
@@ -390,5 +410,46 @@ class @RenderController
     @playStatusTimerRunning = true
 
     @GetIcecastData()
+
+    return
+
+  ShowInfo: =>
+    @ClearVolumeDisplay()
+
+    @context1.save()
+
+    @context1.font = '38px TelegramaRaw'
+
+    @context1.strokeStyle = 'black'
+    @context1.lineWidth = 8
+    @context1.strokeText('Created by Evan Hemsley', @canvas1.width * 0.02, @canvas1.height * 0.08 - 50)
+    @context1.strokeText('@thatcosmonaut', @canvas1.width * 0.02, @canvas1.height * 0.16 - 50)
+    @context1.strokeText(String.fromCharCode(8592) + ' or ' + String.fromCharCode(8594) + ' to change channel',
+                         @canvas1.width * 0.02, @canvas1.height * 0.24 - 50)
+    @context1.strokeText(String.fromCharCode(8593) + ' or ' + String.fromCharCode(8595) + ' to adjust volume',
+                       @canvas1.width * 0.02, @canvas1.height * 0.32 - 50)
+    @context1.strokeText('Space to pause/play', @canvas1.width * 0.02, @canvas1.height * 0.4 - 50)
+
+    @context1.fillStyle = 'white'
+    @context1.fillText('Created by Evan Hemsley', @canvas1.width * 0.02, @canvas1.height * 0.08 - 50)
+    @context1.fillText('@thatcosmonaut', @canvas1.width * 0.02, @canvas1.height * 0.16 - 50)
+    @context1.fillText(String.fromCharCode(8592) + ' or ' + String.fromCharCode(8594) + ' to change channel',
+                       @canvas1.width * 0.02, @canvas1.height * 0.24 - 50)
+    @context1.fillText(String.fromCharCode(8593) + ' or ' + String.fromCharCode(8595) + ' to adjust volume',
+                       @canvas1.width * 0.02, @canvas1.height * 0.32 - 50)
+    @context1.fillText('Space to pause/play', @canvas1.width * 0.02, @canvas1.height * 0.4 - 50)
+
+    @context1.restore()
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+
+    @infoDisplayActive = true
+    @lastInfoUpdateTime = @clock.getElapsedTime()
+    return
+
+  ClearInfoDisplay: =>
+    @ClearCanvasArea(@canvas1.width * 0.02, @canvas1.height * 0.08 - 50, @canvas1.width * 0.75, @canvas1.height * 0.5 - 50)
+    @infoDisplayActive = false
 
     return

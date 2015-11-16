@@ -4,6 +4,8 @@
 
   this.RenderController = (function() {
     function RenderController(audioInitializer) {
+      this.ClearInfoDisplay = bind(this.ClearInfoDisplay, this);
+      this.ShowInfo = bind(this.ShowInfo, this);
       this.AudioLoadedHandler = bind(this.AudioLoadedHandler, this);
       this.Pause = bind(this.Pause, this);
       this.GetIcecastData = bind(this.GetIcecastData, this);
@@ -20,6 +22,7 @@
       this.OnResize = bind(this.OnResize, this);
       this.Render = bind(this.Render, this);
       this.RenderProcess = bind(this.RenderProcess, this);
+      this.PreviousVisualizer = bind(this.PreviousVisualizer, this);
       this.NextVisualizer = bind(this.NextVisualizer, this);
       var j, len, ref, visualizer;
       this.visualizerElement = $('#visualizer');
@@ -30,9 +33,11 @@
       this.timer = 0;
       this.lastIcecastUpdateTime = this.clock.getElapsedTime();
       this.lastVolumeUpdatetime = this.clock.getElapsedTime();
+      this.lastInfoUpdateTime = this.clock.getElapsedTime();
       this.lastPlayStatusToggleTime = 0;
       this.playStatusTimerRunning = false;
       this.volumeDisplayActive = false;
+      this.infoDisplayActive = false;
       this.renderer = new THREE.WebGLRenderer({
         alpha: true
       });
@@ -62,7 +67,7 @@
       this.context1.textAlign = "left";
       this.context1.textBaseline = "top";
       this.context1.fillStyle = "rgba(255,255,255,0.95)";
-      this.context1.fillText('press h for help...', 10, this.canvas1.height * 0.9 - 50);
+      this.context1.fillText('press i for info...', 10, this.canvas1.height * 0.9 - 50);
       this.texture1 = new THREE.Texture(this.canvas1);
       this.texture1.minFilter = THREE.LinearFilter;
       this.texture1.magFilter = THREE.LinearFilter;
@@ -83,6 +88,18 @@
 
     RenderController.prototype.NextVisualizer = function() {
       this.visualizerCounter = (this.visualizerCounter + 1) % this.visualizers.length;
+      this.activeVisualizer = this.visualizers[this.visualizerCounter];
+      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
+      this.badTV.uniforms['distortion'].value = 10.0;
+    };
+
+    RenderController.prototype.PreviousVisualizer = function() {
+      if (this.visualizerCounter === 0) {
+        this.visualizerCounter = this.visualizers.length - 1;
+      } else {
+        this.visualizerCounter = this.visualizerCounter - 1;
+      }
+      this.visualizerCounter = this.visualizerCounter;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
       this.badTV.uniforms['distortion'].value = 10.0;
@@ -155,13 +172,17 @@
       if (this.volumeDisplayActive) {
         if (this.clock.getElapsedTime() > this.lastVolumeUpdateTime + 2) {
           this.ClearVolumeDisplay();
-          this.volumeDisplayActive = false;
         }
       }
       if (this.playStatusTimerRunning) {
         if (this.clock.getElapsedTime() > this.lastPlayStatusToggleTime + 4) {
           this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
           this.playStatusTimerRunning = false;
+        }
+      }
+      if (this.infoDisplayActive) {
+        if (this.clock.getElapsedTime() > this.lastInfoUpdateTime + 5) {
+          this.ClearInfoDisplay();
         }
       }
       if (this.paused) {
@@ -311,7 +332,7 @@
     };
 
     RenderController.prototype.ClearVolumeDisplay = function() {
-      this.volumeDisplayActive = true;
+      this.volumeDisplayActive = false;
       this.context1.clearRect(0, 0, this.canvas1.width / 2, this.canvas1.height / 2);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
@@ -320,6 +341,7 @@
     RenderController.prototype.UpdateVolumeDisplay = function(filledBarAmount) {
       var i, rectangleStartX, rectangleStartY, volumeBarHeight, volumeBarWidth, xOffset;
       this.ClearVolumeDisplay();
+      this.ClearInfoDisplay();
       filledBarAmount = Math.min(Math.round(filledBarAmount), 10);
       rectangleStartX = 10;
       rectangleStartY = 70;
@@ -344,6 +366,7 @@
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
       this.lastVolumeUpdateTime = this.clock.getElapsedTime();
+      this.volumeDisplayActive = true;
     };
 
     RenderController.prototype.GetIcecastData = function() {
@@ -390,6 +413,35 @@
       this.lastPlayStatusToggleTime = this.clock.getElapsedTime();
       this.playStatusTimerRunning = true;
       this.GetIcecastData();
+    };
+
+    RenderController.prototype.ShowInfo = function() {
+      this.ClearVolumeDisplay();
+      this.context1.save();
+      this.context1.font = '38px TelegramaRaw';
+      this.context1.strokeStyle = 'black';
+      this.context1.lineWidth = 8;
+      this.context1.strokeText('Created by Evan Hemsley', this.canvas1.width * 0.02, this.canvas1.height * 0.08 - 50);
+      this.context1.strokeText('@thatcosmonaut', this.canvas1.width * 0.02, this.canvas1.height * 0.16 - 50);
+      this.context1.strokeText(String.fromCharCode(8592) + ' or ' + String.fromCharCode(8594) + ' to change channel', this.canvas1.width * 0.02, this.canvas1.height * 0.24 - 50);
+      this.context1.strokeText(String.fromCharCode(8593) + ' or ' + String.fromCharCode(8595) + ' to adjust volume', this.canvas1.width * 0.02, this.canvas1.height * 0.32 - 50);
+      this.context1.strokeText('Space to pause/play', this.canvas1.width * 0.02, this.canvas1.height * 0.4 - 50);
+      this.context1.fillStyle = 'white';
+      this.context1.fillText('Created by Evan Hemsley', this.canvas1.width * 0.02, this.canvas1.height * 0.08 - 50);
+      this.context1.fillText('@thatcosmonaut', this.canvas1.width * 0.02, this.canvas1.height * 0.16 - 50);
+      this.context1.fillText(String.fromCharCode(8592) + ' or ' + String.fromCharCode(8594) + ' to change channel', this.canvas1.width * 0.02, this.canvas1.height * 0.24 - 50);
+      this.context1.fillText(String.fromCharCode(8593) + ' or ' + String.fromCharCode(8595) + ' to adjust volume', this.canvas1.width * 0.02, this.canvas1.height * 0.32 - 50);
+      this.context1.fillText('Space to pause/play', this.canvas1.width * 0.02, this.canvas1.height * 0.4 - 50);
+      this.context1.restore();
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+      this.infoDisplayActive = true;
+      this.lastInfoUpdateTime = this.clock.getElapsedTime();
+    };
+
+    RenderController.prototype.ClearInfoDisplay = function() {
+      this.ClearCanvasArea(this.canvas1.width * 0.02, this.canvas1.height * 0.08 - 50, this.canvas1.width * 0.75, this.canvas1.height * 0.5 - 50);
+      this.infoDisplayActive = false;
     };
 
     return RenderController;
