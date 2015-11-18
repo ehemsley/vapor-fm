@@ -23,7 +23,7 @@ class @RenderController
     @renderer.setSize(window.innerWidth, window.innerHeight)
     @visualizerElement.append(@renderer.domElement)
 
-    @visualizers = [new Visualizer(@audioInitializer), new HeartVisualizer(@audioInitializer)]
+    @visualizers = [new Visualizer(@audioInitializer), new HeartVisualizer(@audioInitializer), new MystifyVisualizer(@audioInitializer)]
     @visualizerCounter = 0
     @activeVisualizer = @visualizers[@visualizerCounter]
     for visualizer in @visualizers
@@ -153,7 +153,7 @@ class @RenderController
     return
 
   Render: =>
-    requestAnimationFrame(@Render)
+    deltaTime = @clock.getDelta()
 
     if @clock.getElapsedTime() > @lastIcecastUpdateTime + 5
       @GetIcecastData() unless @paused
@@ -182,17 +182,18 @@ class @RenderController
         @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
         @DrawSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
     else
-      deltaTime = @clock.getDelta()
       @timer += deltaTime
       @UpdateAudioAnalyzer()
       @UpdateEffects()
-      @activeVisualizer.Update()
+      @activeVisualizer.Update(deltaTime)
 
     @cubeComposer.render(0.1)
     @glowComposer.render(0.1)
     @blendComposer.render(0.1)
     @hudComposer.render(0.1)
     @overlayComposer.render(0.1)
+
+    requestAnimationFrame(@Render)
 
     return
 

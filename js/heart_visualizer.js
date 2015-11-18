@@ -109,7 +109,7 @@
       return skybox;
     };
 
-    HeartVisualizer.prototype.Update = function() {
+    HeartVisualizer.prototype.Update = function(deltaTime) {
       var heartObject, j, k, len, len1, randomHeart, ref, ref1;
       this.timer += 0.01;
       if (this.heart != null) {

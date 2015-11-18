@@ -77,7 +77,7 @@ class @Visualizer
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
-  Update: () =>
+  Update: (deltaTime) =>
     @timer += 0.01
 
     rotationAddition = @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 2000

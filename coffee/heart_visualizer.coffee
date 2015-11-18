@@ -81,7 +81,7 @@ class @HeartVisualizer
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
-  Update: =>
+  Update: (deltaTime) =>
     @timer += 0.01
 
     @heart.rotation.y = @timer if @heart?

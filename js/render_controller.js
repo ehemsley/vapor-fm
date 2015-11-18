@@ -47,7 +47,7 @@
       this.renderer.setClearColor(0x000000, 0);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.visualizerElement.append(this.renderer.domElement);
-      this.visualizers = [new Visualizer(this.audioInitializer), new HeartVisualizer(this.audioInitializer)];
+      this.visualizers = [new Visualizer(this.audioInitializer), new HeartVisualizer(this.audioInitializer), new MystifyVisualizer(this.audioInitializer)];
       this.visualizerCounter = 0;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       ref = this.visualizers;
@@ -165,7 +165,7 @@
 
     RenderController.prototype.Render = function() {
       var deltaTime;
-      requestAnimationFrame(this.Render);
+      deltaTime = this.clock.getDelta();
       if (this.clock.getElapsedTime() > this.lastIcecastUpdateTime + 5) {
         if (!this.paused) {
           this.GetIcecastData();
@@ -200,17 +200,17 @@
           this.DrawSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
         }
       } else {
-        deltaTime = this.clock.getDelta();
         this.timer += deltaTime;
         this.UpdateAudioAnalyzer();
         this.UpdateEffects();
-        this.activeVisualizer.Update();
+        this.activeVisualizer.Update(deltaTime);
       }
       this.cubeComposer.render(0.1);
       this.glowComposer.render(0.1);
       this.blendComposer.render(0.1);
       this.hudComposer.render(0.1);
       this.overlayComposer.render(0.1);
+      requestAnimationFrame(this.Render);
     };
 
     RenderController.prototype.OnResize = function() {

@@ -97,7 +97,7 @@
       return skybox;
     };
 
-    Visualizer.prototype.Update = function() {
+    Visualizer.prototype.Update = function(deltaTime) {
       var i, rotationAddition, scaleValue;
       this.timer += 0.01;
       rotationAddition = this.audioInitializer.GetAverageVolume(this.audioInitializer.frequencyData) / 2000;
