@@ -165,6 +165,7 @@
 
     RenderController.prototype.Render = function() {
       var deltaTime;
+      requestAnimationFrame(this.Render);
       deltaTime = this.clock.getDelta();
       if (this.clock.getElapsedTime() > this.lastIcecastUpdateTime + 5) {
         if (!this.paused) {
@@ -210,7 +211,6 @@
       this.blendComposer.render(0.1);
       this.hudComposer.render(0.1);
       this.overlayComposer.render(0.1);
-      requestAnimationFrame(this.Render);
     };
 
     RenderController.prototype.OnResize = function() {
@@ -448,7 +448,7 @@
     };
 
     RenderController.prototype.ClearInfoDisplay = function() {
-      this.ClearCanvasArea(this.canvas1.width * 0.02, this.canvas1.height * 0.08 - 50, this.canvas1.width * 0.75, this.canvas1.height * 0.5 - 50);
+      this.ClearCanvasArea(0, this.canvas1.height * 0.08 - 50, this.canvas1.width * 0.75, this.canvas1.height * 0.4 - 50 + (38 * 1.55));
       this.infoDisplayActive = false;
     };
 
@@ -469,7 +469,7 @@
     };
 
     RenderController.prototype.ClearChannelDisplay = function() {
-      this.ClearCanvasArea(this.canvas1.width * 0.9, this.canvas1.height * 0.08 - 50, this.canvas1.width, this.canvas1.height * 0.24 - 50);
+      this.ClearCanvasArea(this.canvas1.width * 0.9, this.canvas1.height * 0.08 - 50, this.canvas1.width, this.canvas1.height * 0.08 - 50 + 150);
       this.channelDisplayActive = false;
     };
 

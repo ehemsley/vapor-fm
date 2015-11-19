@@ -10,10 +10,10 @@ class @MystifyQuadrilateral
 
     console.log(@vertexOnePosition)
 
-    @vertexOneVelocity = new THREE.Vector3((Math.random() * 200) - 100, (Math.random() * 100) - 100, 0)
-    @vertexTwoVelocity = new THREE.Vector3((Math.random() * 100) + 100, (Math.random() * 200) - 100, 0)
-    @vertexThreeVelocity = new THREE.Vector3((Math.random() * 200) - 100, (Math.random() * 100) + 100, 0)
-    @vertexFourVelocity = new THREE.Vector3((Math.random() * 100) - 100, (Math.random() * 200) - 100, 0)
+    @vertexOneVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) - 1, 0)
+    @vertexTwoVelocity = new THREE.Vector3((Math.random() * 1) + 1, (Math.random() * 2) - 1, 0)
+    @vertexThreeVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) + 1, 0)
+    @vertexFourVelocity = new THREE.Vector3((Math.random() * 1) - 1, (Math.random() * 2) - 1, 0)
 
     @leftBound = leftBound
     @rightBound = rightBound
@@ -21,6 +21,9 @@ class @MystifyQuadrilateral
     @bottomBound = bottomBound
 
     @quadrilaterals = @Quadrilaterals(4)
+
+    @timer = 0
+    @colorChangeTime = @RandomColorChangeTime()
 
     return
 
@@ -54,5 +57,24 @@ class @MystifyQuadrilateral
 
 
   Update: (deltaTime) =>
+    @timer += deltaTime
+
+    if @timer > @colorChangeTime
+      @timer = 0
+      @colorChangeTime = @RandomColorChangeTime()
+      newColor = Math.random() * 0xffffff
+      for quadrilateral, i in @quadrilaterals
+        @SetColorChangeTimeout(quadrilateral, i, newColor)
+
     for quadrilateral in @quadrilaterals
       quadrilateral.Update(deltaTime)
+
+    return
+
+  RandomColorChangeTime: =>
+    Math.random() * 30
+
+  SetColorChangeTimeout: (quadrilateral, i, newColor) =>
+    setTimeout ->
+      quadrilateral.ChangeColor(newColor)
+    , i * 100

@@ -4,6 +4,8 @@
 
   this.MystifyQuadrilateral = (function() {
     function MystifyQuadrilateral(leftBound, rightBound, topBound, bottomBound) {
+      this.SetColorChangeTimeout = bind(this.SetColorChangeTimeout, this);
+      this.RandomColorChangeTime = bind(this.RandomColorChangeTime, this);
       this.Update = bind(this.Update, this);
       this.Quadrilaterals = bind(this.Quadrilaterals, this);
       var height, width;
@@ -14,15 +16,17 @@
       this.vertexThreePosition = new THREE.Vector3((Math.random() * width) - width * 0.5, height * -0.5, -10);
       this.vertexFourPosition = new THREE.Vector3(width * 0.5, (Math.random() * height) - height * 0.5, -10);
       console.log(this.vertexOnePosition);
-      this.vertexOneVelocity = new THREE.Vector3((Math.random() * 200) - 100, (Math.random() * 100) - 100, 0);
-      this.vertexTwoVelocity = new THREE.Vector3((Math.random() * 100) + 100, (Math.random() * 200) - 100, 0);
-      this.vertexThreeVelocity = new THREE.Vector3((Math.random() * 200) - 100, (Math.random() * 100) + 100, 0);
-      this.vertexFourVelocity = new THREE.Vector3((Math.random() * 100) - 100, (Math.random() * 200) - 100, 0);
+      this.vertexOneVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) - 1, 0);
+      this.vertexTwoVelocity = new THREE.Vector3((Math.random() * 1) + 1, (Math.random() * 2) - 1, 0);
+      this.vertexThreeVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) + 1, 0);
+      this.vertexFourVelocity = new THREE.Vector3((Math.random() * 1) - 1, (Math.random() * 2) - 1, 0);
       this.leftBound = leftBound;
       this.rightBound = rightBound;
       this.topBound = topBound;
       this.bottomBound = bottomBound;
       this.quadrilaterals = this.Quadrilaterals(4);
+      this.timer = 0;
+      this.colorChangeTime = this.RandomColorChangeTime();
       return;
     }
 
@@ -44,14 +48,33 @@
     };
 
     MystifyQuadrilateral.prototype.Update = function(deltaTime) {
-      var j, len, quadrilateral, ref, results;
-      ref = this.quadrilaterals;
-      results = [];
-      for (j = 0, len = ref.length; j < len; j++) {
-        quadrilateral = ref[j];
-        results.push(quadrilateral.Update(deltaTime));
+      var i, j, k, len, len1, newColor, quadrilateral, ref, ref1;
+      this.timer += deltaTime;
+      if (this.timer > this.colorChangeTime) {
+        this.timer = 0;
+        this.colorChangeTime = this.RandomColorChangeTime();
+        newColor = Math.random() * 0xffffff;
+        ref = this.quadrilaterals;
+        for (i = j = 0, len = ref.length; j < len; i = ++j) {
+          quadrilateral = ref[i];
+          this.SetColorChangeTimeout(quadrilateral, i, newColor);
+        }
       }
-      return results;
+      ref1 = this.quadrilaterals;
+      for (k = 0, len1 = ref1.length; k < len1; k++) {
+        quadrilateral = ref1[k];
+        quadrilateral.Update(deltaTime);
+      }
+    };
+
+    MystifyQuadrilateral.prototype.RandomColorChangeTime = function() {
+      return Math.random() * 30;
+    };
+
+    MystifyQuadrilateral.prototype.SetColorChangeTimeout = function(quadrilateral, i, newColor) {
+      return setTimeout(function() {
+        return quadrilateral.ChangeColor(newColor);
+      }, i * 100);
     };
 
     return MystifyQuadrilateral;

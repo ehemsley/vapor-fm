@@ -4,6 +4,7 @@
 
   this.Quadrilateral = (function() {
     function Quadrilateral(vertexOne, vertexTwo, vertexThree, vertexFour, velocityOne, velocityTwo, velocityThree, velocityFour, leftBound, rightBound, topBound, bottomBound) {
+      this.ChangeColor = bind(this.ChangeColor, this);
       this.Update = bind(this.Update, this);
       var height, lineGeometry, lineMaterial, width;
       width = Math.abs(leftBound - rightBound);
@@ -34,10 +35,10 @@
     }
 
     Quadrilateral.prototype.Update = function(deltaTime) {
-      this.vertexOnePosition = this.vertexOnePosition.add(new THREE.Vector3(this.vertexOneVelocity.x * deltaTime, this.vertexOneVelocity.y * deltaTime, this.vertexOneVelocity.z * deltaTime));
-      this.vertexTwoPosition = this.vertexTwoPosition.add(new THREE.Vector3(this.vertexTwoVelocity.x * deltaTime, this.vertexTwoVelocity.y * deltaTime, this.vertexTwoVelocity.z * deltaTime));
-      this.vertexThreePosition = this.vertexThreePosition.add(new THREE.Vector3(this.vertexThreeVelocity.x * deltaTime, this.vertexThreeVelocity.y * deltaTime, this.vertexThreeVelocity.z * deltaTime));
-      this.vertexFourPosition = this.vertexFourPosition.add(new THREE.Vector3(this.vertexFourVelocity.x * deltaTime, this.vertexFourVelocity.y * deltaTime, this.vertexFourVelocity.z * deltaTime));
+      this.vertexOnePosition = this.vertexOnePosition.add(new THREE.Vector3(this.vertexOneVelocity.x, this.vertexOneVelocity.y, this.vertexOneVelocity.z));
+      this.vertexTwoPosition = this.vertexTwoPosition.add(new THREE.Vector3(this.vertexTwoVelocity.x, this.vertexTwoVelocity.y, this.vertexTwoVelocity.z));
+      this.vertexThreePosition = this.vertexThreePosition.add(new THREE.Vector3(this.vertexThreeVelocity.x, this.vertexThreeVelocity.y, this.vertexThreeVelocity.z));
+      this.vertexFourPosition = this.vertexFourPosition.add(new THREE.Vector3(this.vertexFourVelocity.x, this.vertexFourVelocity.y, this.vertexFourVelocity.z));
       this.CheckBoundsAndAdjustVelocity(this.vertexOnePosition, this.vertexOneVelocity);
       this.CheckBoundsAndAdjustVelocity(this.vertexTwoPosition, this.vertexTwoVelocity);
       this.CheckBoundsAndAdjustVelocity(this.vertexThreePosition, this.vertexThreeVelocity);
@@ -60,6 +61,11 @@
         vertexPosition.setY(this.topBound);
         vertexVelocity.setY(-vertexVelocity.y);
       }
+    };
+
+    Quadrilateral.prototype.ChangeColor = function(newColor) {
+      this.line.material.color.setHex(newColor);
+      return this.line.material.needsUpdate = true;
     };
 
     return Quadrilateral;

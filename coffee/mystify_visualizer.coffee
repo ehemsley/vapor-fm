@@ -32,7 +32,7 @@ class @MystifyVisualizer
 
   SkyBox: ->
     geometry = new THREE.BoxGeometry(window.innerWidth, window.innerHeight, 500)
-    material = new THREE.MeshBasicMaterial({color: 0x5500ff, side: THREE.BackSide})
+    material = new THREE.MeshBasicMaterial({color: 0x050108, side: THREE.BackSide})
     skybox = new THREE.Mesh(geometry, material)
     skybox
 

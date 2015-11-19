@@ -153,6 +153,7 @@ class @RenderController
     return
 
   Render: =>
+    requestAnimationFrame(@Render)
     deltaTime = @clock.getDelta()
 
     if @clock.getElapsedTime() > @lastIcecastUpdateTime + 5
@@ -192,8 +193,6 @@ class @RenderController
     @blendComposer.render(0.1)
     @hudComposer.render(0.1)
     @overlayComposer.render(0.1)
-
-    requestAnimationFrame(@Render)
 
     return
 
@@ -457,7 +456,7 @@ class @RenderController
     return
 
   ClearInfoDisplay: =>
-    @ClearCanvasArea(@canvas1.width * 0.02, @canvas1.height * 0.08 - 50, @canvas1.width * 0.75, @canvas1.height * 0.5 - 50)
+    @ClearCanvasArea(0, @canvas1.height * 0.08 - 50, @canvas1.width * 0.75, @canvas1.height * 0.4 - 50 + (38 * 1.55))
     @infoDisplayActive = false
     return
 
@@ -484,6 +483,6 @@ class @RenderController
     return
 
   ClearChannelDisplay: =>
-    @ClearCanvasArea(@canvas1.width * 0.9, @canvas1.height * 0.08 - 50, @canvas1.width, @canvas1.height * 0.24 - 50)
+    @ClearCanvasArea(@canvas1.width * 0.9, @canvas1.height * 0.08 - 50, @canvas1.width, @canvas1.height * 0.08 - 50 + 150)
     @channelDisplayActive = false
     return

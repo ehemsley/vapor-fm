@@ -32,10 +32,10 @@ class @Quadrilateral
     return
 
   Update: (deltaTime) =>
-    @vertexOnePosition = @vertexOnePosition.add(new THREE.Vector3(@vertexOneVelocity.x * deltaTime, @vertexOneVelocity.y * deltaTime, @vertexOneVelocity.z * deltaTime))
-    @vertexTwoPosition = @vertexTwoPosition.add(new THREE.Vector3(@vertexTwoVelocity.x * deltaTime, @vertexTwoVelocity.y * deltaTime, @vertexTwoVelocity.z * deltaTime))
-    @vertexThreePosition = @vertexThreePosition.add(new THREE.Vector3(@vertexThreeVelocity.x * deltaTime, @vertexThreeVelocity.y * deltaTime, @vertexThreeVelocity.z * deltaTime))
-    @vertexFourPosition = @vertexFourPosition.add(new THREE.Vector3(@vertexFourVelocity.x * deltaTime, @vertexFourVelocity.y * deltaTime, @vertexFourVelocity.z * deltaTime))
+    @vertexOnePosition = @vertexOnePosition.add(new THREE.Vector3(@vertexOneVelocity.x, @vertexOneVelocity.y, @vertexOneVelocity.z))
+    @vertexTwoPosition = @vertexTwoPosition.add(new THREE.Vector3(@vertexTwoVelocity.x, @vertexTwoVelocity.y, @vertexTwoVelocity.z))
+    @vertexThreePosition = @vertexThreePosition.add(new THREE.Vector3(@vertexThreeVelocity.x, @vertexThreeVelocity.y, @vertexThreeVelocity.z))
+    @vertexFourPosition = @vertexFourPosition.add(new THREE.Vector3(@vertexFourVelocity.x, @vertexFourVelocity.y, @vertexFourVelocity.z))
 
     @CheckBoundsAndAdjustVelocity(@vertexOnePosition, @vertexOneVelocity)
     @CheckBoundsAndAdjustVelocity(@vertexTwoPosition, @vertexTwoVelocity)
@@ -62,3 +62,7 @@ class @Quadrilateral
       vertexVelocity.setY(-vertexVelocity.y)
 
     return
+
+  ChangeColor: (newColor) =>
+    @line.material.color.setHex(newColor)
+    @line.material.needsUpdate = true
