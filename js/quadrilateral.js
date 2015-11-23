@@ -3,12 +3,16 @@
   var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   this.Quadrilateral = (function() {
-    function Quadrilateral(vertexOne, vertexTwo, vertexThree, vertexFour, velocityOne, velocityTwo, velocityThree, velocityFour, leftBound, rightBound, topBound, bottomBound) {
+    function Quadrilateral(mystifyQuadrilateral, vertexOne, vertexTwo, vertexThree, vertexFour, velocityOne, velocityTwo, velocityThree, velocityFour, leftBound, rightBound, topBound, bottomBound) {
+      this.VelocityByIndex = bind(this.VelocityByIndex, this);
+      this.SetYVelocityOfVertex = bind(this.SetYVelocityOfVertex, this);
+      this.SetXVelocityOfVertex = bind(this.SetXVelocityOfVertex, this);
       this.ChangeColor = bind(this.ChangeColor, this);
       this.Update = bind(this.Update, this);
       var height, lineGeometry, lineMaterial, width;
       width = Math.abs(leftBound - rightBound);
       height = Math.abs(topBound - bottomBound);
+      this.mystifyQuadrilateral = mystifyQuadrilateral;
       this.vertexOnePosition = vertexOne;
       this.vertexTwoPosition = vertexTwo;
       this.vertexThreePosition = vertexThree;
@@ -39,33 +43,95 @@
       this.vertexTwoPosition = this.vertexTwoPosition.add(new THREE.Vector3(this.vertexTwoVelocity.x, this.vertexTwoVelocity.y, this.vertexTwoVelocity.z));
       this.vertexThreePosition = this.vertexThreePosition.add(new THREE.Vector3(this.vertexThreeVelocity.x, this.vertexThreeVelocity.y, this.vertexThreeVelocity.z));
       this.vertexFourPosition = this.vertexFourPosition.add(new THREE.Vector3(this.vertexFourVelocity.x, this.vertexFourVelocity.y, this.vertexFourVelocity.z));
-      this.CheckBoundsAndAdjustVelocity(this.vertexOnePosition, this.vertexOneVelocity);
-      this.CheckBoundsAndAdjustVelocity(this.vertexTwoPosition, this.vertexTwoVelocity);
-      this.CheckBoundsAndAdjustVelocity(this.vertexThreePosition, this.vertexThreeVelocity);
-      this.CheckBoundsAndAdjustVelocity(this.vertexFourPosition, this.vertexFourVelocity);
+      this.CheckBoundsAndAdjustVelocity(this.vertexOnePosition, this.vertexOneVelocity, 0);
+      this.CheckBoundsAndAdjustVelocity(this.vertexTwoPosition, this.vertexTwoVelocity, 1);
+      this.CheckBoundsAndAdjustVelocity(this.vertexThreePosition, this.vertexThreeVelocity, 2);
+      this.CheckBoundsAndAdjustVelocity(this.vertexFourPosition, this.vertexFourVelocity, 3);
       this.line.geometry.verticesNeedUpdate = true;
     };
 
-    Quadrilateral.prototype.CheckBoundsAndAdjustVelocity = function(vertexPosition, vertexVelocity) {
+    Quadrilateral.prototype.CheckBoundsAndAdjustVelocity = function(vertexPosition, vertexVelocity, vertexIndex) {
+      var newXVelocity, newYVelocity, xCollision, yCollision;
+      xCollision = false;
+      yCollision = false;
       if (vertexPosition.x < this.leftBound) {
         vertexPosition.setX(this.leftBound);
-        vertexVelocity.setX(-vertexVelocity.x);
+        xCollision = true;
       } else if (vertexPosition.x > this.rightBound) {
         vertexPosition.setX(this.rightBound);
-        vertexVelocity.setX(-vertexVelocity.x);
+        xCollision = true;
       }
       if (vertexPosition.y < this.bottomBound) {
         vertexPosition.setY(this.bottomBound);
-        vertexVelocity.setY(-vertexVelocity.y);
+        yCollision = true;
       } else if (vertexPosition.y > this.topBound) {
         vertexPosition.setY(this.topBound);
-        vertexVelocity.setY(-vertexVelocity.y);
+        yCollision = true;
+      }
+      if (xCollision || yCollision) {
+        if (this.mystifyQuadrilateral.IsLastVertexToCollide(this, vertexIndex)) {
+          if (xCollision) {
+            newXVelocity = this.RandomVelocityComponent(vertexVelocity.x);
+            this.mystifyQuadrilateral.FireQuadrilateralsInXDirection(vertexIndex, newXVelocity);
+            this.mystifyQuadrilateral.FireQuadrilateralsInYDirection(vertexIndex, vertexVelocity.y);
+          }
+          if (yCollision) {
+            newYVelocity = this.RandomVelocityComponent(vertexVelocity.y);
+            this.mystifyQuadrilateral.FireQuadrilateralsInYDirection(vertexIndex, newYVelocity);
+            this.mystifyQuadrilateral.FireQuadrilateralsInXDirection(vertexIndex, vertexVelocity.x);
+          }
+        }
+        vertexVelocity.set(0, 0, 0);
       }
     };
 
     Quadrilateral.prototype.ChangeColor = function(newColor) {
       this.line.material.color.setHex(newColor);
-      return this.line.material.needsUpdate = true;
+      this.line.material.needsUpdate = true;
+    };
+
+    Quadrilateral.prototype.RandomVelocityComponent = function(originalVelocity) {
+      if (originalVelocity > 0) {
+        return Math.min(Math.random() * -4, -0.1);
+      } else {
+        return Math.max(Math.random() * 4, 0.1);
+      }
+    };
+
+    Quadrilateral.prototype.SetXVelocityOfVertex = function(index, newXVelocity) {
+      if (index === 0) {
+        this.vertexOneVelocity.setX(newXVelocity);
+      } else if (index === 1) {
+        this.vertexTwoVelocity.setX(newXVelocity);
+      } else if (index === 2) {
+        this.vertexThreeVelocity.setX(newXVelocity);
+      } else if (index === 3) {
+        this.vertexFourVelocity.setX(newXVelocity);
+      }
+    };
+
+    Quadrilateral.prototype.SetYVelocityOfVertex = function(index, newYVelocity) {
+      if (index === 0) {
+        this.vertexOneVelocity.setY(newYVelocity);
+      } else if (index === 1) {
+        this.vertexTwoVelocity.setY(newYVelocity);
+      } else if (index === 2) {
+        this.vertexThreeVelocity.setY(newYVelocity);
+      } else if (index === 3) {
+        this.vertexFourVelocity.setY(newYVelocity);
+      }
+    };
+
+    Quadrilateral.prototype.VelocityByIndex = function(index) {
+      if (index === 0) {
+        return this.vertexOneVelocity;
+      } else if (index === 1) {
+        return this.vertexTwoVelocity;
+      } else if (index === 2) {
+        return this.vertexThreeVelocity;
+      } else if (index === 3) {
+        return this.vertexFourVelocity;
+      }
     };
 
     return Quadrilateral;

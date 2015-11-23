@@ -3,12 +3,10 @@ class @MystifyQuadrilateral
     width = Math.abs(leftBound - rightBound)
     height = Math.abs(topBound - bottomBound)
 
-    @vertexOnePosition = new THREE.Vector3((Math.random() * width) - width * 0.5, height * 0.5, -10)
-    @vertexTwoPosition = new THREE.Vector3(width * -0.5, (Math.random() * height ) - height * 0.5, -10)
-    @vertexThreePosition = new THREE.Vector3((Math.random() * width) - width * 0.5, height * -0.5, -10)
-    @vertexFourPosition = new THREE.Vector3(width * 0.5, (Math.random() * height) - height * 0.5, -10)
-
-    console.log(@vertexOnePosition)
+    @vertexOnePosition = new THREE.Vector3((Math.random() * width * 0.5) - width * 0.25, height * 0.5, -10)
+    @vertexTwoPosition = new THREE.Vector3(width * -0.5, (Math.random() * height * 0.5) - height * 0.25, -10)
+    @vertexThreePosition = new THREE.Vector3((Math.random() * width * 0.5) - width * 0.25, height * -0.5, -10)
+    @vertexFourPosition = new THREE.Vector3(width * 0.5, (Math.random() * height * 0.5) - height * 0.25, -10)
 
     @vertexOneVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) - 1, 0)
     @vertexTwoVelocity = new THREE.Vector3((Math.random() * 1) + 1, (Math.random() * 2) - 1, 0)
@@ -20,7 +18,10 @@ class @MystifyQuadrilateral
     @topBound = topBound
     @bottomBound = bottomBound
 
-    @quadrilaterals = @Quadrilaterals(4)
+    @quadrilaterals = @Quadrilaterals(6)
+
+    @nextCollisionXVelocity = (0 for [0..3])
+    @nextCollisionYVelocity = (0 for [0..3])
 
     @timer = 0
     @colorChangeTime = @RandomColorChangeTime()
@@ -40,7 +41,8 @@ class @MystifyQuadrilateral
       vertexTwo = @vertexTwoPosition.clone().add(vertexTwoDirection.clone().multiplyScalar(i * 20))
       vertexThree = @vertexThreePosition.clone().add(vertexThreeDirection.clone().multiplyScalar(i * 20))
       vertexFour = @vertexFourPosition.clone().add(vertexFourDirection.clone().multiplyScalar(i * 20))
-      quadrilaterals.push(new Quadrilateral(vertexOne,
+      quadrilaterals.push(new Quadrilateral(@,
+                                             vertexOne,
                                              vertexTwo,
                                              vertexThree,
                                              vertexFour,
@@ -78,3 +80,39 @@ class @MystifyQuadrilateral
     setTimeout ->
       quadrilateral.ChangeColor(newColor)
     , i * 100
+
+    return
+
+  IsLastVertexToCollide: (currentQuadrilateral, vertexIndex) =>
+    for iteratedQuadrilateral in @quadrilaterals
+      if currentQuadrilateral != iteratedQuadrilateral
+        if iteratedQuadrilateral.VelocityByIndex(vertexIndex).length() != 0
+          return false
+
+    return true
+
+  FireQuadrilateralsInXDirection: (vertexIndex, newXVelocity) =>
+    for quadrilateral, i in @quadrilaterals[..] by -1
+    # for quadrilateral, i in @quadrilaterals
+      @SetQuadrilateralFireInXDirectionTimeout(quadrilateral, i, vertexIndex, newXVelocity)
+    return
+
+  FireQuadrilateralsInYDirection: (vertexIndex, newYVelocity) =>
+    for quadrilateral, i in @quadrilaterals[..] by -1
+    # for quadrilateral, i in @quadrilaterals
+      @SetQuadrilateralFireInYDirectionTimeout(quadrilateral, i, vertexIndex, newYVelocity)
+    return
+
+  SetQuadrilateralFireInXDirectionTimeout: (quadrilateral, quadIndex, vertexIndex, newXVelocity) =>
+    setTimeout ->
+      quadrilateral.SetXVelocityOfVertex(vertexIndex, newXVelocity)
+    , quadIndex * 100
+
+    return
+
+  SetQuadrilateralFireInYDirectionTimeout: (quadrilateral, quadIndex, vertexIndex, newYVelocity) =>
+    setTimeout ->
+      quadrilateral.SetYVelocityOfVertex(vertexIndex, newYVelocity)
+    , quadIndex * 100
+
+    return

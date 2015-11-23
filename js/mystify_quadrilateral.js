@@ -4,6 +4,11 @@
 
   this.MystifyQuadrilateral = (function() {
     function MystifyQuadrilateral(leftBound, rightBound, topBound, bottomBound) {
+      this.SetQuadrilateralFireInYDirectionTimeout = bind(this.SetQuadrilateralFireInYDirectionTimeout, this);
+      this.SetQuadrilateralFireInXDirectionTimeout = bind(this.SetQuadrilateralFireInXDirectionTimeout, this);
+      this.FireQuadrilateralsInYDirection = bind(this.FireQuadrilateralsInYDirection, this);
+      this.FireQuadrilateralsInXDirection = bind(this.FireQuadrilateralsInXDirection, this);
+      this.IsLastVertexToCollide = bind(this.IsLastVertexToCollide, this);
       this.SetColorChangeTimeout = bind(this.SetColorChangeTimeout, this);
       this.RandomColorChangeTime = bind(this.RandomColorChangeTime, this);
       this.Update = bind(this.Update, this);
@@ -11,11 +16,10 @@
       var height, width;
       width = Math.abs(leftBound - rightBound);
       height = Math.abs(topBound - bottomBound);
-      this.vertexOnePosition = new THREE.Vector3((Math.random() * width) - width * 0.5, height * 0.5, -10);
-      this.vertexTwoPosition = new THREE.Vector3(width * -0.5, (Math.random() * height) - height * 0.5, -10);
-      this.vertexThreePosition = new THREE.Vector3((Math.random() * width) - width * 0.5, height * -0.5, -10);
-      this.vertexFourPosition = new THREE.Vector3(width * 0.5, (Math.random() * height) - height * 0.5, -10);
-      console.log(this.vertexOnePosition);
+      this.vertexOnePosition = new THREE.Vector3((Math.random() * width * 0.5) - width * 0.25, height * 0.5, -10);
+      this.vertexTwoPosition = new THREE.Vector3(width * -0.5, (Math.random() * height * 0.5) - height * 0.25, -10);
+      this.vertexThreePosition = new THREE.Vector3((Math.random() * width * 0.5) - width * 0.25, height * -0.5, -10);
+      this.vertexFourPosition = new THREE.Vector3(width * 0.5, (Math.random() * height * 0.5) - height * 0.25, -10);
       this.vertexOneVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) - 1, 0);
       this.vertexTwoVelocity = new THREE.Vector3((Math.random() * 1) + 1, (Math.random() * 2) - 1, 0);
       this.vertexThreeVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) + 1, 0);
@@ -24,7 +28,23 @@
       this.rightBound = rightBound;
       this.topBound = topBound;
       this.bottomBound = bottomBound;
-      this.quadrilaterals = this.Quadrilaterals(4);
+      this.quadrilaterals = this.Quadrilaterals(6);
+      this.nextCollisionXVelocity = (function() {
+        var j, results;
+        results = [];
+        for (j = 0; j <= 3; j++) {
+          results.push(0);
+        }
+        return results;
+      })();
+      this.nextCollisionYVelocity = (function() {
+        var j, results;
+        results = [];
+        for (j = 0; j <= 3; j++) {
+          results.push(0);
+        }
+        return results;
+      })();
       this.timer = 0;
       this.colorChangeTime = this.RandomColorChangeTime();
       return;
@@ -42,7 +62,7 @@
         vertexTwo = this.vertexTwoPosition.clone().add(vertexTwoDirection.clone().multiplyScalar(i * 20));
         vertexThree = this.vertexThreePosition.clone().add(vertexThreeDirection.clone().multiplyScalar(i * 20));
         vertexFour = this.vertexFourPosition.clone().add(vertexFourDirection.clone().multiplyScalar(i * 20));
-        quadrilaterals.push(new Quadrilateral(vertexOne, vertexTwo, vertexThree, vertexFour, this.vertexOneVelocity.clone(), this.vertexTwoVelocity.clone(), this.vertexThreeVelocity.clone(), this.vertexFourVelocity.clone(), this.leftBound, this.rightBound, this.topBound, this.bottomBound));
+        quadrilaterals.push(new Quadrilateral(this, vertexOne, vertexTwo, vertexThree, vertexFour, this.vertexOneVelocity.clone(), this.vertexTwoVelocity.clone(), this.vertexThreeVelocity.clone(), this.vertexFourVelocity.clone(), this.leftBound, this.rightBound, this.topBound, this.bottomBound));
       }
       return quadrilaterals;
     };
@@ -72,9 +92,53 @@
     };
 
     MystifyQuadrilateral.prototype.SetColorChangeTimeout = function(quadrilateral, i, newColor) {
-      return setTimeout(function() {
+      setTimeout(function() {
         return quadrilateral.ChangeColor(newColor);
       }, i * 100);
+    };
+
+    MystifyQuadrilateral.prototype.IsLastVertexToCollide = function(currentQuadrilateral, vertexIndex) {
+      var iteratedQuadrilateral, j, len, ref;
+      ref = this.quadrilaterals;
+      for (j = 0, len = ref.length; j < len; j++) {
+        iteratedQuadrilateral = ref[j];
+        if (currentQuadrilateral !== iteratedQuadrilateral) {
+          if (iteratedQuadrilateral.VelocityByIndex(vertexIndex).length() !== 0) {
+            return false;
+          }
+        }
+      }
+      return true;
+    };
+
+    MystifyQuadrilateral.prototype.FireQuadrilateralsInXDirection = function(vertexIndex, newXVelocity) {
+      var i, j, quadrilateral, ref;
+      ref = this.quadrilaterals.slice(0);
+      for (i = j = ref.length - 1; j >= 0; i = j += -1) {
+        quadrilateral = ref[i];
+        this.SetQuadrilateralFireInXDirectionTimeout(quadrilateral, i, vertexIndex, newXVelocity);
+      }
+    };
+
+    MystifyQuadrilateral.prototype.FireQuadrilateralsInYDirection = function(vertexIndex, newYVelocity) {
+      var i, j, quadrilateral, ref;
+      ref = this.quadrilaterals.slice(0);
+      for (i = j = ref.length - 1; j >= 0; i = j += -1) {
+        quadrilateral = ref[i];
+        this.SetQuadrilateralFireInYDirectionTimeout(quadrilateral, i, vertexIndex, newYVelocity);
+      }
+    };
+
+    MystifyQuadrilateral.prototype.SetQuadrilateralFireInXDirectionTimeout = function(quadrilateral, quadIndex, vertexIndex, newXVelocity) {
+      setTimeout(function() {
+        return quadrilateral.SetXVelocityOfVertex(vertexIndex, newXVelocity);
+      }, quadIndex * 100);
+    };
+
+    MystifyQuadrilateral.prototype.SetQuadrilateralFireInYDirectionTimeout = function(quadrilateral, quadIndex, vertexIndex, newYVelocity) {
+      setTimeout(function() {
+        return quadrilateral.SetYVelocityOfVertex(vertexIndex, newYVelocity);
+      }, quadIndex * 100);
     };
 
     return MystifyQuadrilateral;
