@@ -12,6 +12,12 @@
       this.yRotationDirection = -1;
       this.scene = new THREE.Scene;
       this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      this.bloomParams = {
+        strength: 1.0,
+        kernelSize: 12.0,
+        sigma: 1.5,
+        resolution: 512
+      };
       this.ambientLight = new THREE.AmbientLight(0x404040);
       this.scene.add(this.ambientLight);
       this.pointLight = new THREE.PointLight(0xffffff, 1, 100);
@@ -68,7 +74,8 @@
     Visualizer.prototype.LineBoxes = function() {
       var i, lineBox, lineBoxGeometry, lineBoxes, lineMaterial;
       lineMaterial = new THREE.LineBasicMaterial({
-        color: 0xffffff
+        color: 0xffffff,
+        linewidth: 2
       });
       lineBoxes = [];
       i = 0;

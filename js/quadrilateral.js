@@ -9,7 +9,7 @@
       this.SetXVelocityOfVertex = bind(this.SetXVelocityOfVertex, this);
       this.ChangeColor = bind(this.ChangeColor, this);
       this.Update = bind(this.Update, this);
-      var height, lineGeometry, lineMaterial, width;
+      var color, height, lineGeometry, lineMaterial, width;
       width = Math.abs(leftBound - rightBound);
       height = Math.abs(topBound - bottomBound);
       this.mystifyQuadrilateral = mystifyQuadrilateral;
@@ -18,9 +18,12 @@
       this.vertexThreePosition = vertexThree;
       this.vertexFourPosition = vertexFour;
       lineMaterial = new THREE.LineBasicMaterial({
-        color: 0xffffff
+        color: 0xffffff,
+        opacity: 0.1,
+        transparent: true
       });
       lineGeometry = new THREE.Geometry();
+      color = new THREE.Color(0xffffff);
       lineGeometry.vertices.push(this.vertexOnePosition);
       lineGeometry.vertices.push(this.vertexTwoPosition);
       lineGeometry.vertices.push(this.vertexThreePosition);

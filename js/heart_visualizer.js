@@ -9,6 +9,12 @@
       this.timer = 0;
       this.scene = new THREE.Scene;
       this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      this.bloomParams = {
+        strength: 3,
+        kernelSize: 12,
+        sigma: 2.0,
+        resolution: 512
+      };
       this.ambientLight = new THREE.AmbientLight(0x404040);
       this.scene.add(this.ambientLight);
       this.pointLight = new THREE.PointLight(0xffffff, 1, 100);

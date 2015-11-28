@@ -62,7 +62,7 @@ class @RenderController
 
     @hudCamera.position.set(0,0,2)
 
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
+    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams)
 
     @vhsPause.uniforms['amount'].value = 1.0
 
@@ -72,7 +72,7 @@ class @RenderController
 
     @ShowChannelDisplay(@visualizerCounter)
 
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
+    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams)
     return
 
   PreviousVisualizer: =>
@@ -86,10 +86,10 @@ class @RenderController
 
     @ShowChannelDisplay(@visualizerCounter)
 
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera)
+    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams)
     return
 
-  RenderProcess: (scene, camera) =>
+  RenderProcess: (scene, camera, bloomParams) =>
     renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, stencilBuffer: true }
 
     renderTargetCube = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
@@ -122,8 +122,10 @@ class @RenderController
 
     @blendComposer = new (THREE.EffectComposer)(@renderer, renderTargetBlend)
     @blendComposer.addPass @blendPass
-    bloomPass = new (THREE.BloomPass)(3, 12, 2.0, 512)
-    @blendComposer.addPass bloomPass
+
+    if bloomParams?
+      bloomPass = new (THREE.BloomPass)(bloomParams.strength, bloomParams.kernelSize, bloomParams.sigma, bloomParams.resolution)
+      @blendComposer.addPass bloomPass
 
     @vhsPause = new THREE.ShaderPass(THREE.VHSPauseShader)
     @blendComposer.addPass @vhsPause

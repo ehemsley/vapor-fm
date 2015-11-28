@@ -85,7 +85,7 @@
       this.mesh1.position.set(0, 0, 0);
       this.hud.add(this.mesh1);
       this.hudCamera.position.set(0, 0, 2);
-      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
+      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams);
       this.vhsPause.uniforms['amount'].value = 1.0;
     }
 
@@ -93,7 +93,7 @@
       this.visualizerCounter = (this.visualizerCounter + 1) % this.visualizers.length;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       this.ShowChannelDisplay(this.visualizerCounter);
-      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
+      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams);
     };
 
     RenderController.prototype.PreviousVisualizer = function() {
@@ -105,10 +105,10 @@
       this.visualizerCounter = this.visualizerCounter;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       this.ShowChannelDisplay(this.visualizerCounter);
-      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera);
+      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams);
     };
 
-    RenderController.prototype.RenderProcess = function(scene, camera) {
+    RenderController.prototype.RenderProcess = function(scene, camera, bloomParams) {
       var bloomPass, horizontalBlur, hudPass, renderTargetBlend, renderTargetCube, renderTargetGlow, renderTargetHud, renderTargetParameters, verticalBlur;
       renderTargetParameters = {
         minFilter: THREE.LinearFilter,
@@ -139,8 +139,10 @@
       renderTargetBlend = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
       this.blendComposer = new THREE.EffectComposer(this.renderer, renderTargetBlend);
       this.blendComposer.addPass(this.blendPass);
-      bloomPass = new THREE.BloomPass(3, 12, 2.0, 512);
-      this.blendComposer.addPass(bloomPass);
+      if (bloomParams != null) {
+        bloomPass = new THREE.BloomPass(bloomParams.strength, bloomParams.kernelSize, bloomParams.sigma, bloomParams.resolution);
+        this.blendComposer.addPass(bloomPass);
+      }
       this.vhsPause = new THREE.ShaderPass(THREE.VHSPauseShader);
       this.blendComposer.addPass(this.vhsPause);
       renderTargetHud = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);

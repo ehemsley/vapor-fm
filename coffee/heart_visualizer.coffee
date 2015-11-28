@@ -7,6 +7,8 @@ class @HeartVisualizer
     @scene = new THREE.Scene
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 
+    @bloomParams = { strength: 3, kernelSize: 12, sigma: 2.0, resolution: 512 }
+
     @ambientLight = new THREE.AmbientLight(0x404040)
     @scene.add(@ambientLight)
 

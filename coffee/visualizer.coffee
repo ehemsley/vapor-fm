@@ -9,6 +9,8 @@ class @Visualizer
     @scene = new THREE.Scene
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 
+    @bloomParams = { strength: 1.0, kernelSize: 12.0, sigma: 1.5, resolution: 512 }
+
     @ambientLight = new THREE.AmbientLight(0x404040)
     @scene.add(@ambientLight)
 
@@ -56,7 +58,7 @@ class @Visualizer
       @scene.add(@bust)
 
   LineBoxes: ->
-    lineMaterial = new THREE.LineBasicMaterial({color: 0xffffff})
+    lineMaterial = new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 2})
     lineBoxes = []
     i = 0
     while i < 20

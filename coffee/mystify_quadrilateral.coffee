@@ -26,6 +26,8 @@ class @MystifyQuadrilateral
     @timer = 0
     @colorChangeTime = @RandomColorChangeTime()
 
+    @ChangeColors()
+
     return
 
   Quadrilaterals: (num) =>
@@ -41,19 +43,20 @@ class @MystifyQuadrilateral
       vertexTwo = @vertexTwoPosition.clone().add(vertexTwoDirection.clone().multiplyScalar(i * 20))
       vertexThree = @vertexThreePosition.clone().add(vertexThreeDirection.clone().multiplyScalar(i * 20))
       vertexFour = @vertexFourPosition.clone().add(vertexFourDirection.clone().multiplyScalar(i * 20))
-      quadrilaterals.push(new Quadrilateral(@,
-                                             vertexOne,
-                                             vertexTwo,
-                                             vertexThree,
-                                             vertexFour,
-                                             @vertexOneVelocity.clone(),
-                                             @vertexTwoVelocity.clone(),
-                                             @vertexThreeVelocity.clone(),
-                                             @vertexFourVelocity.clone(),
-                                             @leftBound,
-                                             @rightBound,
-                                             @topBound,
-                                             @bottomBound))
+      quadrilateral = new Quadrilateral(@,
+                                        vertexOne,
+                                        vertexTwo,
+                                        vertexThree,
+                                        vertexFour,
+                                        @vertexOneVelocity.clone(),
+                                        @vertexTwoVelocity.clone(),
+                                        @vertexThreeVelocity.clone(),
+                                        @vertexFourVelocity.clone(),
+                                        @leftBound,
+                                        @rightBound,
+                                        @topBound,
+                                        @bottomBound)
+      quadrilaterals.push(quadrilateral)
 
     return quadrilaterals
 
@@ -64,7 +67,7 @@ class @MystifyQuadrilateral
     if @timer > @colorChangeTime
       @timer = 0
       @colorChangeTime = @RandomColorChangeTime()
-      newColor = Math.random() * 0xffffff
+      @ChangeColors()
       for quadrilateral, i in @quadrilaterals
         @SetColorChangeTimeout(quadrilateral, i, newColor)
 
@@ -82,6 +85,11 @@ class @MystifyQuadrilateral
     , i * 100
 
     return
+
+  ChangeColors: =>
+    newColor = Math.random() * 0xffffff
+    for quadrilateral, i in @quadrilaterals
+      @SetColorChangeTimeout(quadrilateral, i, newColor)
 
   IsLastVertexToCollide: (currentQuadrilateral, vertexIndex) =>
     for iteratedQuadrilateral in @quadrilaterals

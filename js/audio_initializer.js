@@ -14,6 +14,7 @@
       this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
       this.floats = new Float32Array(this.analyser.frequencyBinCount);
       this.beatdetect = new FFT.BeatDetect(1024, 44100);
+      this.fft = new FFT.fft(1024, 44100);
       this.audioElement = $('#stream').get(0);
       this.AddCanPlayListener();
       this.loaded = false;
@@ -77,6 +78,7 @@
           source.connect(_this.context.destination);
           sampleRate = _this.context.sampleRate;
           _this.beatdetect = new FFT.BeatDetect(_this.analyser.frequencyBinCount, sampleRate);
+          _this.fft = new FFT.fft(_this.analyser.frequencyBinCount, sampleRate);
           _this.beatdetect.setSensitivity(500);
           _this.audioElement.play();
         };

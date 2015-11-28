@@ -366,6 +366,11 @@ FFT.fft = function ( ts, sr )
 
     return avg;
   }
+
+  this.calcAvg = function(lowFreq, hiFreq)
+  {
+    return calcAvg(lowFreq, hiFreq);
+  };
   
   /*
   float[] getSpectrumReal()

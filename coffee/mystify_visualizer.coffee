@@ -8,6 +8,8 @@ class @MystifyVisualizer
     # @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     @camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, 0.1, 1000)
 
+    @bloomParams = { strength: 10, kernelSize: 24, sigma: 1.0, resolution: 512 }
+
     @quadrilateralOne = @Quadrilateral()
     @quadrilateralTwo = @Quadrilateral()
 
@@ -32,7 +34,7 @@ class @MystifyVisualizer
 
   SkyBox: ->
     geometry = new THREE.BoxGeometry(window.innerWidth, window.innerHeight, 500)
-    material = new THREE.MeshBasicMaterial({color: 0x050108, side: THREE.BackSide})
+    material = new THREE.MeshBasicMaterial({color: 0x000003, side: THREE.BackSide})
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
@@ -40,5 +42,22 @@ class @MystifyVisualizer
     if deltaTime?
       @quadrilateralOne.Update(deltaTime)
       @quadrilateralTwo.Update(deltaTime)
+
+      previousMax = 0
+      quadCounter = 0
+      for newMax in [0..@audioInitializer.beatdetect.detectSize()] by (Math.floor(@audioInitializer.beatdetect.detectSize() / 5))
+        if @audioInitializer.beatdetect.isRange(previousMax, newMax, 4)
+          @quadrilateralOne.quadrilaterals[quadCounter].line.material.opacity = 1.0
+          @quadrilateralTwo.quadrilaterals[quadCounter].line.material.opacity = 1.0
+        else
+          currentOpacity = @quadrilateralOne.quadrilaterals[quadCounter].line.material.opacity
+          @quadrilateralOne.quadrilaterals[quadCounter].line.material.opacity = Math.max(currentOpacity - 0.01, 0.3)
+          currentOpacity = @quadrilateralTwo.quadrilaterals[quadCounter].line.material.opacity
+          @quadrilateralTwo.quadrilaterals[quadCounter].line.material.opacity = Math.max(currentOpacity - 0.01, 0.3)
+
+        @quadrilateralOne.quadrilaterals[quadCounter].line.material.needsUpdate = true
+        @quadrilateralTwo.quadrilaterals[quadCounter].line.material.needsUpdate = true
+        quadCounter += 1
+        previousMax = newMax
 
     return

@@ -10,6 +10,12 @@
       this.timer = 0;
       this.scene = new THREE.Scene;
       this.camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, 0.1, 1000);
+      this.bloomParams = {
+        strength: 10,
+        kernelSize: 24,
+        sigma: 1.0,
+        resolution: 512
+      };
       this.quadrilateralOne = this.Quadrilateral();
       this.quadrilateralTwo = this.Quadrilateral();
       ref = this.quadrilateralOne.quadrilaterals;
@@ -36,7 +42,7 @@
       var geometry, material, skybox;
       geometry = new THREE.BoxGeometry(window.innerWidth, window.innerHeight, 500);
       material = new THREE.MeshBasicMaterial({
-        color: 0x050108,
+        color: 0x000003,
         side: THREE.BackSide
       });
       skybox = new THREE.Mesh(geometry, material);
@@ -44,9 +50,27 @@
     };
 
     MystifyVisualizer.prototype.Update = function(deltaTime) {
+      var currentOpacity, i, newMax, previousMax, quadCounter, ref, ref1;
       if (deltaTime != null) {
         this.quadrilateralOne.Update(deltaTime);
         this.quadrilateralTwo.Update(deltaTime);
+        previousMax = 0;
+        quadCounter = 0;
+        for (newMax = i = 0, ref = this.audioInitializer.beatdetect.detectSize(), ref1 = Math.floor(this.audioInitializer.beatdetect.detectSize() / 5); ref1 > 0 ? i <= ref : i >= ref; newMax = i += ref1) {
+          if (this.audioInitializer.beatdetect.isRange(previousMax, newMax, 4)) {
+            this.quadrilateralOne.quadrilaterals[quadCounter].line.material.opacity = 1.0;
+            this.quadrilateralTwo.quadrilaterals[quadCounter].line.material.opacity = 1.0;
+          } else {
+            currentOpacity = this.quadrilateralOne.quadrilaterals[quadCounter].line.material.opacity;
+            this.quadrilateralOne.quadrilaterals[quadCounter].line.material.opacity = Math.max(currentOpacity - 0.01, 0.3);
+            currentOpacity = this.quadrilateralTwo.quadrilaterals[quadCounter].line.material.opacity;
+            this.quadrilateralTwo.quadrilaterals[quadCounter].line.material.opacity = Math.max(currentOpacity - 0.01, 0.3);
+          }
+          this.quadrilateralOne.quadrilaterals[quadCounter].line.material.needsUpdate = true;
+          this.quadrilateralTwo.quadrilaterals[quadCounter].line.material.needsUpdate = true;
+          quadCounter += 1;
+          previousMax = newMax;
+        }
       }
     };
 

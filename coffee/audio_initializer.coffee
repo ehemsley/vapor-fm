@@ -5,6 +5,7 @@ class @AudioInitializer
     @frequencyData = new Uint8Array(@analyser.frequencyBinCount)
     @floats = new Float32Array(@analyser.frequencyBinCount)
     @beatdetect = new FFT.BeatDetect(1024, 44100)
+    @fft = new FFT.fft(1024, 44100)
 
     @audioElement = $('#stream').get(0)
     @AddCanPlayListener()
@@ -72,6 +73,7 @@ class @AudioInitializer
 
       sampleRate = @context.sampleRate
       @beatdetect = new FFT.BeatDetect(@analyser.frequencyBinCount, sampleRate)
+      @fft = new FFT.fft(@analyser.frequencyBinCount, sampleRate)
       @beatdetect.setSensitivity(500)
       @audioElement.play()
       return

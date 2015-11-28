@@ -9,8 +9,10 @@ class @Quadrilateral
     @vertexThreePosition = vertexThree
     @vertexFourPosition = vertexFour
 
-    lineMaterial = new THREE.LineBasicMaterial({color: 0xffffff})
+    lineMaterial = new THREE.LineBasicMaterial({color: 0xffffff, opacity: 0.1, transparent: true})
     lineGeometry = new THREE.Geometry()
+
+    color = new THREE.Color(0xffffff)
 
     lineGeometry.vertices.push(@vertexOnePosition)
     lineGeometry.vertices.push(@vertexTwoPosition)

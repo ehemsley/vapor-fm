@@ -234,6 +234,8 @@ FFT.BeatDetect = function(timeSize, sampleRate)
 
 	  return 0;
 	}
+
+  this.detectSize = dectectSize;
 	
 	/**
 	 * Returns the center frequency of the i<sup>th</sup> frequency band.
@@ -426,6 +428,8 @@ FFT.BeatDetect = function(timeSize, sampleRate)
 		}
 		return num >= threshold;
 	}
+
+  this.isRange = isRange;
 
 	/**
 	 * Draws some debugging visuals in the passed PApplet. The visuals drawn when
