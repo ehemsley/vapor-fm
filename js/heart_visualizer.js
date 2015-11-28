@@ -15,6 +15,7 @@
         sigma: 2.0,
         resolution: 512
       };
+      this.noiseAmount = 0.0;
       this.ambientLight = new THREE.AmbientLight(0x404040);
       this.scene.add(this.ambientLight);
       this.pointLight = new THREE.PointLight(0xffffff, 1, 100);

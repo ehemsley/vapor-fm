@@ -68,8 +68,6 @@ class @MystifyQuadrilateral
       @timer = 0
       @colorChangeTime = @RandomColorChangeTime()
       @ChangeColors()
-      for quadrilateral, i in @quadrilaterals
-        @SetColorChangeTimeout(quadrilateral, i, newColor)
 
     for quadrilateral in @quadrilaterals
       quadrilateral.Update(deltaTime)

@@ -71,21 +71,16 @@
     };
 
     MystifyQuadrilateral.prototype.Update = function(deltaTime) {
-      var i, j, k, len, len1, quadrilateral, ref, ref1;
+      var j, len, quadrilateral, ref;
       this.timer += deltaTime;
       if (this.timer > this.colorChangeTime) {
         this.timer = 0;
         this.colorChangeTime = this.RandomColorChangeTime();
         this.ChangeColors();
-        ref = this.quadrilaterals;
-        for (i = j = 0, len = ref.length; j < len; i = ++j) {
-          quadrilateral = ref[i];
-          this.SetColorChangeTimeout(quadrilateral, i, newColor);
-        }
       }
-      ref1 = this.quadrilaterals;
-      for (k = 0, len1 = ref1.length; k < len1; k++) {
-        quadrilateral = ref1[k];
+      ref = this.quadrilaterals;
+      for (j = 0, len = ref.length; j < len; j++) {
+        quadrilateral = ref[j];
         quadrilateral.Update(deltaTime);
       }
     };

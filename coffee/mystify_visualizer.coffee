@@ -9,6 +9,7 @@ class @MystifyVisualizer
     @camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, 0.1, 1000)
 
     @bloomParams = { strength: 10, kernelSize: 6, sigma: 1.1, resolution: 512 }
+    @noiseAmount = 0.0
 
     @quadrilateralOne = @Quadrilateral()
     @quadrilateralTwo = @Quadrilateral()

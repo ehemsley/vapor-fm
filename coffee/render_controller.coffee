@@ -23,8 +23,12 @@ class @RenderController
     @renderer.setSize(window.innerWidth, window.innerHeight)
     @visualizerElement.append(@renderer.domElement)
 
-    @visualizers = [new Visualizer(@audioInitializer), new HeartVisualizer(@audioInitializer), new MystifyVisualizer(@audioInitializer)]
-    @visualizerCounter = 0
+    # @visualizers = [new Visualizer(@audioInitializer), new HeartVisualizer(@audioInitializer), new MystifyVisualizer(@audioInitializer)]
+    @visualizers = (new NoiseVisualizer() for [0..99])
+    @visualizers[3] = new Visualizer(@audioInitializer)
+    @visualizers[4] = new HeartVisualizer(@audioInitializer)
+    @visualizers[5] = new MystifyVisualizer(@audioInitializer)
+    @visualizerCounter = 3
     @activeVisualizer = @visualizers[@visualizerCounter]
     for visualizer in @visualizers
       visualizer.Update()
@@ -62,7 +66,7 @@ class @RenderController
 
     @hudCamera.position.set(0,0,2)
 
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams)
+    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount)
 
     @vhsPause.uniforms['amount'].value = 1.0
 
@@ -72,7 +76,9 @@ class @RenderController
 
     @ShowChannelDisplay(@visualizerCounter)
 
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams)
+    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount)
+    @badTV.uniforms['rollSpeed'].value = 0.1
+    @vhsPause.uniforms['amount'].value = 1.0
     return
 
   PreviousVisualizer: =>
@@ -86,10 +92,12 @@ class @RenderController
 
     @ShowChannelDisplay(@visualizerCounter)
 
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams)
+    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount)
+    @badTV.uniforms['rollSpeed'].value = 0.1
+    @vhsPause.uniforms['amount'].value = 1.0
     return
 
-  RenderProcess: (scene, camera, bloomParams) =>
+  RenderProcess: (scene, camera, bloomParams, noiseAmount) =>
     renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, stencilBuffer: true }
 
     renderTargetCube = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
@@ -127,6 +135,10 @@ class @RenderController
       bloomPass = new (THREE.BloomPass)(bloomParams.strength, bloomParams.kernelSize, bloomParams.sigma, bloomParams.resolution)
       @blendComposer.addPass bloomPass
 
+    @noise = new THREE.ShaderPass(THREE.NoiseShader)
+    @noise.uniforms['amount'].value = noiseAmount
+    @blendComposer.addPass(@noise)
+
     @vhsPause = new THREE.ShaderPass(THREE.VHSPauseShader)
     @blendComposer.addPass @vhsPause
 
@@ -136,7 +148,7 @@ class @RenderController
 
     @overlayComposer = new (THREE.EffectComposer)(@renderer)
     @hudBlendPass = new (THREE.ShaderPass)(THREE.DestOverlayBlendShader)
-    @hudBlendPass.uniforms['tSource'].value = @blendComposer.renderTarget2
+    @hudBlendPass.uniforms['tSource'].value = @blendComposer.renderTarget1
     @hudBlendPass.uniforms['tDest'].value = @hudComposer.renderTarget2
 
     @overlayComposer.addPass @hudBlendPass
@@ -185,6 +197,8 @@ class @RenderController
         @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
         @DrawSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
     else
+      if @vhsPause.uniforms['amount'].value > 0
+        @vhsPause.uniforms['amount'].value = Math.max(@vhsPause.uniforms['amount'].value - 0.02, 0)
       @timer += deltaTime
       @UpdateAudioAnalyzer()
       @UpdateEffects()
@@ -224,6 +238,7 @@ class @RenderController
     # @rgbEffect.uniforms['amount'].value = Math.sin(@timer * 2) * 0.01
     @badTV.uniforms['time'].value = @clock.getElapsedTime()
     @crtEffect.uniforms['time'].value = @clock.getElapsedTime()
+    @noise.uniforms['time'].value = @clock.getElapsedTime()
 
     if @audioInitializer.beatdetect.isKick() and @activeVisualizer.beatDistortionEffect
       @badTV.uniforms['distortion'].value = Math.random()
@@ -466,15 +481,22 @@ class @RenderController
     @ClearChannelDisplay()
     @playStatusTimerRunning = false
 
+    if channelNum == 0
+      channelNum = "A/V"
+
+    channelNum = channelNum.toString()
+
     @context1.save()
 
     @context1.font = '100px TelegramaRaw'
 
-    @context1.strokeStyle = 'black'
-    @context1.strokeText(channelNum + 3, @canvas1.width * 0.9, @canvas1.height * 0.08 - 50)
+    for i in [(channelNum.length - 1)..0] by -1
+      @context1.strokeStyle = 'black'
+      @context1.strokeText(channelNum[i], @canvas1.width * (0.9 - ((channelNum.length - 1 - i) * 0.055)), @canvas1.height * 0.08 - 50)
 
-    @context1.fillStyle = 'white'
-    @context1.fillText(channelNum + 3, @canvas1.width * 0.9, @canvas1.height * 0.08 - 50)
+      @context1.fillStyle = 'white'
+      @context1.fillText(channelNum[i], @canvas1.width * (0.9 - ((channelNum.length - 1 - i) * 0.055)), @canvas1.height * 0.08 - 50)
+
     @context1.restore()
 
     @mesh1.material.map.needsUpdate = true
@@ -485,6 +507,6 @@ class @RenderController
     return
 
   ClearChannelDisplay: =>
-    @ClearCanvasArea(@canvas1.width * 0.9, @canvas1.height * 0.08 - 50, @canvas1.width, @canvas1.height * 0.08 - 50 + 150)
+    @ClearCanvasArea(@canvas1.width * 0.65, @canvas1.height * 0.08 - 50, @canvas1.width, @canvas1.height * 0.08 - 50 + 150)
     @channelDisplayActive = false
     return

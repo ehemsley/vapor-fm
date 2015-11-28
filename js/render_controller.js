@@ -47,8 +47,18 @@
       this.renderer.setClearColor(0x000000, 0);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.visualizerElement.append(this.renderer.domElement);
-      this.visualizers = [new Visualizer(this.audioInitializer), new HeartVisualizer(this.audioInitializer), new MystifyVisualizer(this.audioInitializer)];
-      this.visualizerCounter = 0;
+      this.visualizers = (function() {
+        var j, results;
+        results = [];
+        for (j = 0; j <= 99; j++) {
+          results.push(new NoiseVisualizer());
+        }
+        return results;
+      })();
+      this.visualizers[3] = new Visualizer(this.audioInitializer);
+      this.visualizers[4] = new HeartVisualizer(this.audioInitializer);
+      this.visualizers[5] = new MystifyVisualizer(this.audioInitializer);
+      this.visualizerCounter = 3;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       ref = this.visualizers;
       for (j = 0, len = ref.length; j < len; j++) {
@@ -85,7 +95,7 @@
       this.mesh1.position.set(0, 0, 0);
       this.hud.add(this.mesh1);
       this.hudCamera.position.set(0, 0, 2);
-      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams);
+      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams, this.activeVisualizer.noiseAmount);
       this.vhsPause.uniforms['amount'].value = 1.0;
     }
 
@@ -93,7 +103,9 @@
       this.visualizerCounter = (this.visualizerCounter + 1) % this.visualizers.length;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       this.ShowChannelDisplay(this.visualizerCounter);
-      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams);
+      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams, this.activeVisualizer.noiseAmount);
+      this.badTV.uniforms['rollSpeed'].value = 0.1;
+      this.vhsPause.uniforms['amount'].value = 1.0;
     };
 
     RenderController.prototype.PreviousVisualizer = function() {
@@ -105,10 +117,12 @@
       this.visualizerCounter = this.visualizerCounter;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       this.ShowChannelDisplay(this.visualizerCounter);
-      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams);
+      this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams, this.activeVisualizer.noiseAmount);
+      this.badTV.uniforms['rollSpeed'].value = 0.1;
+      this.vhsPause.uniforms['amount'].value = 1.0;
     };
 
-    RenderController.prototype.RenderProcess = function(scene, camera, bloomParams) {
+    RenderController.prototype.RenderProcess = function(scene, camera, bloomParams, noiseAmount) {
       var bloomPass, horizontalBlur, hudPass, renderTargetBlend, renderTargetCube, renderTargetGlow, renderTargetHud, renderTargetParameters, verticalBlur;
       renderTargetParameters = {
         minFilter: THREE.LinearFilter,
@@ -143,6 +157,9 @@
         bloomPass = new THREE.BloomPass(bloomParams.strength, bloomParams.kernelSize, bloomParams.sigma, bloomParams.resolution);
         this.blendComposer.addPass(bloomPass);
       }
+      this.noise = new THREE.ShaderPass(THREE.NoiseShader);
+      this.noise.uniforms['amount'].value = noiseAmount;
+      this.blendComposer.addPass(this.noise);
       this.vhsPause = new THREE.ShaderPass(THREE.VHSPauseShader);
       this.blendComposer.addPass(this.vhsPause);
       renderTargetHud = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, renderTargetParameters);
@@ -150,7 +167,7 @@
       this.hudComposer.addPass(hudPass);
       this.overlayComposer = new THREE.EffectComposer(this.renderer);
       this.hudBlendPass = new THREE.ShaderPass(THREE.DestOverlayBlendShader);
-      this.hudBlendPass.uniforms['tSource'].value = this.blendComposer.renderTarget2;
+      this.hudBlendPass.uniforms['tSource'].value = this.blendComposer.renderTarget1;
       this.hudBlendPass.uniforms['tDest'].value = this.hudComposer.renderTarget2;
       this.overlayComposer.addPass(this.hudBlendPass);
       this.badTV = new THREE.ShaderPass(THREE.BadTVShader);
@@ -203,6 +220,9 @@
           this.DrawSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
         }
       } else {
+        if (this.vhsPause.uniforms['amount'].value > 0) {
+          this.vhsPause.uniforms['amount'].value = Math.max(this.vhsPause.uniforms['amount'].value - 0.02, 0);
+        }
         this.timer += deltaTime;
         this.UpdateAudioAnalyzer();
         this.UpdateEffects();
@@ -240,6 +260,7 @@
     RenderController.prototype.UpdateEffects = function() {
       this.badTV.uniforms['time'].value = this.clock.getElapsedTime();
       this.crtEffect.uniforms['time'].value = this.clock.getElapsedTime();
+      this.noise.uniforms['time'].value = this.clock.getElapsedTime();
       if (this.audioInitializer.beatdetect.isKick() && this.activeVisualizer.beatDistortionEffect) {
         this.badTV.uniforms['distortion'].value = Math.random();
         this.badTV.uniforms['distortion2'].value = Math.random();
@@ -455,14 +476,21 @@
     };
 
     RenderController.prototype.ShowChannelDisplay = function(channelNum) {
+      var i, j, ref;
       this.ClearChannelDisplay();
       this.playStatusTimerRunning = false;
+      if (channelNum === 0) {
+        channelNum = "A/V";
+      }
+      channelNum = channelNum.toString();
       this.context1.save();
       this.context1.font = '100px TelegramaRaw';
-      this.context1.strokeStyle = 'black';
-      this.context1.strokeText(channelNum + 3, this.canvas1.width * 0.9, this.canvas1.height * 0.08 - 50);
-      this.context1.fillStyle = 'white';
-      this.context1.fillText(channelNum + 3, this.canvas1.width * 0.9, this.canvas1.height * 0.08 - 50);
+      for (i = j = ref = channelNum.length - 1; j >= 0; i = j += -1) {
+        this.context1.strokeStyle = 'black';
+        this.context1.strokeText(channelNum[i], this.canvas1.width * (0.9 - ((channelNum.length - 1 - i) * 0.055)), this.canvas1.height * 0.08 - 50);
+        this.context1.fillStyle = 'white';
+        this.context1.fillText(channelNum[i], this.canvas1.width * (0.9 - ((channelNum.length - 1 - i) * 0.055)), this.canvas1.height * 0.08 - 50);
+      }
       this.context1.restore();
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
@@ -471,7 +499,7 @@
     };
 
     RenderController.prototype.ClearChannelDisplay = function() {
-      this.ClearCanvasArea(this.canvas1.width * 0.9, this.canvas1.height * 0.08 - 50, this.canvas1.width, this.canvas1.height * 0.08 - 50 + 150);
+      this.ClearCanvasArea(this.canvas1.width * 0.65, this.canvas1.height * 0.08 - 50, this.canvas1.width, this.canvas1.height * 0.08 - 50 + 150);
       this.channelDisplayActive = false;
     };
 

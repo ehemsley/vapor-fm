@@ -16,6 +16,7 @@
         sigma: 1.1,
         resolution: 512
       };
+      this.noiseAmount = 0.0;
       this.quadrilateralOne = this.Quadrilateral();
       this.quadrilateralTwo = this.Quadrilateral();
       ref = this.quadrilateralOne.quadrilaterals;
