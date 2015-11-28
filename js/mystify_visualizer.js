@@ -12,8 +12,8 @@
       this.camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, 0.1, 1000);
       this.bloomParams = {
         strength: 10,
-        kernelSize: 24,
-        sigma: 1.0,
+        kernelSize: 6,
+        sigma: 1.1,
         resolution: 512
       };
       this.quadrilateralOne = this.Quadrilateral();
