@@ -26,7 +26,7 @@
       this.RenderProcess = bind(this.RenderProcess, this);
       this.PreviousVisualizer = bind(this.PreviousVisualizer, this);
       this.NextVisualizer = bind(this.NextVisualizer, this);
-      var j, len, ref, visualizer;
+      var j, len, noiseVisualizer, ref, visualizer;
       this.visualizerElement = $('#visualizer');
       this.audioInitializer = audioInitializer;
       this.paused = true;
@@ -47,11 +47,12 @@
       this.renderer.setClearColor(0x000000, 0);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.visualizerElement.append(this.renderer.domElement);
+      noiseVisualizer = new NoiseVisualizer();
       this.visualizers = (function() {
         var j, results;
         results = [];
         for (j = 0; j <= 99; j++) {
-          results.push(new NoiseVisualizer());
+          results.push(noiseVisualizer);
         }
         return results;
       })();

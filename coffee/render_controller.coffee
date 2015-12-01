@@ -23,8 +23,8 @@ class @RenderController
     @renderer.setSize(window.innerWidth, window.innerHeight)
     @visualizerElement.append(@renderer.domElement)
 
-    # @visualizers = [new Visualizer(@audioInitializer), new HeartVisualizer(@audioInitializer), new MystifyVisualizer(@audioInitializer)]
-    @visualizers = (new NoiseVisualizer() for [0..99])
+    noiseVisualizer = new NoiseVisualizer()
+    @visualizers = (noiseVisualizer for [0..99])
     @visualizers[3] = new Visualizer(@audioInitializer)
     @visualizers[4] = new HeartVisualizer(@audioInitializer)
     @visualizers[5] = new MystifyVisualizer(@audioInitializer)
