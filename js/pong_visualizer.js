@@ -193,7 +193,7 @@
     PongVisualizer.prototype.ResetBall = function() {
       var ballDirection;
       this.ball.position.set(0, 0, 0);
-      ballDirection = new THREE.Vector3(Math.random() - 0.5, Math.random() * 0.5 - 0.25, 0);
+      ballDirection = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, 0);
       return this.ballVelocity = ballDirection.clone().normalize().multiplyScalar(20.0);
     };
 

@@ -62,7 +62,7 @@
       this.visualizers[3] = new Visualizer(this.audioInitializer);
       this.visualizers[4] = new HeartVisualizer(this.audioInitializer);
       this.visualizers[5] = new MystifyVisualizer(this.audioInitializer);
-      this.visualizerCounter = 0;
+      this.visualizerCounter = 3;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       ref = this.visualizers;
       for (j = 0, len = ref.length; j < len; j++) {
