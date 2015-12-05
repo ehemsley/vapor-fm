@@ -108,9 +108,9 @@
         if (this.ballVelocity.x > 0) {
           enemyToBallDistance = this.ball.position.y - this.enemyPaddle.position.y;
           if (enemyToBallDistance > 2) {
-            this.enemyPaddle.position.y = this.enemyPaddle.position.y + this.paddleSpeed * 0.65 * deltaTime;
+            this.enemyPaddle.position.y = this.enemyPaddle.position.y + this.paddleSpeed * 0.8 * deltaTime;
           } else if (enemyToBallDistance < 2) {
-            this.enemyPaddle.position.y = this.enemyPaddle.position.y - this.paddleSpeed * 0.65 * deltaTime;
+            this.enemyPaddle.position.y = this.enemyPaddle.position.y - this.paddleSpeed * 0.8 * deltaTime;
           }
         }
         this.ball.position.x += this.ballVelocity.x * deltaTime;
@@ -193,7 +193,7 @@
     PongVisualizer.prototype.ResetBall = function() {
       var ballDirection;
       this.ball.position.set(0, 0, 0);
-      ballDirection = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, 0);
+      ballDirection = new THREE.Vector3(Math.random() - 0.5, Math.random() * 0.6 - 0.3, 0);
       return this.ballVelocity = ballDirection.clone().normalize().multiplyScalar(20.0);
     };
 
