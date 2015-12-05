@@ -4,6 +4,7 @@
 
   this.Page = (function() {
     function Page() {
+      this.CheckKeyUp = bind(this.CheckKeyUp, this);
       this.CheckKey = bind(this.CheckKey, this);
       this.TogglePause = bind(this.TogglePause, this);
       this.DecreaseVolume = bind(this.DecreaseVolume, this);
@@ -15,6 +16,7 @@
       this.renderController.Render();
       this.paused = false;
       document.onkeydown = this.CheckKey;
+      document.onkeyup = this.CheckKeyUp;
     }
 
     Page.prototype.IncreaseVolume = function() {
@@ -55,7 +57,14 @@
         }
       } else if (e.keyCode === 73) {
         this.renderController.ShowInfo();
+      } else {
+        this.renderController.RouteKeyDownInput(e.keyCode);
       }
+    };
+
+    Page.prototype.CheckKeyUp = function(e) {
+      e = e || window.event;
+      this.renderController.RouteKeyUpInput(e.keyCode);
     };
 
     return Page;

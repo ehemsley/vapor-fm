@@ -4,6 +4,8 @@
 
   this.RenderController = (function() {
     function RenderController(audioInitializer) {
+      this.RouteKeyUpInput = bind(this.RouteKeyUpInput, this);
+      this.RouteKeyDownInput = bind(this.RouteKeyDownInput, this);
       this.ClearChannelDisplay = bind(this.ClearChannelDisplay, this);
       this.ShowChannelDisplay = bind(this.ShowChannelDisplay, this);
       this.ClearInfoDisplay = bind(this.ClearInfoDisplay, this);
@@ -56,10 +58,11 @@
         }
         return results;
       })();
+      this.visualizers[0] = new PongVisualizer(this.audioInitializer);
       this.visualizers[3] = new Visualizer(this.audioInitializer);
       this.visualizers[4] = new HeartVisualizer(this.audioInitializer);
       this.visualizers[5] = new MystifyVisualizer(this.audioInitializer);
-      this.visualizerCounter = 3;
+      this.visualizerCounter = 0;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       ref = this.visualizers;
       for (j = 0, len = ref.length; j < len; j++) {
@@ -187,6 +190,9 @@
       var deltaTime;
       requestAnimationFrame(this.Render);
       deltaTime = this.clock.getDelta();
+      if (deltaTime > 0.5) {
+        return;
+      }
       if (this.clock.getElapsedTime() > this.lastIcecastUpdateTime + 5) {
         if (!this.paused) {
           this.GetIcecastData();
@@ -502,6 +508,14 @@
     RenderController.prototype.ClearChannelDisplay = function() {
       this.ClearCanvasArea(this.canvas1.width * 0.65, this.canvas1.height * 0.08 - 50, this.canvas1.width, this.canvas1.height * 0.08 - 50 + 150);
       this.channelDisplayActive = false;
+    };
+
+    RenderController.prototype.RouteKeyDownInput = function(keyCode) {
+      return this.activeVisualizer.HandleKeyDownInput(keyCode);
+    };
+
+    RenderController.prototype.RouteKeyUpInput = function(keyCode) {
+      return this.activeVisualizer.HandleKeyUpInput(keyCode);
     };
 
     return RenderController;

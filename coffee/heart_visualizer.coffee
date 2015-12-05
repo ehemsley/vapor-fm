@@ -118,3 +118,9 @@ class @HeartVisualizer
 
   RandomInt: (min, max) ->
     return Math.floor(Math.random() * (max - min + 1)) + min
+
+  HandleKeyDownInput: (keyCode) ->
+    return
+
+  HandleKeyUpInput: (keyCode) ->
+    return

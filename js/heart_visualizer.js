@@ -165,6 +165,10 @@
       return Math.floor(Math.random() * (max - min + 1)) + min;
     };
 
+    HeartVisualizer.prototype.HandleKeyDownInput = function(keyCode) {};
+
+    HeartVisualizer.prototype.HandleKeyUpInput = function(keyCode) {};
+
     return HeartVisualizer;
 
   })();

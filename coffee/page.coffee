@@ -10,6 +10,7 @@ class @Page
     @paused = false
 
     document.onkeydown = @CheckKey
+    document.onkeyup = @CheckKeyUp
 
   IncreaseVolume: =>
     @audioInitializer.audioElement.volume = Math.min(Math.max(@audioInitializer.audioElement.volume + 0.1, 0), 1)
@@ -49,6 +50,14 @@ class @Page
       @renderController.PreviousVisualizer() if @audioInitializer.loaded
     else if (e.keyCode == 73) #i
       @renderController.ShowInfo()
+    else
+      @renderController.RouteKeyDownInput(e.keyCode)
+    return
+
+  CheckKeyUp: (e) =>
+    e = e || window.event
+    @renderController.RouteKeyUpInput(e.keyCode)
+
     return
 
 $ ->

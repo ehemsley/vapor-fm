@@ -129,6 +129,10 @@
       }
     };
 
+    Visualizer.prototype.HandleKeyDownInput = function(keyCode) {};
+
+    Visualizer.prototype.HandleKeyUpInput = function(keyCode) {};
+
     return Visualizer;
 
   })();

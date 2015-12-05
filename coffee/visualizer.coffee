@@ -105,3 +105,9 @@ class @Visualizer
       i++
 
     return
+
+  HandleKeyDownInput: (keyCode) ->
+    return
+
+  HandleKeyUpInput: (keyCode) ->
+    return

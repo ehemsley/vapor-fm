@@ -62,3 +62,9 @@ class @MystifyVisualizer
         previousMax = newMax
 
     return
+
+  HandleKeyDownInput: (keyCode) ->
+    return
+
+  HandleKeyUpInput: (keyCode) ->
+    return

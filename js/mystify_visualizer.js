@@ -75,6 +75,10 @@
       }
     };
 
+    MystifyVisualizer.prototype.HandleKeyDownInput = function(keyCode) {};
+
+    MystifyVisualizer.prototype.HandleKeyUpInput = function(keyCode) {};
+
     return MystifyVisualizer;
 
   })();

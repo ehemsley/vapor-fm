@@ -25,10 +25,11 @@ class @RenderController
 
     noiseVisualizer = new NoiseVisualizer()
     @visualizers = (noiseVisualizer for [0..99])
+    @visualizers[0] = new PongVisualizer(@audioInitializer)
     @visualizers[3] = new Visualizer(@audioInitializer)
     @visualizers[4] = new HeartVisualizer(@audioInitializer)
     @visualizers[5] = new MystifyVisualizer(@audioInitializer)
-    @visualizerCounter = 3
+    @visualizerCounter = 0
     @activeVisualizer = @visualizers[@visualizerCounter]
     for visualizer in @visualizers
       visualizer.Update()
@@ -169,6 +170,7 @@ class @RenderController
   Render: =>
     requestAnimationFrame(@Render)
     deltaTime = @clock.getDelta()
+    return if deltaTime > 0.5
 
     if @clock.getElapsedTime() > @lastIcecastUpdateTime + 5
       @GetIcecastData() unless @paused
@@ -510,3 +512,9 @@ class @RenderController
     @ClearCanvasArea(@canvas1.width * 0.65, @canvas1.height * 0.08 - 50, @canvas1.width, @canvas1.height * 0.08 - 50 + 150)
     @channelDisplayActive = false
     return
+
+  RouteKeyDownInput: (keyCode) =>
+    @activeVisualizer.HandleKeyDownInput(keyCode)
+
+  RouteKeyUpInput: (keyCode) =>
+    @activeVisualizer.HandleKeyUpInput(keyCode)
