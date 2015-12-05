@@ -79,9 +79,9 @@ class @PongVisualizer
       if @ballVelocity.x > 0
         enemyToBallDistance = @ball.position.y - @enemyPaddle.position.y
         if (enemyToBallDistance > 2)
-          @enemyPaddle.position.y = @enemyPaddle.position.y + @paddleSpeed * 0.65 * deltaTime
+          @enemyPaddle.position.y = @enemyPaddle.position.y + @paddleSpeed * 0.8 * deltaTime
         else if (enemyToBallDistance < 2)
-          @enemyPaddle.position.y = @enemyPaddle.position.y - @paddleSpeed * 0.65 * deltaTime
+          @enemyPaddle.position.y = @enemyPaddle.position.y - @paddleSpeed * 0.8 * deltaTime
 
       @ball.position.x += @ballVelocity.x * deltaTime
       @ball.position.y += @ballVelocity.y * deltaTime
