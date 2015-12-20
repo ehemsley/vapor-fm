@@ -76,6 +76,7 @@ class @RenderController
   NextVisualizer: =>
     @visualizerCounter = (@visualizerCounter + 1) % @visualizers.length
     @activeVisualizer = @visualizers[@visualizerCounter]
+    @activeVisualizer.Activate()
 
     @ShowChannelDisplay(@visualizerCounter)
 
@@ -92,6 +93,7 @@ class @RenderController
 
     @visualizerCounter = @visualizerCounter
     @activeVisualizer = @visualizers[@visualizerCounter]
+    @activeVisualizer.Activate()
 
     @ShowChannelDisplay(@visualizerCounter)
 

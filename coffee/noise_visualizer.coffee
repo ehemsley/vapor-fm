@@ -15,3 +15,6 @@ class @NoiseVisualizer
 
   HandleKeyUpInput: (keyCode) ->
     return
+
+  Activate: ->
+    return

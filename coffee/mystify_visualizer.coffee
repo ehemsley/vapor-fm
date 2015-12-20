@@ -68,3 +68,6 @@ class @MystifyVisualizer
 
   HandleKeyUpInput: (keyCode) ->
     return
+
+  Activate: ->
+    return

@@ -124,3 +124,6 @@ class @HeartVisualizer
 
   HandleKeyUpInput: (keyCode) ->
     return
+
+  Activate: ->
+    return

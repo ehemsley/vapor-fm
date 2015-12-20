@@ -160,6 +160,8 @@
       return Math.floor(Math.random() * (max - min + 1)) + min;
     };
 
+    CybergridVisualizer.prototype.Activate = function() {};
+
     return CybergridVisualizer;
 
   })();

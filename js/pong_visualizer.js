@@ -4,6 +4,12 @@
 
   this.PongVisualizer = (function() {
     function PongVisualizer(audioInitializer) {
+      this.PlayerLose = bind(this.PlayerLose, this);
+      this.PlayerWin = bind(this.PlayerWin, this);
+      this.CheckWin = bind(this.CheckWin, this);
+      this.InitResetTimer = bind(this.InitResetTimer, this);
+      this.ResetGame = bind(this.ResetGame, this);
+      this.ResetPaddles = bind(this.ResetPaddles, this);
       this.ResetBall = bind(this.ResetBall, this);
       this.ResetInputs = bind(this.ResetInputs, this);
       this.PaddleDownInputReleased = bind(this.PaddleDownInputReleased, this);
@@ -14,12 +20,17 @@
       this.HandleKeyDownInput = bind(this.HandleKeyDownInput, this);
       this.CheckBallCollision = bind(this.CheckBallCollision, this);
       this.Update = bind(this.Update, this);
+      this.UpdateWinDisplay = bind(this.UpdateWinDisplay, this);
+      this.UpdateScoreDisplay = bind(this.UpdateScoreDisplay, this);
+      this.InitializeHud = bind(this.InitializeHud, this);
+      this.Activate = bind(this.Activate, this);
+      var i, len, line, ref;
       this.audioInitializer = audioInitializer;
       this.scene = new THREE.Scene;
       this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
       this.bloomParams = {
-        strength: 6,
-        kernelSize: 6,
+        strength: 3,
+        kernelSize: 12,
         sigma: 1.1,
         resolution: 512
       };
@@ -31,6 +42,7 @@
       this.topBound = this.VerticalBound();
       this.bottomBound = this.VerticalBound();
       this.ball = this.Ball();
+      this.ball.position.set(0, 0, 0);
       this.ResetBall();
       this.ballCollisionRaycaster = new THREE.Raycaster();
       this.scene.add(this.playerPaddle);
@@ -40,18 +52,32 @@
       this.scene.add(this.leftBound);
       this.scene.add(this.topBound);
       this.scene.add(this.bottomBound);
-      this.playerPaddle.position.set(-20, 0, 0);
-      this.enemyPaddle.position.set(20, 0, 0);
-      this.ball.position.set(0, 0, 0);
+      this.midlines = this.Midlines(0, -40, 40, 2, 2);
+      ref = this.midlines;
+      for (i = 0, len = ref.length; i < len; i++) {
+        line = ref[i];
+        this.scene.add(line);
+      }
+      this.playerScore = 0;
+      this.enemyScore = 0;
+      this.InitializeHud();
+      this.UpdateScoreDisplay();
+      this.ResetPaddles();
       this.rightBound.position.set(22, 0, 0);
       this.leftBound.position.set(-22, 0, 0);
       this.topBound.position.set(0, 15, 0);
       this.bottomBound.position.set(0, -15, 0);
-      this.paddleSpeed = 16;
+      this.paddleSpeed = 18;
       this.ResetInputs();
       this.camera.position.z = 20;
+      this.gameOver = false;
+      this.resetTimer = 0;
       return;
     }
+
+    PongVisualizer.prototype.Activate = function() {
+      return this.ResetGame();
+    };
 
     PongVisualizer.prototype.Paddle = function() {
       var geometry, material, paddle;
@@ -73,6 +99,22 @@
       return ball;
     };
 
+    PongVisualizer.prototype.Midlines = function(x, bottom_y, top_y, size, space) {
+      var geometry, i, line, lineMaterial, lines, ref, ref1, ref2, y;
+      lines = [];
+      for (y = i = ref = bottom_y, ref1 = top_y, ref2 = size + space; ref2 > 0 ? i <= ref1 : i >= ref1; y = i += ref2) {
+        lineMaterial = new THREE.LineBasicMaterial({
+          color: 0xffffff
+        });
+        geometry = new THREE.Geometry();
+        geometry.vertices.push(new THREE.Vector3(x, y));
+        geometry.vertices.push(new THREE.Vector3(x, y + size));
+        line = new THREE.Line(geometry, lineMaterial);
+        lines.push(line);
+      }
+      return lines;
+    };
+
     PongVisualizer.prototype.HorizontalBound = function() {
       var geometry, horBound, material;
       geometry = new THREE.BoxGeometry(1, 30, 2);
@@ -87,7 +129,7 @@
 
     PongVisualizer.prototype.VerticalBound = function() {
       var geometry, material, verBound;
-      geometry = new THREE.BoxGeometry(40, 1, 2);
+      geometry = new THREE.BoxGeometry(45, 1, 2);
       material = new THREE.MeshBasicMaterial({
         transparent: true,
         opacity: 0,
@@ -97,19 +139,76 @@
       return verBound;
     };
 
+    PongVisualizer.prototype.InitializeHud = function() {
+      this.canvas1 = document.createElement('canvas');
+      this.canvas1.width = 120;
+      this.canvas1.height = 60;
+      this.context1 = this.canvas1.getContext('2d');
+      this.context1.font = "30px TelegramaRaw";
+      this.context1.textAlign = "left";
+      this.context1.textBaseline = "top";
+      this.context1.fillStyle = "rgba(255,255,255,0.95)";
+      this.context1.strokeStyle = 'white';
+      this.context1.lineWidth = 2;
+      this.context1.fillText('press i for info...', 0, 0);
+      this.texture1 = new THREE.Texture(this.canvas1);
+      this.texture1.minFilter = THREE.LinearFilter;
+      this.texture1.magFilter = THREE.LinearFilter;
+      this.texture1.needsUpdate = true;
+      this.material1 = new THREE.MeshBasicMaterial({
+        map: this.texture1,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 1.0
+      });
+      this.mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), this.material1);
+      this.mesh1.position.set(0, 10, 0);
+      this.scene.add(this.mesh1);
+    };
+
+    PongVisualizer.prototype.UpdateScoreDisplay = function() {
+      this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height);
+      this.context1.fillStyle = 'white';
+      this.context1.textAlign = "left";
+      this.context1.fillText(this.playerScore, 10, 0);
+      this.context1.textAlign = "right";
+      this.context1.fillText(this.enemyScore, 110, 0);
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+    };
+
+    PongVisualizer.prototype.UpdateWinDisplay = function(text) {
+      this.context1.clearRect(0, 0, this.canvas1.width, this.canvas1.height);
+      this.context1.fillStyle = 'white';
+      this.context1.textAlign = "left";
+      this.context1.fillText(text, 20, 0);
+      this.mesh1.material.map.needsUpdate = true;
+      this.mesh1.material.needsUpdate = true;
+    };
+
     PongVisualizer.prototype.Update = function(deltaTime) {
       var enemyToBallDistance;
       if (deltaTime != null) {
+        if (this.gameOver) {
+          if (this.resetTimer > 0) {
+            this.resetTimer -= deltaTime;
+          } else {
+            this.ResetGame();
+          }
+          return;
+        } else {
+          this.CheckWin();
+        }
         if (this.playerPaddleUp) {
-          this.playerPaddle.position.y = this.playerPaddle.position.y + this.paddleSpeed * deltaTime;
+          this.playerPaddle.position.y = Math.min(this.playerPaddle.position.y + this.paddleSpeed * deltaTime, 14);
         } else if (this.playerPaddleDown) {
-          this.playerPaddle.position.y = this.playerPaddle.position.y - this.paddleSpeed * deltaTime;
+          this.playerPaddle.position.y = Math.max(this.playerPaddle.position.y - this.paddleSpeed * deltaTime, -14);
         }
         if (this.ballVelocity.x > 0) {
           enemyToBallDistance = this.ball.position.y - this.enemyPaddle.position.y;
-          if (enemyToBallDistance > 2) {
+          if (enemyToBallDistance > 0.2) {
             this.enemyPaddle.position.y = this.enemyPaddle.position.y + this.paddleSpeed * 0.8 * deltaTime;
-          } else if (enemyToBallDistance < 2) {
+          } else if (enemyToBallDistance < 0.2) {
             this.enemyPaddle.position.y = this.enemyPaddle.position.y - this.paddleSpeed * 0.8 * deltaTime;
           }
         }
@@ -129,9 +228,13 @@
         intersect = intersects[i];
         if (intersect.distance < 1.5) {
           if (intersect.object === this.leftBound) {
+            this.enemyScore += 1;
+            this.UpdateScoreDisplay();
             this.ResetBall();
             return;
           } else if (intersect.object === this.rightBound) {
+            this.playerScore += 1;
+            this.UpdateScoreDisplay();
             this.ResetBall();
             return;
           } else if (intersect.object === this.topBound) {
@@ -141,10 +244,14 @@
             this.ballVelocity.y = -this.ballVelocity.y;
             return;
           } else if (intersect.object === this.playerPaddle) {
-            this.ballVelocity.x = Math.max(-this.ballVelocity.x + (Math.random() * 10), 8);
+            this.ballVelocity.x = -this.ballVelocity.x;
+            this.ballVelocity.y = (intersect.point.y - this.playerPaddle.position.y) * 8;
+            this.ballVelocity.normalize().multiplyScalar(38.0);
             return;
           } else if (intersect.object === this.enemyPaddle) {
-            this.ballVelocity.x = Math.min(-this.ballVelocity.x + (Math.random() * -10), -8);
+            this.ballVelocity.x = -this.ballVelocity.x;
+            this.ballVelocity.y = (intersect.point.y - this.enemyPaddle.position.y) * 8;
+            this.ballVelocity.normalize().multiplyScalar(38.0);
             return;
           }
         }
@@ -161,9 +268,9 @@
 
     PongVisualizer.prototype.HandleKeyUpInput = function(keyCode) {
       if (keyCode === 65) {
-        return this.PaddleUpInputReleased();
+        this.PaddleUpInputReleased();
       } else if (keyCode === 90) {
-        return this.PaddleDownInputReleased();
+        this.PaddleDownInputReleased();
       }
     };
 
@@ -193,8 +300,46 @@
     PongVisualizer.prototype.ResetBall = function() {
       var ballDirection;
       this.ball.position.set(0, 0, 0);
-      ballDirection = new THREE.Vector3(Math.random() - 0.5, Math.random() * 0.6 - 0.3, 0);
-      return this.ballVelocity = ballDirection.clone().normalize().multiplyScalar(20.0);
+      ballDirection = new THREE.Vector3((Math.random() < 0.5 ? -1 : 1), Math.random() * 0.8 - 0.4, 0);
+      this.ballVelocity = ballDirection.clone().normalize().multiplyScalar(25.0);
+    };
+
+    PongVisualizer.prototype.ResetPaddles = function() {
+      this.playerPaddle.position.set(-20, 0, 0);
+      this.enemyPaddle.position.set(20, 0, 0);
+    };
+
+    PongVisualizer.prototype.ResetGame = function() {
+      this.playerScore = 0;
+      this.enemyScore = 0;
+      this.ResetBall();
+      this.ResetPaddles();
+      this.gameOver = false;
+      this.UpdateScoreDisplay();
+    };
+
+    PongVisualizer.prototype.InitResetTimer = function() {
+      this.resetTimer = 5;
+    };
+
+    PongVisualizer.prototype.CheckWin = function() {
+      if (this.playerScore === 10) {
+        this.PlayerWin();
+      } else if (this.enemyScore === 10) {
+        this.PlayerLose();
+      }
+    };
+
+    PongVisualizer.prototype.PlayerWin = function() {
+      this.UpdateWinDisplay('NICE');
+      this.gameOver = true;
+      this.InitResetTimer();
+    };
+
+    PongVisualizer.prototype.PlayerLose = function() {
+      this.UpdateWinDisplay('FAIL');
+      this.gameOver = true;
+      this.InitResetTimer();
     };
 
     return PongVisualizer;

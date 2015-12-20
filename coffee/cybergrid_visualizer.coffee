@@ -126,3 +126,6 @@ class @CybergridVisualizer
 
   RandomInt: (min, max) ->
     return Math.floor(Math.random() * (max - min + 1)) + min
+
+  Activate: ->
+    return

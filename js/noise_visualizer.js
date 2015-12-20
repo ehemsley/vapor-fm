@@ -14,6 +14,8 @@
 
     NoiseVisualizer.prototype.HandleKeyUpInput = function(keyCode) {};
 
+    NoiseVisualizer.prototype.Activate = function() {};
+
     return NoiseVisualizer;
 
   })();

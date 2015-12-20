@@ -134,6 +134,8 @@
 
     Visualizer.prototype.HandleKeyUpInput = function(keyCode) {};
 
+    Visualizer.prototype.Activate = function() {};
+
     return Visualizer;
 
   })();

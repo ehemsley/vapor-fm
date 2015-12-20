@@ -108,6 +108,7 @@
     RenderController.prototype.NextVisualizer = function() {
       this.visualizerCounter = (this.visualizerCounter + 1) % this.visualizers.length;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
+      this.activeVisualizer.Activate();
       this.ShowChannelDisplay(this.visualizerCounter);
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams, this.activeVisualizer.noiseAmount);
       this.badTV.uniforms['rollSpeed'].value = 0.1;
@@ -122,6 +123,7 @@
       }
       this.visualizerCounter = this.visualizerCounter;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
+      this.activeVisualizer.Activate();
       this.ShowChannelDisplay(this.visualizerCounter);
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams, this.activeVisualizer.noiseAmount);
       this.badTV.uniforms['rollSpeed'].value = 0.1;

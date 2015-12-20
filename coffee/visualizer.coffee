@@ -111,3 +111,6 @@ class @Visualizer
 
   HandleKeyUpInput: (keyCode) ->
     return
+
+  Activate: ->
+    return

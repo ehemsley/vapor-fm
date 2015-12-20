@@ -79,6 +79,8 @@
 
     MystifyVisualizer.prototype.HandleKeyUpInput = function(keyCode) {};
 
+    MystifyVisualizer.prototype.Activate = function() {};
+
     return MystifyVisualizer;
 
   })();

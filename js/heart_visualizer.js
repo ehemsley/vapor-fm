@@ -169,6 +169,8 @@
 
     HeartVisualizer.prototype.HandleKeyUpInput = function(keyCode) {};
 
+    HeartVisualizer.prototype.Activate = function() {};
+
     return HeartVisualizer;
 
   })();
