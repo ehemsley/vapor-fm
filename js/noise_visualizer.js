@@ -10,6 +10,10 @@
 
     NoiseVisualizer.prototype.Update = function() {};
 
+    NoiseVisualizer.prototype.HandleKeyDownInput = function(keyCode) {};
+
+    NoiseVisualizer.prototype.HandleKeyUpInput = function(keyCode) {};
+
     return NoiseVisualizer;
 
   })();

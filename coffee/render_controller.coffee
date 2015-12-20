@@ -29,7 +29,8 @@ class @RenderController
     @visualizers[3] = new Visualizer(@audioInitializer)
     @visualizers[4] = new HeartVisualizer(@audioInitializer)
     @visualizers[5] = new MystifyVisualizer(@audioInitializer)
-    @visualizerCounter = 3
+    @visualizers[6] = new CybergridVisualizer(@audioInitializer)
+    @visualizerCounter = 6
     @activeVisualizer = @visualizers[@visualizerCounter]
     for visualizer in @visualizers
       visualizer.Update()
@@ -70,6 +71,7 @@ class @RenderController
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount)
 
     @vhsPause.uniforms['amount'].value = 1.0
+    @strengthModifier = 0
 
   NextVisualizer: =>
     @visualizerCounter = (@visualizerCounter + 1) % @visualizers.length
@@ -133,8 +135,8 @@ class @RenderController
     @blendComposer.addPass @blendPass
 
     if bloomParams?
-      bloomPass = new (THREE.BloomPass)(bloomParams.strength, bloomParams.kernelSize, bloomParams.sigma, bloomParams.resolution)
-      @blendComposer.addPass bloomPass
+      @bloomPass = new (THREE.BloomPass)(bloomParams.strength, bloomParams.kernelSize, bloomParams.sigma, bloomParams.resolution)
+      @blendComposer.addPass @bloomPass
 
     @noise = new THREE.ShaderPass(THREE.NoiseShader)
     @noise.uniforms['amount'].value = noiseAmount
@@ -241,13 +243,16 @@ class @RenderController
     @badTV.uniforms['time'].value = @clock.getElapsedTime()
     @crtEffect.uniforms['time'].value = @clock.getElapsedTime()
     @noise.uniforms['time'].value = @clock.getElapsedTime()
+    if @activeVisualizer.bloomParams? then @bloomPass.copyUniforms['opacity'].value = @activeVisualizer.bloomParams.strength + @strengthModifier
 
     if @audioInitializer.beatdetect.isKick() and @activeVisualizer.beatDistortionEffect
+      @strengthModifier = if @activeVisualizer.bloomParams? then @activeVisualizer.bloomParams.strengthIncrease else 0
       @badTV.uniforms['distortion'].value = Math.random()
       @badTV.uniforms['distortion2'].value = Math.random()
       if Math.random() < 0.02
         @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then Math.random() else -Math.random()) # * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
     else
+      @strengthModifier = Math.max(@strengthModifier - 0.1, 0)
       @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0.001)
       @badTV.uniforms['distortion2'].value = Math.max(@badTV.uniforms['distortion2'].value - 0.1, 0.001)
       if @badTV.uniforms['rollSpeed'].value > 0

@@ -14,6 +14,7 @@
       this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
       this.bloomParams = {
         strength: 1.0,
+        strengthIncrease: 0,
         kernelSize: 12.0,
         sigma: 1.5,
         resolution: 512

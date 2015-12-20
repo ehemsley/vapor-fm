@@ -9,3 +9,9 @@ class @NoiseVisualizer
 
   Update: ->
     return
+
+  HandleKeyDownInput: (keyCode) ->
+    return
+
+  HandleKeyUpInput: (keyCode) ->
+    return

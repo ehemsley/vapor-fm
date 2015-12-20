@@ -62,7 +62,8 @@
       this.visualizers[3] = new Visualizer(this.audioInitializer);
       this.visualizers[4] = new HeartVisualizer(this.audioInitializer);
       this.visualizers[5] = new MystifyVisualizer(this.audioInitializer);
-      this.visualizerCounter = 3;
+      this.visualizers[6] = new CybergridVisualizer(this.audioInitializer);
+      this.visualizerCounter = 6;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       ref = this.visualizers;
       for (j = 0, len = ref.length; j < len; j++) {
@@ -101,6 +102,7 @@
       this.hudCamera.position.set(0, 0, 2);
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams, this.activeVisualizer.noiseAmount);
       this.vhsPause.uniforms['amount'].value = 1.0;
+      this.strengthModifier = 0;
     }
 
     RenderController.prototype.NextVisualizer = function() {
@@ -127,7 +129,7 @@
     };
 
     RenderController.prototype.RenderProcess = function(scene, camera, bloomParams, noiseAmount) {
-      var bloomPass, horizontalBlur, hudPass, renderTargetBlend, renderTargetCube, renderTargetGlow, renderTargetHud, renderTargetParameters, verticalBlur;
+      var horizontalBlur, hudPass, renderTargetBlend, renderTargetCube, renderTargetGlow, renderTargetHud, renderTargetParameters, verticalBlur;
       renderTargetParameters = {
         minFilter: THREE.LinearFilter,
         magFilter: THREE.LinearFilter,
@@ -158,8 +160,8 @@
       this.blendComposer = new THREE.EffectComposer(this.renderer, renderTargetBlend);
       this.blendComposer.addPass(this.blendPass);
       if (bloomParams != null) {
-        bloomPass = new THREE.BloomPass(bloomParams.strength, bloomParams.kernelSize, bloomParams.sigma, bloomParams.resolution);
-        this.blendComposer.addPass(bloomPass);
+        this.bloomPass = new THREE.BloomPass(bloomParams.strength, bloomParams.kernelSize, bloomParams.sigma, bloomParams.resolution);
+        this.blendComposer.addPass(this.bloomPass);
       }
       this.noise = new THREE.ShaderPass(THREE.NoiseShader);
       this.noise.uniforms['amount'].value = noiseAmount;
@@ -268,13 +270,18 @@
       this.badTV.uniforms['time'].value = this.clock.getElapsedTime();
       this.crtEffect.uniforms['time'].value = this.clock.getElapsedTime();
       this.noise.uniforms['time'].value = this.clock.getElapsedTime();
+      if (this.activeVisualizer.bloomParams != null) {
+        this.bloomPass.copyUniforms['opacity'].value = this.activeVisualizer.bloomParams.strength + this.strengthModifier;
+      }
       if (this.audioInitializer.beatdetect.isKick() && this.activeVisualizer.beatDistortionEffect) {
+        this.strengthModifier = this.activeVisualizer.bloomParams != null ? this.activeVisualizer.bloomParams.strengthIncrease : 0;
         this.badTV.uniforms['distortion'].value = Math.random();
         this.badTV.uniforms['distortion2'].value = Math.random();
         if (Math.random() < 0.02) {
           this.badTV.uniforms['rollSpeed'].value = (Math.random() < 0.5 ? Math.random() : -Math.random());
         }
       } else {
+        this.strengthModifier = Math.max(this.strengthModifier - 0.1, 0);
         this.badTV.uniforms['distortion'].value = Math.max(this.badTV.uniforms['distortion'].value - 0.1, 0.001);
         this.badTV.uniforms['distortion2'].value = Math.max(this.badTV.uniforms['distortion2'].value - 0.1, 0.001);
         if (this.badTV.uniforms['rollSpeed'].value > 0) {
