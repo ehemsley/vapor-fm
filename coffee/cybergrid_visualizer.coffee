@@ -102,7 +102,7 @@ class @CybergridVisualizer
         line.material.needsUpdate = true
 
     if @audioInitializer.beatdetect.isSnare()
-      for i in [0..9]
+      for i in [0..29]
         randomLine = @gridLines[@RandomInt(0, @gridLines.length-1)]
         randomLine.material.opacity = 1.0
 

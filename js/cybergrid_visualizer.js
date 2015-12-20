@@ -136,7 +136,7 @@
         }
       }
       if (this.audioInitializer.beatdetect.isSnare()) {
-        for (i = k = 0; k <= 9; i = ++k) {
+        for (i = k = 0; k <= 29; i = ++k) {
           randomLine = this.gridLines[this.RandomInt(0, this.gridLines.length - 1)];
           randomLine.material.opacity = 1.0;
           randomLine.material.needsUpdate = true;

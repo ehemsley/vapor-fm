@@ -30,7 +30,7 @@ class @RenderController
     @visualizers[4] = new HeartVisualizer(@audioInitializer)
     @visualizers[5] = new MystifyVisualizer(@audioInitializer)
     @visualizers[6] = new CybergridVisualizer(@audioInitializer)
-    @visualizerCounter = 6
+    @visualizerCounter = 3
     @activeVisualizer = @visualizers[@visualizerCounter]
     for visualizer in @visualizers
       visualizer.Update()
