@@ -14,6 +14,7 @@
       window.addEventListener('resize', this.renderController.OnResize, false);
       window.addEventListener('audioLoaded', this.renderController.AudioLoadedHandler, false);
       this.renderController.Render();
+      this.activated = false;
       this.paused = false;
       document.onkeydown = this.CheckKey;
       document.onkeyup = this.CheckKeyUp;
@@ -41,24 +42,35 @@
 
     Page.prototype.CheckKey = function(e) {
       e = e || window.event;
-      if (e.keyCode === 38) {
-        this.IncreaseVolume();
-      } else if (e.keyCode === 40) {
-        this.DecreaseVolume();
-      } else if (e.keyCode === 32) {
-        this.TogglePause();
-      } else if (e.keyCode === 39) {
-        if (this.audioInitializer.loaded) {
-          this.renderController.NextVisualizer();
+      if (this.activated) {
+        if (e.keyCode === 38) {
+          this.IncreaseVolume();
+        } else if (e.keyCode === 40) {
+          this.DecreaseVolume();
+        } else if (e.keyCode === 32) {
+          this.TogglePause();
+        } else if (e.keyCode === 39) {
+          if (this.audioInitializer.loaded) {
+            this.renderController.NextVisualizer();
+          }
+        } else if (e.keyCode === 37) {
+          if (this.audioInitializer.loaded) {
+            this.renderController.PreviousVisualizer();
+          }
+        } else if (e.keyCode === 73) {
+          this.renderController.ShowInfo();
+        } else {
+          this.renderController.RouteKeyDownInput(e.keyCode);
         }
-      } else if (e.keyCode === 37) {
-        if (this.audioInitializer.loaded) {
-          this.renderController.PreviousVisualizer();
-        }
-      } else if (e.keyCode === 73) {
-        this.renderController.ShowInfo();
       } else {
-        this.renderController.RouteKeyDownInput(e.keyCode);
+        this.activated = true;
+        this.audioInitializer.LoadAndPlayAudio();
+        this.renderController.activeVisualizer.DisplayLoading();
+        this.audioInitializer.audioElement.addEventListener('canplay', (function(_this) {
+          return function() {
+            return _this.renderController.Activate();
+          };
+        })(this));
       }
     };
 

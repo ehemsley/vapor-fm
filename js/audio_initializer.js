@@ -17,9 +17,7 @@
       this.fft = new FFT.fft(1024, 44100);
       this.audioElement = $('#stream').get(0);
       this.AddCanPlayListener();
-      this.loaded = false;
-      this.loading = true;
-      this.loadCheckTimeout = setTimeout(this.CheckLoaded, 8000);
+      this.StopAndUnloadAudio();
     }
 
     AudioInitializer.prototype.GetAverageVolume = function(array) {
@@ -54,13 +52,13 @@
       this.loading = true;
       this.audioElement.load();
       clearTimeout(this.loadCheckTimeout);
-      setTimeout(this.CheckLoaded, 8000);
+      this.loadCheckTimeout = setTimeout(this.CheckLoaded, 8000);
     };
 
     AudioInitializer.prototype.CheckLoaded = function() {
       if (this.loading) {
         this.audioElement.load();
-        setTimeout(this.CheckLoaded, 8000);
+        this.loadCheckTimeout = setTimeout(this.CheckLoaded, 8000);
       }
     };
 

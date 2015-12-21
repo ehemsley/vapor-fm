@@ -10,10 +10,9 @@ class @AudioInitializer
     @audioElement = $('#stream').get(0)
     @AddCanPlayListener()
 
-    @loaded = false
-    @loading = true
+    @StopAndUnloadAudio()
 
-    @loadCheckTimeout = setTimeout @CheckLoaded, 8000
+    # @loadCheckTimeout = setTimeout @CheckLoaded, 8000
 
   GetAverageVolume: (array) =>
     values = 0
@@ -50,14 +49,14 @@ class @AudioInitializer
     @loading = true
     @audioElement.load()
     clearTimeout @loadCheckTimeout
-    setTimeout @CheckLoaded, 8000
+    @loadCheckTimeout = setTimeout @CheckLoaded, 8000
 
     return
 
   CheckLoaded: =>
     if @loading
       @audioElement.load()
-      setTimeout @CheckLoaded, 8000
+      @loadCheckTimeout = setTimeout @CheckLoaded, 8000
 
     return
 

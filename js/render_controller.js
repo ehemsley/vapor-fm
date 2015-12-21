@@ -28,10 +28,11 @@
       this.RenderProcess = bind(this.RenderProcess, this);
       this.PreviousVisualizer = bind(this.PreviousVisualizer, this);
       this.NextVisualizer = bind(this.NextVisualizer, this);
-      var j, len, noiseVisualizer, ref, visualizer;
+      this.Activate = bind(this.Activate, this);
+      var noiseVisualizer;
       this.visualizerElement = $('#visualizer');
       this.audioInitializer = audioInitializer;
-      this.paused = true;
+      this.paused = false;
       this.clock = new THREE.Clock;
       this.clock.start();
       this.timer = 0;
@@ -64,12 +65,8 @@
       this.visualizers[5] = new MystifyVisualizer(this.audioInitializer);
       this.visualizers[6] = new CybergridVisualizer(this.audioInitializer);
       this.visualizerCounter = 3;
-      this.activeVisualizer = this.visualizers[this.visualizerCounter];
-      ref = this.visualizers;
-      for (j = 0, len = ref.length; j < len; j++) {
-        visualizer = ref[j];
-        visualizer.Update();
-      }
+      this.activeVisualizer = new StartScreen();
+      this.activated = false;
       this.hud = new THREE.Scene();
       this.hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000);
       this.ambientLights = new THREE.AmbientLight(0x404040);
@@ -85,7 +82,6 @@
       this.context1.textAlign = "left";
       this.context1.textBaseline = "top";
       this.context1.fillStyle = "rgba(255,255,255,0.95)";
-      this.context1.fillText('press i for info...', 10, this.canvas1.height * 0.9 - 50);
       this.texture1 = new THREE.Texture(this.canvas1);
       this.texture1.minFilter = THREE.LinearFilter;
       this.texture1.magFilter = THREE.LinearFilter;
@@ -101,9 +97,14 @@
       this.hud.add(this.mesh1);
       this.hudCamera.position.set(0, 0, 2);
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams, this.activeVisualizer.noiseAmount);
-      this.vhsPause.uniforms['amount'].value = 1.0;
       this.strengthModifier = 0;
     }
+
+    RenderController.prototype.Activate = function() {
+      this.activated = true;
+      this.visualizerCounter = 2;
+      this.NextVisualizer();
+    };
 
     RenderController.prototype.NextVisualizer = function() {
       this.visualizerCounter = (this.visualizerCounter + 1) % this.visualizers.length;
@@ -121,7 +122,6 @@
       } else {
         this.visualizerCounter = this.visualizerCounter - 1;
       }
-      this.visualizerCounter = this.visualizerCounter;
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       this.activeVisualizer.Activate();
       this.ShowChannelDisplay(this.visualizerCounter);
@@ -197,39 +197,41 @@
       if (deltaTime > 0.5) {
         return;
       }
-      if (this.clock.getElapsedTime() > this.lastIcecastUpdateTime + 5) {
-        if (!this.paused) {
-          this.GetIcecastData();
+      if (this.activated) {
+        if (this.clock.getElapsedTime() > this.lastIcecastUpdateTime + 5) {
+          if (!this.paused) {
+            this.GetIcecastData();
+          }
+          this.lastIcecastUpdateTime = this.clock.getElapsedTime();
         }
-        this.lastIcecastUpdateTime = this.clock.getElapsedTime();
+        if (this.volumeDisplayActive) {
+          if (this.clock.getElapsedTime() > this.lastVolumeUpdateTime + 2) {
+            this.ClearVolumeDisplay();
+          }
+        }
+        if (this.playStatusTimerRunning) {
+          if (this.clock.getElapsedTime() > this.lastPlayStatusToggleTime + 4) {
+            this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+            this.playStatusTimerRunning = false;
+          }
+        }
+        if (this.channelDisplayActive) {
+          if (this.clock.getElapsedTime() > this.lastChannelUpdateTime + 4) {
+            this.ClearChannelDisplay();
+          }
+        }
+        if (this.infoDisplayActive) {
+          if (this.clock.getElapsedTime() > this.lastInfoUpdateTime + 5) {
+            this.ClearInfoDisplay();
+          }
+        }
       }
-      if (this.volumeDisplayActive) {
-        if (this.clock.getElapsedTime() > this.lastVolumeUpdateTime + 2) {
-          this.ClearVolumeDisplay();
-        }
-      }
-      if (this.playStatusTimerRunning) {
-        if (this.clock.getElapsedTime() > this.lastPlayStatusToggleTime + 4) {
-          this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
-          this.playStatusTimerRunning = false;
-        }
-      }
-      if (this.channelDisplayActive) {
-        if (this.clock.getElapsedTime() > this.lastChannelUpdateTime + 4) {
-          this.ClearChannelDisplay();
-        }
-      }
-      if (this.infoDisplayActive) {
-        if (this.clock.getElapsedTime() > this.lastInfoUpdateTime + 5) {
-          this.ClearInfoDisplay();
-        }
+      if (this.audioInitializer.loading) {
+        this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
+        this.DrawSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
       }
       if (this.paused) {
         this.vhsPause.uniforms['time'].value = this.clock.getElapsedTime();
-        if (this.audioInitializer.loading) {
-          this.ClearCanvasArea(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
-          this.DrawSpinner(this.canvas1.width * 0.8, 0, this.canvas1.width * 0.25, this.canvas1.height * 0.25);
-        }
       } else {
         if (this.vhsPause.uniforms['amount'].value > 0) {
           this.vhsPause.uniforms['amount'].value = Math.max(this.vhsPause.uniforms['amount'].value - 0.02, 0);
@@ -248,6 +250,7 @@
 
     RenderController.prototype.OnResize = function() {
       var j, len, ref, renderH, renderW, visualizer;
+      console.log('resizing');
       renderW = window.innerWidth;
       renderH = window.innerHeight;
       ref = this.visualizers;

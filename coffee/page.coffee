@@ -7,6 +7,8 @@ class @Page
     window.addEventListener('audioLoaded', @renderController.AudioLoadedHandler, false)
     @renderController.Render()
 
+    @activated = false
+
     @paused = false
 
     document.onkeydown = @CheckKey
@@ -38,20 +40,29 @@ class @Page
   CheckKey: (e) =>
     e = e || window.event
 
-    if (e.keyCode == 38) #uparrow
-      @IncreaseVolume()
-    else if (e.keyCode == 40) #downarrow
-      @DecreaseVolume()
-    else if (e.keyCode == 32) #spacebar
-      @TogglePause()
-    else if (e.keyCode == 39) #rightarrow
-      @renderController.NextVisualizer() if @audioInitializer.loaded
-    else if (e.keyCode == 37) #leftarrow
-      @renderController.PreviousVisualizer() if @audioInitializer.loaded
-    else if (e.keyCode == 73) #i
-      @renderController.ShowInfo()
+    if @activated
+      if (e.keyCode == 38) #uparrow
+        @IncreaseVolume()
+      else if (e.keyCode == 40) #downarrow
+        @DecreaseVolume()
+      else if (e.keyCode == 32) #spacebar
+        @TogglePause()
+      else if (e.keyCode == 39) #rightarrow
+        @renderController.NextVisualizer() if @audioInitializer.loaded
+      else if (e.keyCode == 37) #leftarrow
+        @renderController.PreviousVisualizer() if @audioInitializer.loaded
+      else if (e.keyCode == 73) #i
+        @renderController.ShowInfo()
+      else
+        @renderController.RouteKeyDownInput(e.keyCode)
     else
-      @renderController.RouteKeyDownInput(e.keyCode)
+      @activated = true
+      @audioInitializer.LoadAndPlayAudio()
+      @renderController.activeVisualizer.DisplayLoading()
+
+      @audioInitializer.audioElement.addEventListener 'canplay', =>
+        @renderController.Activate()
+
     return
 
   CheckKeyUp: (e) =>

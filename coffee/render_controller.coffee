@@ -3,7 +3,7 @@ class @RenderController
     @visualizerElement = $('#visualizer')
     @audioInitializer = audioInitializer
 
-    @paused = true
+    @paused = false
 
     @clock = new THREE.Clock
     @clock.start()
@@ -31,9 +31,12 @@ class @RenderController
     @visualizers[5] = new MystifyVisualizer(@audioInitializer)
     @visualizers[6] = new CybergridVisualizer(@audioInitializer)
     @visualizerCounter = 3
-    @activeVisualizer = @visualizers[@visualizerCounter]
-    for visualizer in @visualizers
-      visualizer.Update()
+    # @activeVisualizer = @visualizers[@visualizerCounter]
+    # for visualizer in @visualizers
+      # visualizer.Update()
+
+    @activeVisualizer = new StartScreen()
+    @activated = false
 
     @hud = new THREE.Scene()
     # @hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -54,7 +57,6 @@ class @RenderController
     @context1.textAlign = "left"
     @context1.textBaseline = "top"
     @context1.fillStyle = "rgba(255,255,255,0.95)"
-    @context1.fillText('press i for info...', 10, @canvas1.height * 0.9 - 50)
 
     @texture1 = new THREE.Texture(@canvas1)
     @texture1.minFilter = THREE.LinearFilter
@@ -70,12 +72,20 @@ class @RenderController
 
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount)
 
-    @vhsPause.uniforms['amount'].value = 1.0
+    # @vhsPause.uniforms['amount'].value = 1.0
     @strengthModifier = 0
+
+  Activate: =>
+    @activated = true
+    @visualizerCounter = 2
+    @NextVisualizer()
+
+    return
 
   NextVisualizer: =>
     @visualizerCounter = (@visualizerCounter + 1) % @visualizers.length
     @activeVisualizer = @visualizers[@visualizerCounter]
+
     @activeVisualizer.Activate()
 
     @ShowChannelDisplay(@visualizerCounter)
@@ -90,9 +100,8 @@ class @RenderController
       @visualizerCounter = @visualizers.length - 1
     else
       @visualizerCounter = @visualizerCounter - 1
-
-    @visualizerCounter = @visualizerCounter
     @activeVisualizer = @visualizers[@visualizerCounter]
+
     @activeVisualizer.Activate()
 
     @ShowChannelDisplay(@visualizerCounter)
@@ -176,32 +185,34 @@ class @RenderController
     deltaTime = @clock.getDelta()
     return if deltaTime > 0.5
 
-    if @clock.getElapsedTime() > @lastIcecastUpdateTime + 5
-      @GetIcecastData() unless @paused
-      @lastIcecastUpdateTime = @clock.getElapsedTime()
+    if @activated
+      if @clock.getElapsedTime() > @lastIcecastUpdateTime + 5
+        @GetIcecastData() unless @paused
+        @lastIcecastUpdateTime = @clock.getElapsedTime()
 
-    if @volumeDisplayActive
-      if @clock.getElapsedTime() > @lastVolumeUpdateTime + 2
-        @ClearVolumeDisplay()
+      if @volumeDisplayActive
+        if @clock.getElapsedTime() > @lastVolumeUpdateTime + 2
+          @ClearVolumeDisplay()
 
-    if @playStatusTimerRunning
-      if @clock.getElapsedTime() > @lastPlayStatusToggleTime + 4
-        @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
-        @playStatusTimerRunning = false
+      if @playStatusTimerRunning
+        if @clock.getElapsedTime() > @lastPlayStatusToggleTime + 4
+          @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+          @playStatusTimerRunning = false
 
-    if @channelDisplayActive
-      if @clock.getElapsedTime() > @lastChannelUpdateTime + 4
-        @ClearChannelDisplay()
+      if @channelDisplayActive
+        if @clock.getElapsedTime() > @lastChannelUpdateTime + 4
+          @ClearChannelDisplay()
 
-    if @infoDisplayActive
-      if @clock.getElapsedTime() > @lastInfoUpdateTime + 5
-        @ClearInfoDisplay()
+      if @infoDisplayActive
+        if @clock.getElapsedTime() > @lastInfoUpdateTime + 5
+          @ClearInfoDisplay()
+
+    if @audioInitializer.loading
+      @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
+      @DrawSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
 
     if @paused
       @vhsPause.uniforms['time'].value = @clock.getElapsedTime()
-      if @audioInitializer.loading
-        @ClearCanvasArea(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
-        @DrawSpinner(@canvas1.width * 0.8, 0, @canvas1.width * 0.25, @canvas1.height * 0.25)
     else
       if @vhsPause.uniforms['amount'].value > 0
         @vhsPause.uniforms['amount'].value = Math.max(@vhsPause.uniforms['amount'].value - 0.02, 0)
@@ -219,6 +230,7 @@ class @RenderController
     return
 
   OnResize: =>
+    console.log('resizing')
     renderW = window.innerWidth
     renderH = window.innerHeight
 
