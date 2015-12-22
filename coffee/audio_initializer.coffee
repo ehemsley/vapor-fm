@@ -1,5 +1,6 @@
 class @AudioInitializer
   constructor: ->
+    AudioContext = window.AudioContext or window.webkitAudioContext or false
     @context = new AudioContext
     @analyser = @context.createAnalyser()
     @frequencyData = new Uint8Array(@analyser.frequencyBinCount)
@@ -76,7 +77,6 @@ class @AudioInitializer
       @fft = new FFT.fft(@analyser.frequencyBinCount, sampleRate)
       @beatdetect.setSensitivity(500)
       @audioElement.play()
-      console.log('hi')
       @audioElement.removeEventListener 'canplay', listener #firefox hack b/c firefox fires canplay a million times for no reason lol
       return
 

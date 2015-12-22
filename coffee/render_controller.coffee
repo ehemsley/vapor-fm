@@ -230,7 +230,6 @@ class @RenderController
     return
 
   OnResize: =>
-    console.log('resizing')
     renderW = window.innerWidth
     renderH = window.innerHeight
 

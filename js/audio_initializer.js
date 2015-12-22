@@ -9,6 +9,8 @@
       this.LoadAndPlayAudio = bind(this.LoadAndPlayAudio, this);
       this.StopAndUnloadAudio = bind(this.StopAndUnloadAudio, this);
       this.GetAverageVolume = bind(this.GetAverageVolume, this);
+      var AudioContext;
+      AudioContext = window.AudioContext || window.webkitAudioContext || false;
       this.context = new AudioContext;
       this.analyser = this.context.createAnalyser();
       this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
@@ -80,7 +82,6 @@
           _this.fft = new FFT.fft(_this.analyser.frequencyBinCount, sampleRate);
           _this.beatdetect.setSensitivity(500);
           _this.audioElement.play();
-          console.log('hi');
           _this.audioElement.removeEventListener('canplay', listener);
         };
       })(this);

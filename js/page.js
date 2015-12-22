@@ -9,6 +9,9 @@
       this.TogglePause = bind(this.TogglePause, this);
       this.DecreaseVolume = bind(this.DecreaseVolume, this);
       this.IncreaseVolume = bind(this.IncreaseVolume, this);
+      if (!(Modernizr.audio && Modernizr.canvas && Modernizr.canvastext && Modernizr.webgl)) {
+        window.location.replace("http://simple.vapor.fm");
+      }
       this.audioInitializer = new AudioInitializer();
       this.renderController = new RenderController(this.audioInitializer);
       window.addEventListener('resize', this.renderController.OnResize, false);

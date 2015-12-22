@@ -250,7 +250,6 @@
 
     RenderController.prototype.OnResize = function() {
       var j, len, ref, renderH, renderW, visualizer;
-      console.log('resizing');
       renderW = window.innerWidth;
       renderH = window.innerHeight;
       ref = this.visualizers;

@@ -1,5 +1,8 @@
 class @Page
   constructor: ->
+    unless (Modernizr.audio and Modernizr.canvas and Modernizr.canvastext and Modernizr.webgl)
+      window.location.replace("http://simple.vapor.fm") 
+
     @audioInitializer = new AudioInitializer()
 
     @renderController = new RenderController(@audioInitializer)
