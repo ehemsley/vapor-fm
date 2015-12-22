@@ -1,6 +1,6 @@
 class @Page
   constructor: ->
-    unless (Modernizr.audio and Modernizr.webaudio and Modernizr.canvas and Modernizr.canvastext and Modernizr.webgl)
+    if !(Modernizr.audio and Modernizr.webaudio and Modernizr.canvas and Modernizr.canvastext and Modernizr.webgl) || isMobile.any
       window.location.replace("http://simple.vapor.fm")
 
     @audioInitializer = new AudioInitializer()
