@@ -60,9 +60,11 @@ class @Page
       @audioInitializer.LoadAndPlayAudio()
       @renderController.activeVisualizer.DisplayLoading()
 
-      @audioInitializer.audioElement.addEventListener 'canplay', =>
+      listener = =>
         @renderController.Activate()
+        @audioInitializer.audioElement.removeEventListener 'canplay', listener #firefox hack
 
+      @audioInitializer.audioElement.addEventListener 'canplay', listener
     return
 
   CheckKeyUp: (e) =>

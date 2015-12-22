@@ -41,6 +41,7 @@
     };
 
     Page.prototype.CheckKey = function(e) {
+      var listener;
       e = e || window.event;
       if (this.activated) {
         if (e.keyCode === 38) {
@@ -66,11 +67,13 @@
         this.activated = true;
         this.audioInitializer.LoadAndPlayAudio();
         this.renderController.activeVisualizer.DisplayLoading();
-        this.audioInitializer.audioElement.addEventListener('canplay', (function(_this) {
+        listener = (function(_this) {
           return function() {
-            return _this.renderController.Activate();
+            _this.renderController.Activate();
+            return _this.audioInitializer.audioElement.removeEventListener('canplay', listener);
           };
-        })(this));
+        })(this);
+        this.audioInitializer.audioElement.addEventListener('canplay', listener);
       }
     };
 

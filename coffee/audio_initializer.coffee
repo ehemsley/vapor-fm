@@ -47,6 +47,7 @@ class @AudioInitializer
 
   LoadAndPlayAudio: =>
     @loading = true
+    $('#audioContainer audio').attr('preload','auto') #firefox hack, never fires canplay if preload not set to auto
     @audioElement.load()
     clearTimeout @loadCheckTimeout
     @loadCheckTimeout = setTimeout @CheckLoaded, 8000
@@ -62,7 +63,7 @@ class @AudioInitializer
 
   AddCanPlayListener: =>
     audioLoaded = new Event('audioLoaded')
-    @audioElement.addEventListener 'canplay', =>
+    listener = =>
       window.dispatchEvent(audioLoaded)
       @loaded = true
       @loading = false
@@ -75,6 +76,10 @@ class @AudioInitializer
       @fft = new FFT.fft(@analyser.frequencyBinCount, sampleRate)
       @beatdetect.setSensitivity(500)
       @audioElement.play()
+      console.log('hi')
+      @audioElement.removeEventListener 'canplay', listener #firefox hack b/c firefox fires canplay a million times for no reason lol
       return
+
+    @audioElement.addEventListener 'canplay', listener
 
     return

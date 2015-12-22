@@ -154,6 +154,10 @@
       return this.DrawHeaderText();
     };
 
+    StartScreen.prototype.HandleKeyDownInput = function(keyCode) {};
+
+    StartScreen.prototype.HandleKeyUpInput = function(keyCode) {};
+
     return StartScreen;
 
   })();

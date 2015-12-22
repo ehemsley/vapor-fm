@@ -50,6 +50,7 @@
 
     AudioInitializer.prototype.LoadAndPlayAudio = function() {
       this.loading = true;
+      $('#audioContainer audio').attr('preload', 'auto');
       this.audioElement.load();
       clearTimeout(this.loadCheckTimeout);
       this.loadCheckTimeout = setTimeout(this.CheckLoaded, 8000);
@@ -63,9 +64,9 @@
     };
 
     AudioInitializer.prototype.AddCanPlayListener = function() {
-      var audioLoaded;
+      var audioLoaded, listener;
       audioLoaded = new Event('audioLoaded');
-      this.audioElement.addEventListener('canplay', (function(_this) {
+      listener = (function(_this) {
         return function() {
           var sampleRate, source;
           window.dispatchEvent(audioLoaded);
@@ -79,8 +80,11 @@
           _this.fft = new FFT.fft(_this.analyser.frequencyBinCount, sampleRate);
           _this.beatdetect.setSensitivity(500);
           _this.audioElement.play();
+          console.log('hi');
+          _this.audioElement.removeEventListener('canplay', listener);
         };
-      })(this));
+      })(this);
+      this.audioElement.addEventListener('canplay', listener);
     };
 
     return AudioInitializer;

@@ -138,3 +138,9 @@ class @StartScreen
           @timer = 0
 
     @DrawHeaderText()
+
+  HandleKeyDownInput: (keyCode) ->
+    return
+
+  HandleKeyUpInput: (keyCode) ->
+    return
