@@ -19,6 +19,7 @@
       this.DrawPlayIcon = bind(this.DrawPlayIcon, this);
       this.DrawSpinner = bind(this.DrawSpinner, this);
       this.DrawLogo = bind(this.DrawLogo, this);
+      this.ClearLogo = bind(this.ClearLogo, this);
       this.ClearCanvasArea = bind(this.ClearCanvasArea, this);
       this.UpdateOverlay = bind(this.UpdateOverlay, this);
       this.UpdateText = bind(this.UpdateText, this);
@@ -113,6 +114,10 @@
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       this.activeVisualizer.Activate();
       this.ShowChannelDisplay(this.visualizerCounter);
+      this.ClearLogo();
+      if (!(this.activeVisualizer instanceof NoiseVisualizer)) {
+        this.DrawLogo();
+      }
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams, this.activeVisualizer.noiseAmount);
       this.badTV.uniforms['rollSpeed'].value = 0.1;
       this.vhsPause.uniforms['amount'].value = 1.0;
@@ -127,6 +132,10 @@
       this.activeVisualizer = this.visualizers[this.visualizerCounter];
       this.activeVisualizer.Activate();
       this.ShowChannelDisplay(this.visualizerCounter);
+      this.ClearLogo();
+      if (!(this.activeVisualizer instanceof NoiseVisualizer)) {
+        this.DrawLogo();
+      }
       this.RenderProcess(this.activeVisualizer.scene, this.activeVisualizer.camera, this.activeVisualizer.bloomParams, this.activeVisualizer.noiseAmount);
       this.badTV.uniforms['rollSpeed'].value = 0.1;
       this.vhsPause.uniforms['amount'].value = 1.0;
@@ -352,6 +361,12 @@
       this.context1.clearRect(startX, startY, width, height);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.ClearLogo = function() {
+      var min_dimension;
+      min_dimension = Math.min(this.canvas1.width * 0.12, this.canvas1.height * 0.12);
+      return this.context1.clearRect(this.canvas1.width * 0.98 - min_dimension, this.canvas1.height * 0.98 - min_dimension, min_dimension, min_dimension);
     };
 
     RenderController.prototype.DrawLogo = function() {

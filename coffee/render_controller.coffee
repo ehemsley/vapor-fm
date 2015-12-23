@@ -92,6 +92,10 @@ class @RenderController
 
     @ShowChannelDisplay(@visualizerCounter)
 
+    @ClearLogo()
+    unless @activeVisualizer instanceof NoiseVisualizer
+      @DrawLogo()
+
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount)
     @badTV.uniforms['rollSpeed'].value = 0.1
     @vhsPause.uniforms['amount'].value = 1.0
@@ -107,6 +111,10 @@ class @RenderController
     @activeVisualizer.Activate()
 
     @ShowChannelDisplay(@visualizerCounter)
+
+    @ClearLogo()
+    unless @activeVisualizer instanceof NoiseVisualizer
+      @DrawLogo()
 
     @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount)
     @badTV.uniforms['rollSpeed'].value = 0.1
@@ -336,6 +344,10 @@ class @RenderController
     @mesh1.material.needsUpdate = true
 
     return
+
+  ClearLogo: =>
+    min_dimension = Math.min(@canvas1.width * 0.12, @canvas1.height * 0.12)
+    @context1.clearRect(@canvas1.width * 0.98 - min_dimension, @canvas1.height * 0.98 - min_dimension, min_dimension, min_dimension)
 
   DrawLogo: =>
     @context1.globalAlpha = 0.4
