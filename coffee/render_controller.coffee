@@ -80,6 +80,8 @@ class @RenderController
     @visualizerCounter = 2
     @NextVisualizer()
 
+    @DrawLogo()
+
     return
 
   NextVisualizer: =>
@@ -290,11 +292,27 @@ class @RenderController
       @artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation)
       @songName = songData.substring(songSubStringLocation + 3, songData.length)
 
+    @artistName = @FittingString(@context1, @artistName, @canvas1.width * 0.8)
+    @songName = @FittingString(@context1, @songName, @canvas1.width * 0.8)
+
     @UpdateOverlay()
     return
 
+  FittingString: (c, str, maxWidth) ->
+    width = c.measureText(str).width
+    ellipsis = '…'
+    ellipsisWidth = c.measureText(ellipsis).width
+    if width <= maxWidth or width <= ellipsisWidth
+      str
+    else
+      len = str.length
+      while width >= maxWidth - ellipsisWidth and len-- > 0
+        str = str.substring(0, len)
+        width = c.measureText(str).width
+      str + ellipsis
+
   UpdateOverlay: =>
-    @context1.clearRect(0, @canvas1.height / 2, @canvas1.width, @canvas1.height / 2)
+    @context1.clearRect(0, @canvas1.height / 2, @canvas1.width * 0.85, @canvas1.height / 2)
     @context1.font = '50px TelegramaRaw'
 
     @context1.strokeStyle = 'black'
@@ -317,6 +335,14 @@ class @RenderController
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
 
+    return
+
+  DrawLogo: =>
+    @context1.globalAlpha = 0.4
+    img = document.getElementById("logo")
+    min_dimension = Math.min(@canvas1.width * 0.12, @canvas1.height * 0.12)
+    @context1.drawImage(img, @canvas1.width * 0.98 - min_dimension, @canvas1.height * 0.98 - min_dimension, min_dimension, min_dimension)
+    @context1.globalAlpha = 1.0
     return
 
   DrawSpinner: (startX, startY, width, height) =>

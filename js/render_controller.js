@@ -18,6 +18,7 @@
       this.DrawPauseIcon = bind(this.DrawPauseIcon, this);
       this.DrawPlayIcon = bind(this.DrawPlayIcon, this);
       this.DrawSpinner = bind(this.DrawSpinner, this);
+      this.DrawLogo = bind(this.DrawLogo, this);
       this.ClearCanvasArea = bind(this.ClearCanvasArea, this);
       this.UpdateOverlay = bind(this.UpdateOverlay, this);
       this.UpdateText = bind(this.UpdateText, this);
@@ -104,6 +105,7 @@
       this.activated = true;
       this.visualizerCounter = 2;
       this.NextVisualizer();
+      this.DrawLogo();
     };
 
     RenderController.prototype.NextVisualizer = function() {
@@ -249,11 +251,11 @@
     };
 
     RenderController.prototype.OnResize = function() {
-      var j, len, ref, renderH, renderW, visualizer;
+      var j, len1, ref, renderH, renderW, visualizer;
       renderW = window.innerWidth;
       renderH = window.innerHeight;
       ref = this.visualizers;
-      for (j = 0, len = ref.length; j < len; j++) {
+      for (j = 0, len1 = ref.length; j < len1; j++) {
         visualizer = ref[j];
         visualizer.camera.aspect = renderW / renderH;
         visualizer.camera.updateProjectionMatrix();
@@ -310,11 +312,30 @@
         this.artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation);
         this.songName = songData.substring(songSubStringLocation + 3, songData.length);
       }
+      this.artistName = this.FittingString(this.context1, this.artistName, this.canvas1.width * 0.8);
+      this.songName = this.FittingString(this.context1, this.songName, this.canvas1.width * 0.8);
       this.UpdateOverlay();
     };
 
+    RenderController.prototype.FittingString = function(c, str, maxWidth) {
+      var ellipsis, ellipsisWidth, len, width;
+      width = c.measureText(str).width;
+      ellipsis = '…';
+      ellipsisWidth = c.measureText(ellipsis).width;
+      if (width <= maxWidth || width <= ellipsisWidth) {
+        return str;
+      } else {
+        len = str.length;
+        while (width >= maxWidth - ellipsisWidth && len-- > 0) {
+          str = str.substring(0, len);
+          width = c.measureText(str).width;
+        }
+        return str + ellipsis;
+      }
+    };
+
     RenderController.prototype.UpdateOverlay = function() {
-      this.context1.clearRect(0, this.canvas1.height / 2, this.canvas1.width, this.canvas1.height / 2);
+      this.context1.clearRect(0, this.canvas1.height / 2, this.canvas1.width * 0.85, this.canvas1.height / 2);
       this.context1.font = '50px TelegramaRaw';
       this.context1.strokeStyle = 'black';
       this.context1.lineWidth = 8;
@@ -331,6 +352,15 @@
       this.context1.clearRect(startX, startY, width, height);
       this.mesh1.material.map.needsUpdate = true;
       this.mesh1.material.needsUpdate = true;
+    };
+
+    RenderController.prototype.DrawLogo = function() {
+      var img, min_dimension;
+      this.context1.globalAlpha = 0.4;
+      img = document.getElementById("logo");
+      min_dimension = Math.min(this.canvas1.width * 0.12, this.canvas1.height * 0.12);
+      this.context1.drawImage(img, this.canvas1.width * 0.98 - min_dimension, this.canvas1.height * 0.98 - min_dimension, min_dimension, min_dimension);
+      this.context1.globalAlpha = 1.0;
     };
 
     RenderController.prototype.DrawSpinner = function(startX, startY, width, height) {

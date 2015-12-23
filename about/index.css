@@ -111,3 +111,8 @@ ul.dashed > li:before {
   display: inline-block;
   margin: 5px;
 }
+
+.logo {
+  display: inline-block;
+  margin: 5px;
+}
