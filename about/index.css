@@ -107,6 +107,11 @@ ul.dashed > li:before {
   text-align: center;
 }
 
+.media .video {
+  display: inline-block;
+  margin: 5px;
+}
+
 .screenshot {
   display: inline-block;
   margin: 5px;
