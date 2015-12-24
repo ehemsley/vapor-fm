@@ -27,6 +27,7 @@ tmp/
 
 # Brunch output folder.
 public/
+html/
 
 # Bower stuff.
 bower_components/
