@@ -1,7 +1,6 @@
 {
-  "name": "your-app",
-  "version": "0.0.1",
-  "main": "public/app.js",
+  "name": "vapor-fm",
+  "version": "0.9.0",
   "dependencies": {},
   "overrides": {}
 }
