@@ -1,3 +1,8 @@
+//created by Mattias
+//https://www.shadertoy.com/view/Ms23DR
+//ported to three.js by Evan Hemsley
+//Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License
+
 module.exports = {
   uniforms: {
     "tDiffuse": { type: "t", value: null },
