@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <title>vapor.fm</title>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="app.css">
+    <meta name="google-site-verification" content="pwwXxc3XR5EkvTQ08dreLZ3xcv-RDrE1zXWgWaZwShc" />
+    <script src="vendor/js/modernizr-custom.js"></script>
+    <script src="vendor/js/isMobile.min.js"></script>
+    <script>
+      if (!(Modernizr.audio && Modernizr.webaudio && Modernizr.canvas && Modernizr.canvastext && Modernizr.webgl) || isMobile.any) {
+        window.location.replace("http://simple.vapor.fm");
+      }
+    </script>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-47386813-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+	<body>
+    <script src="javascripts/vendor.js"></script>
+    <script src="javascripts/app.js"></script>
+
+    <div id="audioContainer" style="display:none;">
+      <audio id="stream" src="http://vapor.fm:8000/stream" crossorigin="anonymous"></audio>
+    </div>
+
+    <div id="visualizer"></div>
+
+    <div id="nowplaying">
+      <div id="title"></div>
+    </div>
+
+    <a id="about-link" href="/about" target="_blank"></a>
+
+    <img id="logo" src="images/logo.png" alt="logo" style="display: none;">
+
+    <script>require('application').init()</script>
+	</body>
+</html>

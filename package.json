@@ -1,0 +1,21 @@
+{
+  "name": "vapor-fm",
+  "description": "Netradio + web player + visualizer = good times",
+  "author": "Evan Hemsley",
+  "version": "0.9.0",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "scripts": {
+    "start": "brunch watch --server"
+  },
+  "dependencies": {
+    "auto-reload-brunch": ">= 1.0 < 1.9",
+    "clean-css-brunch": ">= 1.0 < 1.9",
+    "coffee-script-brunch": "^1.8.3",
+    "css-brunch": ">= 1.0 < 1.9",
+    "javascript-brunch": ">= 1.0 < 1.9",
+    "uglify-js-brunch": ">= 1.0 < 1.9"
+  }
+}
