@@ -63,9 +63,9 @@
       })();
       this.visualizers[0] = new PongVisualizer(this.audioInitializer);
       this.visualizers[3] = new Visualizer(this.audioInitializer);
-      this.visualizers[4] = new HeartVisualizer(this.audioInitializer);
-      this.visualizers[5] = new MystifyVisualizer(this.audioInitializer);
-      this.visualizers[6] = new CybergridVisualizer(this.audioInitializer);
+      this.visualizers[4] = new MystifyVisualizer(this.audioInitializer);
+      this.visualizers[5] = new CybergridVisualizer(this.audioInitializer);
+      this.visualizers[14] = new HeartVisualizer(this.audioInitializer);
       this.visualizerCounter = 3;
       this.activeVisualizer = new StartScreen();
       this.activated = false;

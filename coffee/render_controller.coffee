@@ -27,19 +27,16 @@ class @RenderController
     @visualizers = (noiseVisualizer for [0..99])
     @visualizers[0] = new PongVisualizer(@audioInitializer)
     @visualizers[3] = new Visualizer(@audioInitializer)
-    @visualizers[4] = new HeartVisualizer(@audioInitializer)
-    @visualizers[5] = new MystifyVisualizer(@audioInitializer)
-    @visualizers[6] = new CybergridVisualizer(@audioInitializer)
+    @visualizers[4] = new MystifyVisualizer(@audioInitializer)
+    @visualizers[5] = new CybergridVisualizer(@audioInitializer)
+    @visualizers[14] = new HeartVisualizer(@audioInitializer)
+
     @visualizerCounter = 3
-    # @activeVisualizer = @visualizers[@visualizerCounter]
-    # for visualizer in @visualizers
-      # visualizer.Update()
 
     @activeVisualizer = new StartScreen()
     @activated = false
 
     @hud = new THREE.Scene()
-    # @hudCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     @hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000)
 
     @ambientLights = new THREE.AmbientLight(0x404040)
