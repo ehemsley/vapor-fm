@@ -319,7 +319,7 @@ module.exports = class RenderController
 
   FittingString: (c, str, maxWidth) ->
     width = c.measureText(str).width
-    ellipsis = '…'
+    ellipsis = '...'
     ellipsisWidth = c.measureText(ellipsis).width
     if width <= maxWidth or width <= ellipsisWidth
       str
