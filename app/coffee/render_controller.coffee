@@ -17,6 +17,7 @@ module.exports = class RenderController
     @audioInitializer = audioInitializer
 
     @paused = false
+    @shuffling = false
 
     @clock = new THREE.Clock
     @clock.start()
@@ -26,6 +27,8 @@ module.exports = class RenderController
     @lastInfoUpdateTime = @clock.getElapsedTime()
     @lastChannelUpdateTime = @clock.getElapsedTime()
     @lastPlayStatusToggleTime = 0
+
+    @lastShuffleTime = @clock.getElapsedTime()
 
     @playStatusTimerRunning = false
     @volumeDisplayActive = false
@@ -48,6 +51,8 @@ module.exports = class RenderController
 
     @activeVisualizer = new StartScreen()
     @activated = false
+
+    @shuffleIndices = [3, 4, 5, 14]
 
     @hud = new THREE.Scene()
     @hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000)
@@ -97,10 +102,23 @@ module.exports = class RenderController
 
   NextVisualizer: =>
     @visualizerCounter = (@visualizerCounter + 1) % @visualizers.length
-    @activeVisualizer = @visualizers[@visualizerCounter]
+    @SetVisualizer(@visualizerCounter)
+    return
 
+  PreviousVisualizer: =>
+    if @visualizerCounter == 0
+      @visualizerCounter = @visualizers.length - 1
+    else
+      @visualizerCounter = @visualizerCounter - 1
+
+    @SetVisualizer(@visualizerCounter)
+    return
+
+  SetVisualizer: (index) =>
+    @activeVisualizer = @visualizers[index]
     @activeVisualizer.Activate()
 
+    @visualizerCounter = index
     @ShowChannelDisplay(@visualizerCounter)
 
     @ClearLogo()
@@ -112,24 +130,20 @@ module.exports = class RenderController
     @vhsPause.uniforms['amount'].value = 1.0
     return
 
-  PreviousVisualizer: =>
-    if @visualizerCounter == 0
-      @visualizerCounter = @visualizers.length - 1
-    else
-      @visualizerCounter = @visualizerCounter - 1
-    @activeVisualizer = @visualizers[@visualizerCounter]
+  ToggleShuffle: =>
+    @shuffling = !@shuffling
+    @DrawShuffleText(@shuffling)
 
-    @activeVisualizer.Activate()
+    if @shuffling
+      @PickRandomVisualizer()
+      @lastShuffleTime = @clock.getElapsedTime()
+    return
 
-    @ShowChannelDisplay(@visualizerCounter)
-
-    @ClearLogo()
-    unless @activeVisualizer instanceof NoiseVisualizer
-      @DrawLogo()
-
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount)
-    @badTV.uniforms['rollSpeed'].value = 0.1
-    @vhsPause.uniforms['amount'].value = 1.0
+  PickRandomVisualizer: =>
+    newVizIndex = @visualizerCounter
+    newVizIndex = @shuffleIndices[Math.floor(Math.random() * @shuffleIndices.length)] until newVizIndex != @visualizerCounter
+    console.log(newVizIndex)
+    @SetVisualizer(newVizIndex)
     return
 
   RenderProcess: (scene, camera, bloomParams, noiseAmount) =>
@@ -207,6 +221,11 @@ module.exports = class RenderController
     return if deltaTime > 0.5
 
     if @activated
+      if @shuffling
+        if @clock.getElapsedTime() > @lastShuffleTime + 60
+          @PickRandomVisualizer()
+          @lastShuffleTime = @clock.getElapsedTime()
+
       if @clock.getElapsedTime() > @lastIcecastUpdateTime + 5
         @GetIcecastData() unless @paused
         @lastIcecastUpdateTime = @clock.getElapsedTime()
@@ -463,6 +482,25 @@ module.exports = class RenderController
     @volumeDisplayActive = true
 
     return
+
+  DrawShuffleText: (enabled) =>
+    @ClearVolumeDisplay()
+    @context1.font = '60px TelegramaRaw'
+    @context1.fillStyle = 'white'
+    @context1.strokeStyle = 'black'
+
+    if enabled
+      @context1.strokeText('Shuffle: On', 10, 10)
+      @context1.fillText('Shuffle: On', 10, 10)
+    else
+      @context1.strokeText('Shuffle: Off', 10, 10)
+      @context1.fillText('Shuffle: Off', 10, 10)
+
+    @lastVolumeUpdateTime = @clock.getElapsedTime()
+    @volumeDisplayActive = true
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
 
   GetIcecastData: =>
     $.ajax({

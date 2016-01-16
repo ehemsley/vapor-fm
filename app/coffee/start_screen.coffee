@@ -60,14 +60,15 @@ module.exports = class StartScreen
     @context1.font = '30px TelegramaRaw'
     @context1.fillText('vapor.fm', 280, 0)
     @context1.font = '20px TelegramaRaw'
-    @context1.fillText('evan hemsley', 280, 40)
+    @context1.fillText('evan hemsley', 280, 35)
 
-    @context1.font = '15px TelegramaRaw'
+    @context1.font = '14px TelegramaRaw'
     @context1.fillText('Channel: ' + String.fromCharCode(8592) + ' or ' + String.fromCharCode(8594),
-                       280, 80)
+                       280, 70)
     @context1.fillText('Volume: ' + String.fromCharCode(8593) + ' or ' + String.fromCharCode(8595),
-                       280, 100)
-    @context1.fillText('Space to pause/play', 280, 120)
+                       280, 90)
+    @context1.fillText('Pause/Play: Space', 280, 110)
+    @context1.fillText('Shuffle Mode: S', 280, 130)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true

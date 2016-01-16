@@ -56,6 +56,8 @@ module.exports = class Page
         @renderController.PreviousVisualizer() if @audioInitializer.loaded
       else if (e.keyCode == 73) #i
         @renderController.ShowInfo()
+      else if (e.keyCode == 83) #s
+        @renderController.ToggleShuffle()
       else
         @renderController.RouteKeyDownInput(e.keyCode)
     else
