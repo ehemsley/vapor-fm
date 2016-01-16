@@ -103,6 +103,9 @@ module.exports = class RenderController
   NextVisualizer: =>
     @visualizerCounter = (@visualizerCounter + 1) % @visualizers.length
     @SetVisualizer(@visualizerCounter)
+    if @shuffling
+      @shuffling = false
+      @DrawShuffleText(@shuffling)
     return
 
   PreviousVisualizer: =>
@@ -112,6 +115,9 @@ module.exports = class RenderController
       @visualizerCounter = @visualizerCounter - 1
 
     @SetVisualizer(@visualizerCounter)
+    if @shuffling
+      @shuffling = false
+      @DrawShuffleText(@shuffling)
     return
 
   SetVisualizer: (index) =>
@@ -142,7 +148,6 @@ module.exports = class RenderController
   PickRandomVisualizer: =>
     newVizIndex = @visualizerCounter
     newVizIndex = @shuffleIndices[Math.floor(Math.random() * @shuffleIndices.length)] until newVizIndex != @visualizerCounter
-    console.log(newVizIndex)
     @SetVisualizer(newVizIndex)
     return
 
