@@ -140,6 +140,9 @@ module.exports = class StartScreen
 
     @DrawHeaderText()
 
+  Render: ->
+    return
+
   HandleKeyDownInput: (keyCode) ->
     return
 
