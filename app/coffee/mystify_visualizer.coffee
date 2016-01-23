@@ -1,17 +1,14 @@
+Visualizer = require('coffee/visualizer')
 MystifyQuadrilateral = require('coffee/mystify_quadrilateral')
 
-module.exports = class MystifyVisualizer
+module.exports = class MystifyVisualizer extends Visualizer
   constructor: (audioInitializer) ->
-    @audioInitializer = audioInitializer
+    super(audioInitializer,
+          { strength: 10, strengthIncrease: 0.0, kernelSize: 6, sigma: 1.1, resolution: 512 },
+          0.0,
+          true)
 
-    @timer = 0
-
-    @scene = new THREE.Scene
-    # @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     @camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, 0.1, 1000)
-
-    @bloomParams = { strength: 10, kernelSize: 6, sigma: 1.1, resolution: 512 }
-    @noiseAmount = 0.0
 
     @quadrilateralOne = @Quadrilateral()
     @quadrilateralTwo = @Quadrilateral()
@@ -63,13 +60,4 @@ module.exports = class MystifyVisualizer
         quadCounter += 1
         previousMax = newMax
 
-    return
-
-  HandleKeyDownInput: (keyCode) ->
-    return
-
-  HandleKeyUpInput: (keyCode) ->
-    return
-
-  Activate: ->
     return

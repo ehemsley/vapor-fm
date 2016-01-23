@@ -1,13 +1,13 @@
-module.exports = class PongVisualizer
+Visualizer = require('coffee/visualizer')
+
+module.exports = class PongVisualizer extends Visualizer
   constructor: (audioInitializer) ->
-    @audioInitializer = audioInitializer
+    super(audioInitializer,
+          { strength: 3, kernelSize: 12, sigma: 1.1, resolution: 512 },
+          0.15,
+          false)
 
-    @scene = new THREE.Scene
-    # @camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, 0.1, 1000)
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-
-    @bloomParams = { strength: 3, kernelSize: 12, sigma: 1.1, resolution: 512 }
-    @noiseAmount = 0.15
 
     @playerPaddle = @Paddle()
     @enemyPaddle = @Paddle()

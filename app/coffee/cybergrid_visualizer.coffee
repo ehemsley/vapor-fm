@@ -1,14 +1,13 @@
-module.exports = class CybergridVisualizer
+Visualizer = require('coffee/visualizer')
+
+module.exports = class CybergridVisualizer extends Visualizer
   constructor: (audioInitializer) ->
-    @audioInitializer = audioInitializer
+    super(audioInitializer,
+          { strength: 3, strengthIncrease: 1, kernelSize: 12, sigma: 2.0, resolution: 512 },
+          0.1,
+          true)
 
-    @timer = 0
-
-    @scene = new THREE.Scene
     @camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000)
-
-    @bloomParams = { strength: 3, strengthIncrease: 1, kernelSize: 12, sigma: 2.0, resolution: 512 }
-    @noiseAmount = 0.1
 
     @ambientLight = new THREE.AmbientLight(0x404040)
     @scene.add(@ambientLight)
@@ -29,8 +28,6 @@ module.exports = class CybergridVisualizer
     @sun.position.set(0, 5, -50)
 
     @yRotationDirection = 1
-
-    @beatDistortionEffect = true
 
     @camera.position.y = 5
     @camera.position.z = 20
@@ -116,16 +113,4 @@ module.exports = class CybergridVisualizer
       @sun.scale.y = Math.max(@sun.scale.y - 0.01, 1)
       @sun.scale.z = Math.max(@sun.scale.z - 0.01, 1)
 
-    return
-
-  HandleKeyDownInput: (keyCode) ->
-    return
-
-  HandleKeyUpInput: (keyCode) ->
-    return
-
-  RandomInt: (min, max) ->
-    return Math.floor(Math.random() * (max - min + 1)) + min
-
-  Activate: ->
     return

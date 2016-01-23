@@ -1,14 +1,13 @@
-module.exports = class HeartVisualizer
+Visualizer = require('coffee/visualizer')
+
+module.exports = class HeartVisualizer extends Visualizer
   constructor: (audioInitializer) ->
-    @audioInitializer = audioInitializer
+    super(audioInitializer,
+          { strength: 3, strengthIncrease: 0.0, kernelSize: 12, sigma: 2.0, resolution: 512 },
+          0.0,
+          false)
 
-    @timer = 0
-
-    @scene = new THREE.Scene
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-
-    @bloomParams = { strength: 3, kernelSize: 12, sigma: 2.0, resolution: 512 }
-    @noiseAmount = 0.0
 
     @ambientLight = new THREE.AmbientLight(0x404040)
     @scene.add(@ambientLight)
@@ -22,9 +21,9 @@ module.exports = class HeartVisualizer
 
     @Hearts(40)
 
-    @beatDistortionEffect = false
-
     @camera.position.z = 20
+
+    return
 
   Heart: ->
     heartMaterial = new THREE.MeshPhongMaterial({color: 0xff0000})
@@ -111,19 +110,4 @@ module.exports = class HeartVisualizer
     @camera.position.set(40 * Math.cos(@timer * 0.5), 0, 40 * Math.sin(@timer * 0.5))
     @camera.lookAt(@scene.position)
 
-    return
-
-  RandomFloat: (min, max) ->
-    return Math.random() * (max - min) + min
-
-  RandomInt: (min, max) ->
-    return Math.floor(Math.random() * (max - min + 1)) + min
-
-  HandleKeyDownInput: (keyCode) ->
-    return
-
-  HandleKeyUpInput: (keyCode) ->
-    return
-
-  Activate: ->
     return
