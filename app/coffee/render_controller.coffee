@@ -619,7 +619,7 @@ module.exports = class RenderController
     return
 
   ClearChannelDisplay: =>
-    @ClearCanvasArea(@canvas1.width * 0.65, @canvas1.height * 0.08 - 50, @canvas1.width, @canvas1.height * 0.08 - 50 + 150)
+    @ClearCanvasArea(@canvas1.width * 0.65, 0, @canvas1.width, @canvas1.height * 0.08 - 50 + 150)
     @channelDisplayActive = false
     return
 
