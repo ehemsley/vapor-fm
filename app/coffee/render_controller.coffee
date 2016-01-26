@@ -267,6 +267,7 @@ module.exports = class RenderController
       @UpdateAudioAnalyzer()
       @UpdateEffects()
       @activeVisualizer.Update(deltaTime)
+      TWEEN.update()
 
     @activeVisualizer.Render()
     @cubeComposer.render(0.1)
