@@ -20,7 +20,7 @@ module.exports = class Dolphin
 
     @animationTimer = { time: 0 }
     @tween = new TWEEN.Tween(@animationTimer)
-      .to({ time: 1 }, 5000)
+      .to({ time: 1 }, (Math.random() * 3000) + 2000)
       .easing(TWEEN.Easing.Sinusoidal.InOut)
       .start()
       .onComplete =>
