@@ -29,8 +29,7 @@ module.exports = class OceanVisualizer extends Visualizer
     @skyBox = @SkyBox()
     @scene.add(@skyBox)
 
-    @waterBox = @WaterBox()
-    @scene.add(@waterBox)
+    @InitWaterBox()
 
     @loaded = false
     @InitDolphin()
@@ -44,31 +43,32 @@ module.exports = class OceanVisualizer extends Visualizer
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
-  WaterBox: =>
+  InitWaterBox: =>
     geometry = new THREE.BoxGeometry(500, 500, 10)
-    waterNormals = new THREE.ImageUtils.loadTexture('vendor/images/waternormals.jpg')
-    waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping
+    textureLoader = new THREE.TextureLoader()
+    textureLoader.load 'vendor/images/waternormals.jpg', (texture) =>
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping
 
-    @water = new THREE.Water(@renderer, @camera, @scene, {
-      textureWidth: 256,
-      textureHeight: 256,
-      waterNormals: waterNormals,
-      alpha: 1.0,
-      sunDirection: @directionalLight.position.normalize(),
-      sunColor: 0xffffff,
-      waterColor: 0x001e0f,
-      betaVersion: 0,
-      side: THREE.DoubleSide
-    })
+      @water = new THREE.Water(@renderer, @camera, @scene, {
+        textureWidth: 256,
+        textureHeight: 256,
+        waterNormals: texture,
+        alpha: 1.0,
+        sunDirection: @directionalLight.position.normalize(),
+        sunColor: 0xffffff,
+        waterColor: 0x001e0f,
+        betaVersion: 0,
+        side: THREE.DoubleSide
+      })
 
-    meshMirror = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(500, 500, 10, 10),
-      @water.material
-    )
+      meshMirror = new THREE.Mesh(
+        new THREE.PlaneBufferGeometry(500, 500, 10, 10),
+        @water.material
+      )
 
-    meshMirror.add(@water)
-    meshMirror.rotation.x = -Math.PI * 0.5
-    meshMirror
+      meshMirror.add(@water)
+      meshMirror.rotation.x = -Math.PI * 0.5
+      @scene.add(meshMirror)
 
   InitDolphin: ->
     dolphinMaterial = new THREE.MeshPhongMaterial({color: 0x6c6876})
