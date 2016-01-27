@@ -1,4 +1,5 @@
 Visualizer = require('coffee/visualizer')
+Dolphin = require('coffee/dolphin')
 
 axis = new THREE.Vector3()
 up = new THREE.Vector3(0, 1, 0)
@@ -31,16 +32,9 @@ module.exports = class OceanVisualizer extends Visualizer
     @waterBox = @WaterBox()
     @scene.add(@waterBox)
 
-    @jumping = false
-    @Dolphin()
-    @jumpArc = @DolphinJumpArc()
-
-    @animationTimer = { time: 0 }
-    @tween = new TWEEN.Tween(@animationTimer)
-    @tween.to({ time: 1 }, 5000)
-    @tween.easing(TWEEN.Easing.Sinusoidal.InOut)
-    @tween.repeat(Infinity)
-    @tween.start()
+    @loaded = false
+    @InitDolphin()
+    @dolphins = []
 
     return
 
@@ -76,7 +70,7 @@ module.exports = class OceanVisualizer extends Visualizer
     meshMirror.rotation.x = -Math.PI * 0.5
     meshMirror
 
-  Dolphin: ->
+  InitDolphin: ->
     dolphinMaterial = new THREE.MeshPhongMaterial({color: 0x6c6876})
     loader = new THREE.OBJLoader
     loader.load 'models/dolphin.obj', (object) =>
@@ -87,36 +81,38 @@ module.exports = class OceanVisualizer extends Visualizer
       object.position.set(0, 2, -20)
 
       @dolphin = object
-      @scene.add(@dolphin)
-      @jumping = true
+      @loaded = true
 
     return
-
-  DolphinJumpArc: ->
-    new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(-50, -20, -40),
-      new THREE.Vector3(0, 100, -40),
-      new THREE.Vector3(50, -20, -40)
-    )
 
   Update: (deltaTime) =>
     if deltaTime?
       @timer += deltaTime
       @water.material.uniforms.time.value += deltaTime
 
-      if (@jumping)
-        # dolphinTangent = @jumpArc.getTangent((@timer / 10) % 1.0).normalize()
-        # @dolphin.position.copy(@jumpArc.getPoint((@timer / 10) % 1.0))
-        dolphinTangent = @jumpArc.getTangent(@animationTimer.time)
-        @dolphin.position.copy(@jumpArc.getPoint(@animationTimer.time))
+      if @loaded
+        @CreateDolphin() if @audioInitializer.beatdetect.isKick()
 
-        axis.crossVectors(up, dolphinTangent).normalize()
-        radians = Math.acos(up.dot(dolphinTangent))
-        @dolphin.quaternion.setFromAxisAngle(axis, radians)
-        @dolphin.rotateOnAxis(axis, -Math.PI * 0.5)
+        for dolphin in @dolphins
+          dolphin.Update()
+
+        @CleanDolphins()
 
     return
 
   Render: =>
     @water.render()
+    return
+
+  CreateDolphin: =>
+    dolphin = new Dolphin(@dolphin.clone())
+    @dolphins.push(dolphin)
+    @scene.add(dolphin.object)
+    return
+
+  CleanDolphins: =>
+    @dolphins = @dolphins.filter (dolphin) =>
+      @scene.remove(dolphin.object) if dolphin.finished
+      return !dolphin.finished
+
     return
