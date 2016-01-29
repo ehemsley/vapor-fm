@@ -6,10 +6,11 @@ module.exports = class Dolphin
     z = (Math.random() * -80) - 20
     xStart = (Math.random() * 100) - 70
     xDistance = (Math.random() * 50) + 50
+    jumpHeight = (Math.random() * 80) + 20
 
     @jumpCurve = new THREE.QuadraticBezierCurve3(
       new THREE.Vector3(xStart, -20, z),
-      new THREE.Vector3(xStart + xDistance * 0.5, 100, z),
+      new THREE.Vector3(xStart + xDistance * 0.5, jumpHeight, z),
       new THREE.Vector3(xStart + xDistance, -20, z)
     )
 
@@ -20,7 +21,7 @@ module.exports = class Dolphin
 
     @animationTimer = { time: 0 }
     @tween = new TWEEN.Tween(@animationTimer)
-      .to({ time: 1 }, (Math.random() * 3000) + 2000)
+      .to({ time: 1 }, @Lerp(4000, 2000, (jumpHeight - 20) / 80))
       .easing(TWEEN.Easing.Sinusoidal.InOut)
       .start()
       .onComplete =>
@@ -47,3 +48,7 @@ module.exports = class Dolphin
 
   Finish: =>
     @finished = true
+
+  Lerp: (a, b, f) ->
+    a + f * (b - a)
+

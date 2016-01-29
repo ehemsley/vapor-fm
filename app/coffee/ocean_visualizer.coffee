@@ -15,15 +15,12 @@ module.exports = class OceanVisualizer extends Visualizer
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     @camera.position.set(0, 5, 6)
 
-    # @ambientLight = new THREE.AmbientLight(0x404040)
-    # @scene.add(@ambientLight)
-
-    @directionalLight = new THREE.DirectionalLight(0xffffff, 1.0)
-    @directionalLight.position.set(0, 1, 0)
+    @directionalLight = new THREE.DirectionalLight(0xfdb813, 1.0)
+    @directionalLight.position.set(0, 0, 1)
     @scene.add(@directionalLight)
 
-    @pointLight = new THREE.PointLight(0xffffff, 1, 10000)
-    @pointLight.position.set(0, 5, 0)
+    @pointLight = new THREE.PointLight(0xd3d3d3, 0.6, 200)
+    @pointLight.position.set(0, 5, 10)
     @scene.add(@pointLight)
 
     @skyBox = @SkyBox()
@@ -35,11 +32,15 @@ module.exports = class OceanVisualizer extends Visualizer
     @InitDolphin()
     @dolphins = []
 
+    @sun = @Sun()
+
+    @skyChangeTimer = 0
+
     return
 
   SkyBox: ->
     geometry = new THREE.BoxGeometry(500, 500, 500)
-    material = new THREE.MeshBasicMaterial({color: 0x1100aa, side: THREE.BackSide})
+    material = new THREE.MeshBasicMaterial({color: 0xfe5b35, side: THREE.BackSide})
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
@@ -56,7 +57,7 @@ module.exports = class OceanVisualizer extends Visualizer
         alpha: 1.0,
         sunDirection: @directionalLight.position.normalize(),
         sunColor: 0xffffff,
-        waterColor: 0x001e0f,
+        waterColor: 0x1100aa,
         betaVersion: 0,
         side: THREE.DoubleSide
       })
@@ -85,18 +86,56 @@ module.exports = class OceanVisualizer extends Visualizer
 
     return
 
+  Sun: =>
+    geometry = new THREE.SphereGeometry(100, 32, 32)
+    material = new THREE.MeshBasicMaterial({color: 0xfdb813})
+    sphere = new THREE.Mesh(geometry, material)
+    sphere.position.set(0, 0, -210)
+    @scene.add(sphere)
+    sphere
+
   Update: (deltaTime) =>
     if deltaTime?
-      @timer += deltaTime
+      @skyChangeTimer += deltaTime
       @water.material.uniforms.time.value += deltaTime
 
       if @loaded
-        @CreateDolphin() if @audioInitializer.beatdetect.isKick()
-
         for dolphin in @dolphins
           dolphin.Update()
 
         @CleanDolphins()
+
+        if @audioInitializer.beatdetect.isKick()
+          @CreateDolphin()
+
+        if @skyChangeTimer > 10
+          if @audioInitializer.beatdetect.isSnare()
+            @skyChangeTimer = 0
+
+            newColors = @RandomSkySunColor()
+            sunColor = new THREE.Color(newColors.sun)
+            skyColor = new THREE.Color(newColors.sky)
+
+            skyboxTween =
+              new TWEEN.Tween(@skyBox.material.color)
+                .to(skyColor, 1000)
+                .start()
+                .onUpdate =>
+                  @skyBox.material.needsUpdate = true
+
+            sunTween =
+              new TWEEN.Tween(@sun.material.color)
+                .to(sunColor, 1000)
+                .start()
+                .onUpdate =>
+                  @sun.material.needsUpdate = true
+
+            lightTween =
+              new TWEEN.Tween(@directionalLight.color)
+                .to(sunColor, 1000)
+                .start()
+
+
 
     return
 
@@ -116,3 +155,17 @@ module.exports = class OceanVisualizer extends Visualizer
       return !dolphin.finished
 
     return
+
+  RandomSkySunColor: ->
+    @RandomElt([
+      {sun: 0xF4B940, sky: 0x2c5264},
+      {sun: 0xE9BC55, sky: 0x586784},
+      {sun: 0xDB5A6E, sky: 0x071D69},
+      {sun: 0xF3F0A1, sky: 0x3C4884},
+      {sun: 0xE49D4B, sky: 0xba538a},
+      {sun: 0xfdb813, sky: 0xfe5b35},
+      {sun: 0xE6A45A, sky: 0x1A2554}
+    ])
+
+  RandomElt: (array) ->
+    array[Math.floor(Math.random() * array.length)]
