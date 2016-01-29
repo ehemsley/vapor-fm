@@ -54,7 +54,7 @@ module.exports = class RenderController
     @activeVisualizer = new StartScreen()
     @activated = false
 
-    @shuffleIndices = [3, 4, 5, 14]
+    @shuffleIndices = [3, 4, 5, 7, 14]
 
     @hud = new THREE.Scene()
     @hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000)
