@@ -93,7 +93,7 @@ module.exports = class AlbumPickVisualizer extends Visualizer
     return
 
   ClearAlbumText: =>
-    @context1.clearRect(0, 65, 540, 35)
+    @context1.clearRect(0, 65, 540, 50)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
