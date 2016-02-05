@@ -5,6 +5,7 @@ module.exports = class PongVisualizer extends Visualizer
     super(audioInitializer,
           { strength: 3, kernelSize: 12, sigma: 1.1, resolution: 512 },
           0.15,
+          2.0,
           false)
 
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)

@@ -1,4 +1,5 @@
 NoiseVisualizer = require('coffee/noise_visualizer')
+AlbumPickVisualizer = require('coffee/album_pick_visualizer')
 PongVisualizer = require('coffee/pong_visualizer')
 BustVisualizer = require('coffee/bust_visualizer')
 MystifyVisualizer = require('coffee/mystify_visualizer')
@@ -41,8 +42,9 @@ module.exports = class RenderController
     @visualizerElement.append(@renderer.domElement)
 
     noiseVisualizer = new NoiseVisualizer()
-    @visualizers = (noiseVisualizer for [0..99])
+    @visualizers = (noiseVisualizer for [0..15])
     @visualizers[0] = new PongVisualizer(@audioInitializer)
+    @visualizers[1] = new AlbumPickVisualizer(@audioInitializer)
     @visualizers[3] = new BustVisualizer(@audioInitializer)
     @visualizers[4] = new MystifyVisualizer(@audioInitializer)
     @visualizers[5] = new CybergridVisualizer(@audioInitializer)
@@ -88,7 +90,7 @@ module.exports = class RenderController
 
     @hudCamera.position.set(0,0,2)
 
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount)
+    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount, @activeVisualizer.blendStrength)
 
     # @vhsPause.uniforms['amount'].value = 1.0
     @strengthModifier = 0
@@ -133,7 +135,7 @@ module.exports = class RenderController
     unless @activeVisualizer instanceof NoiseVisualizer
       @DrawLogo()
 
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount)
+    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount, @activeVisualizer.blendStrength)
     @badTV.uniforms['rollSpeed'].value = 0.1
     @vhsPause.uniforms['amount'].value = 1.0
     return
@@ -153,7 +155,7 @@ module.exports = class RenderController
     @SetVisualizer(newVizIndex)
     return
 
-  RenderProcess: (scene, camera, bloomParams, noiseAmount) =>
+  RenderProcess: (scene, camera, bloomParams, noiseAmount, blendStrength) =>
     renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, stencilBuffer: true }
 
     renderTargetCube = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
@@ -178,9 +180,10 @@ module.exports = class RenderController
     @glowComposer.addPass verticalBlur
 
     @blendPass = new (THREE.ShaderPass)(THREE.AdditiveBlendShader)
-    @blendPass.uniforms['tBase'].value = @cubeComposer.renderTarget1
+    @blendPass.uniforms['tBase'].value = @cubeComposer.renderTarget2
     @blendPass.uniforms['tAdd'].value = @glowComposer.renderTarget1
-    @blendPass.uniforms['amount'].value = 2.0
+    @blendPass.uniforms['amountOne'].value = 2 - blendStrength
+    @blendPass.uniforms['amountTwo'].value = blendStrength
 
     renderTargetBlend = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
 

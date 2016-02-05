@@ -5,6 +5,7 @@ module.exports = class CybergridVisualizer extends Visualizer
     super(audioInitializer,
           { strength: 3, strengthIncrease: 1, kernelSize: 12, sigma: 2.0, resolution: 512 },
           0.1,
+          2.0,
           true)
 
     @camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000)

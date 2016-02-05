@@ -7,6 +7,7 @@ module.exports = class StartScreen
 
     @bloomParams = { strength: 1.0, strengthIncrease: 0, kernelSize: 12.0, sigma: 1.5, resolution: 512 }
     @noiseAmount = 0.0
+    @blendStrength = 1.0
 
     @ambientLight = new THREE.AmbientLight(0x404040)
     @scene.add(@ambientLight)

@@ -6,6 +6,7 @@ module.exports = class MystifyVisualizer extends Visualizer
     super(audioInitializer,
           { strength: 10, strengthIncrease: 0.0, kernelSize: 6, sigma: 1.1, resolution: 512 },
           0.0,
+          2.0,
           true)
 
     @camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, 0.1, 1000)

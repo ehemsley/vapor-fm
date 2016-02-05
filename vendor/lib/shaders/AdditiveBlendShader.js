@@ -1,6 +1,8 @@
 /**
  * @author felixturner / http://airtight.cc/
  *
+ * modified by evan hemsley / http://ehemsley.me
+ *
  * Simple additive buffer blending - makes things glowy
  *
  * based on @author Thibaut 'BKcore' Despoulain <http://bkcore.com>
@@ -17,7 +19,8 @@ THREE.AdditiveBlendShader = {
 
 		"tBase": { type: "t", value: null },
 		"tAdd": { type: "t", value: null },
-		"amount": { type: "f", value: 1.0 } 
+		"amountOne": { type: "f", value: 1.0 },
+    "amountTwo": { type: 'f', value: 1.0 }
 
 	},
 
@@ -39,7 +42,8 @@ THREE.AdditiveBlendShader = {
 
 		"uniform sampler2D tBase;",
 		"uniform sampler2D tAdd;",
-		"uniform float amount;",
+		"uniform float amountOne;",
+		"uniform float amountTwo;",
 
 		"varying vec2 vUv;",
 
@@ -47,7 +51,7 @@ THREE.AdditiveBlendShader = {
 
 			"vec4 texel1 = texture2D( tBase, vUv );",
 			"vec4 texel2 = texture2D( tAdd, vUv );",
-			"gl_FragColor = texel1 + texel2 * amount;",
+			"gl_FragColor = texel1 * amountOne + texel2 * amountTwo;",
 
 		"}"
 

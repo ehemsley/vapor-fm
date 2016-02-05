@@ -1,11 +1,12 @@
 module.exports = class Visualizer
-  constructor: (audioInitializer, bloomParams, noiseAmount, beatDistortionEffect) ->
+  constructor: (audioInitializer, bloomParams, noiseAmount, blendStrength, beatDistortionEffect) ->
     @audioInitializer = audioInitializer
     @timer = 0
     @scene = new THREE.Scene
 
     @bloomParams = bloomParams
     @noiseAmount = noiseAmount
+    @blendStrength = blendStrength
     @beatDistortionEffect = beatDistortionEffect
 
     return

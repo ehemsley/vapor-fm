@@ -5,6 +5,7 @@ module.exports = class HeartVisualizer extends Visualizer
     super(audioInitializer,
           { strength: 3, strengthIncrease: 0.0, kernelSize: 12, sigma: 2.0, resolution: 512 },
           0.0,
+          2.0,
           false)
 
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)

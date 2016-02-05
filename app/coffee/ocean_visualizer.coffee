@@ -9,6 +9,7 @@ module.exports = class OceanVisualizer extends Visualizer
     super(audioInitializer,
           { strength: 1.0, strengthIncrease: 0.0, kernelSize: 12.0, sigma: 1.5, resolution: 512 },
           0.0,
+          2.0,
           true)
 
     @renderer = renderer
