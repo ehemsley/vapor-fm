@@ -83,10 +83,10 @@ module.exports = class AlbumPickVisualizer extends Visualizer
     @ClearAlbumText()
     @context1.textAlign = 'center'
     @context1.font = '14px TelegramaRaw'
-    @context1.fillText('SCHELLS / inner monologue', 280, 65)
+    @context1.fillText('memory tape', 280, 65)
     @context1.font = '12px TelegramaRaw'
     @context1.fillText('by', 280, 82)
-    @context1.fillText('t a c o m a 2 0 0 0 x PART TIME', 280, 100)
+    @context1.fillText('bl00dwave', 280, 100)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
