@@ -115,6 +115,27 @@ module.exports = class AlbumPickVisualizer extends Visualizer
     @mesh1.material.needsUpdate = true
     return
 
+  DrawFirstDot: =>
+    @context1.fillText('.', 360, 40)
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+    return
+
+  DrawSecondDot: =>
+    @context1.fillText('.', 368, 40)
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+    return
+
+  DrawThirdDot: =>
+    @context1.fillText('.', 376, 40)
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+    return
+
   Activate: =>
     @ClearAlbumText()
     @ClearCongratulatoryText()
@@ -133,7 +154,14 @@ module.exports = class AlbumPickVisualizer extends Visualizer
 
     @DrawHeaderText()
 
+    if @albumDisplayTimer > 1
+      @DrawFirstDot()
+    if @albumDisplayTimer > 2
+      @DrawSecondDot()
     if @albumDisplayTimer > 3
+      @DrawThirdDot()
+
+    if @albumDisplayTimer > 4
       @DrawAlbumText()
       @textFlashing = true
 
