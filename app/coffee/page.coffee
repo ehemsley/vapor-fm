@@ -14,6 +14,8 @@ module.exports = class Page
 
     @paused = false
 
+    @prePauseVolume = 1
+
     document.onkeydown = @CheckKey
     document.onkeyup = @CheckKeyUp
 
@@ -32,7 +34,9 @@ module.exports = class Page
   TogglePause: =>
     if @paused
       @audioInitializer.LoadAndPlayAudio()
+      @audioInitializer.audioElement.volume = @prePauseVolume
     else
+      @prePauseVolume = @audioInitializer.audioElement.volume
       @audioInitializer.StopAndUnloadAudio()
       @renderController.Pause()
 
