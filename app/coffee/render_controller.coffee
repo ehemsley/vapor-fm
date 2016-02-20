@@ -516,7 +516,7 @@ module.exports = class RenderController
 
   GetIcecastData: =>
     $.ajax({
-      url: 'http://vapor.fm:8000/status-json.xsl',
+      url: 'http://168.235.77.138:8000/status-json.xsl',
       type: 'GET',
       success: (data) =>
         @UpdateText(data.icestats.source.title)
