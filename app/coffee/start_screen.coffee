@@ -64,12 +64,13 @@ module.exports = class StartScreen
     @context1.fillText('evan hemsley', 280, 35)
 
     @context1.font = '14px TelegramaRaw'
+    @context1.fillText('Data restoration complete.', 280, 60)
     @context1.fillText('Channel: ' + String.fromCharCode(8592) + ' or ' + String.fromCharCode(8594),
-                       280, 70)
+                       280, 80)
     @context1.fillText('Volume: ' + String.fromCharCode(8593) + ' or ' + String.fromCharCode(8595),
-                       280, 90)
-    @context1.fillText('Pause/Play: Space', 280, 110)
-    @context1.fillText('Shuffle Mode: S', 280, 130)
+                       280, 100)
+    @context1.fillText('Pause/Play: Space', 280, 120)
+    @context1.fillText('Shuffle Mode: S', 280, 140)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
@@ -79,7 +80,7 @@ module.exports = class StartScreen
   DrawFlashingText: =>
     @ClearFlashingText()
     @context1.textAlign = 'center'
-    @context1.fillText('Press any key to begin...', 280, 150)
+    @context1.fillText('Press any key to begin...', 280, 160)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
@@ -87,7 +88,7 @@ module.exports = class StartScreen
 
   DrawLoadingText: =>
     @context1.textAlign = 'center'
-    @context1.fillText('Loading...', 280, 150)
+    @context1.fillText('Loading...', 280, 160)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
@@ -98,7 +99,7 @@ module.exports = class StartScreen
     return
 
   ClearFlashingText: =>
-    @ClearText(0, 150, 540, 180)
+    @ClearText(0, 158, 540, 180)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
