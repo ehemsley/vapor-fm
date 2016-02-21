@@ -95,7 +95,7 @@ module.exports = class StartScreen
     return
 
   ClearHeaderText: =>
-    @ClearText(0, 0, 540, 150)
+    @ClearText(0, 0, 540, 158)
     return
 
   ClearFlashingText: =>
