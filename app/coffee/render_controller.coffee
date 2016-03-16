@@ -331,8 +331,8 @@ module.exports = class RenderController
     #still broken if song has dash in it but not multiple artsts
     # maybe check for duplication of artist name instead and base it on that
     if (@CountOccurrences(songData, ' - ') < 1)
-      @artistName = 'N/A'
-      @songName = 'N/A'
+      @artistName = 'you are tuned in'
+      @songName = 'to vapor fm'
     else if (@CountOccurrences(songData, ' - ') == 1)
       @artistName = songData.split(' - ')[0]
       @songName = songData.split(' - ')[1]
