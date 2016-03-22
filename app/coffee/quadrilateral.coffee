@@ -1,13 +1,24 @@
 module.exports = class Quadrilateral
-  constructor: (mystifyQuadrilateral, vertexOne, vertexTwo, vertexThree, vertexFour, velocityOne, velocityTwo, velocityThree, velocityFour, leftBound, rightBound, topBound, bottomBound) ->
-    width = Math.abs(leftBound - rightBound)
-    height = Math.abs(topBound - bottomBound)
-
+  constructor: (mystifyQuadrilateral, vertices, velocities, bounds) ->
     @mystifyQuadrilateral = mystifyQuadrilateral
-    @vertexOnePosition = vertexOne
-    @vertexTwoPosition = vertexTwo
-    @vertexThreePosition = vertexThree
-    @vertexFourPosition = vertexFour
+
+    @vertexOnePosition = vertices[0]
+    @vertexTwoPosition = vertices[1]
+    @vertexThreePosition = vertices[2]
+    @vertexFourPosition = vertices[3]
+
+    @vertexOneVelocity = velocities[0]
+    @vertexTwoVelocity = velocities[1]
+    @vertexThreeVelocity = velocities[2]
+    @vertexFourVelocity = velocities[3]
+
+    @leftBound = bounds[0]
+    @rightBound = bounds[1]
+    @topBound = bounds[2]
+    @bottomBound = bounds[3]
+
+    width = Math.abs(@leftBound - @rightBound)
+    height = Math.abs(@topBound - @bottomBound)
 
     lineMaterial = new THREE.LineBasicMaterial({color: 0xffffff, opacity: 0.1, transparent: true})
     lineGeometry = new THREE.Geometry()
@@ -22,23 +33,24 @@ module.exports = class Quadrilateral
 
     @line = new THREE.Line(lineGeometry, lineMaterial)
 
-    @vertexOneVelocity = velocityOne
-    @vertexTwoVelocity = velocityTwo
-    @vertexThreeVelocity = velocityThree
-    @vertexFourVelocity = velocityFour
-
-    @leftBound = leftBound
-    @rightBound = rightBound
-    @topBound = topBound
-    @bottomBound = bottomBound
-
     return
 
   Update: (deltaTime) =>
-    @vertexOnePosition = @vertexOnePosition.add(new THREE.Vector3(@vertexOneVelocity.x, @vertexOneVelocity.y, @vertexOneVelocity.z))
-    @vertexTwoPosition = @vertexTwoPosition.add(new THREE.Vector3(@vertexTwoVelocity.x, @vertexTwoVelocity.y, @vertexTwoVelocity.z))
-    @vertexThreePosition = @vertexThreePosition.add(new THREE.Vector3(@vertexThreeVelocity.x, @vertexThreeVelocity.y, @vertexThreeVelocity.z))
-    @vertexFourPosition = @vertexFourPosition.add(new THREE.Vector3(@vertexFourVelocity.x, @vertexFourVelocity.y, @vertexFourVelocity.z))
+    @vertexOnePosition = @vertexOnePosition.add(new THREE.Vector3(@vertexOneVelocity.x,
+                                                                  @vertexOneVelocity.y,
+                                                                  @vertexOneVelocity.z))
+
+    @vertexTwoPosition = @vertexTwoPosition.add(new THREE.Vector3(@vertexTwoVelocity.x,
+                                                                  @vertexTwoVelocity.y,
+                                                                  @vertexTwoVelocity.z))
+
+    @vertexThreePosition = @vertexThreePosition.add(new THREE.Vector3(@vertexThreeVelocity.x,
+                                                                      @vertexThreeVelocity.y,
+                                                                      @vertexThreeVelocity.z))
+
+    @vertexFourPosition = @vertexFourPosition.add(new THREE.Vector3(@vertexFourVelocity.x,
+                                                                    @vertexFourVelocity.y,
+                                                                    @vertexFourVelocity.z))
 
     @CheckBoundsAndAdjustVelocity(@vertexOnePosition, @vertexOneVelocity, 0)
     @CheckBoundsAndAdjustVelocity(@vertexTwoPosition, @vertexTwoVelocity, 1)

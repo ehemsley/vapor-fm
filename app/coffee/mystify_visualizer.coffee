@@ -9,7 +9,12 @@ module.exports = class MystifyVisualizer extends Visualizer
           2.0,
           true)
 
-    @camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, 0.1, 1000)
+    @camera = new THREE.OrthographicCamera(window.innerWidth / -2,
+                                           window.innerWidth / 2,
+                                           window.innerHeight / 2,
+                                           window.innerHeight / -2,
+                                           0.1,
+                                           1000)
 
     @quadrilateralOne = @Quadrilateral()
     @quadrilateralTwo = @Quadrilateral()
@@ -46,7 +51,8 @@ module.exports = class MystifyVisualizer extends Visualizer
 
       previousMax = 0
       quadCounter = 0
-      for newMax in [0..@audioInitializer.beatdetect.detectSize()] by (Math.floor(@audioInitializer.beatdetect.detectSize() / 5))
+      increment = Math.floor(@audioInitializer.beatdetect.detectSize() / 5)
+      for newMax in [0..@audioInitializer.beatdetect.detectSize()] by increment
         if @audioInitializer.beatdetect.isRange(previousMax, newMax, 4)
           @quadrilateralOne.quadrilaterals[quadCounter].line.material.opacity = 1.0
           @quadrilateralTwo.quadrilaterals[quadCounter].line.material.opacity = 1.0

@@ -34,6 +34,8 @@ module.exports = class MystifyQuadrilateral
 
   Quadrilaterals: (num) =>
     quadrilaterals = []
+    vertices = []
+    bounds = [@leftBound, @rightBound, @topBound, @bottomBound]
 
     vertexOneDirection = @vertexOneVelocity.clone().normalize()
     vertexTwoDirection = @vertexTwoVelocity.clone().normalize()
@@ -41,23 +43,17 @@ module.exports = class MystifyQuadrilateral
     vertexFourDirection = @vertexFourVelocity.clone().normalize()
 
     for i in [0..num-1]
-      vertexOne = @vertexOnePosition.clone().add(vertexOneDirection.clone().multiplyScalar(i * 20))
-      vertexTwo = @vertexTwoPosition.clone().add(vertexTwoDirection.clone().multiplyScalar(i * 20))
-      vertexThree = @vertexThreePosition.clone().add(vertexThreeDirection.clone().multiplyScalar(i * 20))
-      vertexFour = @vertexFourPosition.clone().add(vertexFourDirection.clone().multiplyScalar(i * 20))
-      quadrilateral = new Quadrilateral(@,
-                                        vertexOne,
-                                        vertexTwo,
-                                        vertexThree,
-                                        vertexFour,
-                                        @vertexOneVelocity.clone(),
-                                        @vertexTwoVelocity.clone(),
-                                        @vertexThreeVelocity.clone(),
-                                        @vertexFourVelocity.clone(),
-                                        @leftBound,
-                                        @rightBound,
-                                        @topBound,
-                                        @bottomBound)
+      vertices[0] = @vertexOnePosition.clone().add(vertexOneDirection.clone().multiplyScalar(i * 20))
+      vertices[1] = @vertexTwoPosition.clone().add(vertexTwoDirection.clone().multiplyScalar(i * 20))
+      vertices[2] = @vertexThreePosition.clone().add(vertexThreeDirection.clone().multiplyScalar(i * 20))
+      vertices[3] = @vertexFourPosition.clone().add(vertexFourDirection.clone().multiplyScalar(i * 20))
+
+      velocities = [@vertexOneVelocity.clone(),
+                  @vertexTwoVelocity.clone(),
+                  @vertexThreeVelocity.clone(),
+                  @vertexFourVelocity.clone()]
+
+      quadrilateral = new Quadrilateral(@, vertices, velocities, bounds)
       quadrilaterals.push(quadrilateral)
 
     return quadrilaterals
@@ -76,10 +72,10 @@ module.exports = class MystifyQuadrilateral
 
     return
 
-  RandomColorChangeTime: =>
+  RandomColorChangeTime: ->
     Math.random() * 30
 
-  SetColorChangeTimeout: (quadrilateral, i, newColor) =>
+  SetColorChangeTimeout: (quadrilateral, i, newColor) ->
     setTimeout ->
       quadrilateral.ChangeColor(newColor)
     , i * 100
@@ -111,14 +107,14 @@ module.exports = class MystifyQuadrilateral
       @SetQuadrilateralFireInYDirectionTimeout(quadrilateral, i, vertexIndex, newYVelocity)
     return
 
-  SetQuadrilateralFireInXDirectionTimeout: (quadrilateral, quadIndex, vertexIndex, newXVelocity) =>
+  SetQuadrilateralFireInXDirectionTimeout: (quadrilateral, quadIndex, vertexIndex, newXVelocity) ->
     setTimeout ->
       quadrilateral.SetXVelocityOfVertex(vertexIndex, newXVelocity)
     , quadIndex * 100
 
     return
 
-  SetQuadrilateralFireInYDirectionTimeout: (quadrilateral, quadIndex, vertexIndex, newYVelocity) =>
+  SetQuadrilateralFireInYDirectionTimeout: (quadrilateral, quadIndex, vertexIndex, newYVelocity) ->
     setTimeout ->
       quadrilateral.SetYVelocityOfVertex(vertexIndex, newYVelocity)
     , quadIndex * 100
