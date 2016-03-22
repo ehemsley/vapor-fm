@@ -59,7 +59,8 @@ module.exports = class RenderController
     @shuffleIndices = [3, 4, 5, 7, 14]
 
     @hud = new THREE.Scene()
-    @hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000)
+    @hudCamera = new THREE.OrthographicCamera(
+      -window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 1, 1000)
 
     @ambientLights = new THREE.AmbientLight(0x404040)
     @hud.add(@ambientLights)
@@ -84,13 +85,16 @@ module.exports = class RenderController
 
     @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide, transparent: true, opacity: 1.0})
     @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(@canvas1.width, @canvas1.height), @material1)
-    # @mesh1.position.set(10,-window.innerHeight,0)
     @mesh1.position.set(0, 0, 0)
     @hud.add(@mesh1)
 
     @hudCamera.position.set(0,0,2)
 
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount, @activeVisualizer.blendStrength)
+    @RenderProcess(@activeVisualizer.scene,
+                   @activeVisualizer.camera,
+                   @activeVisualizer.bloomParams,
+                   @activeVisualizer.noiseAmount,
+                   @activeVisualizer.blendStrength)
 
     # @vhsPause.uniforms['amount'].value = 1.0
     @strengthModifier = 0
@@ -135,7 +139,12 @@ module.exports = class RenderController
     unless @activeVisualizer instanceof NoiseVisualizer
       @DrawLogo()
 
-    @RenderProcess(@activeVisualizer.scene, @activeVisualizer.camera, @activeVisualizer.bloomParams, @activeVisualizer.noiseAmount, @activeVisualizer.blendStrength)
+    @RenderProcess(@activeVisualizer.scene,
+                   @activeVisualizer.camera,
+                   @activeVisualizer.bloomParams,
+                   @activeVisualizer.noiseAmount,
+                   @activeVisualizer.blendStrength)
+
     @badTV.uniforms['rollSpeed'].value = 0.1
     @vhsPause.uniforms['amount'].value = 1.0
     return
@@ -151,12 +160,18 @@ module.exports = class RenderController
 
   PickRandomVisualizer: =>
     newVizIndex = @visualizerCounter
-    newVizIndex = @shuffleIndices[Math.floor(Math.random() * @shuffleIndices.length)] until newVizIndex != @visualizerCounter
+    until newVizIndex != @visualizerCounter
+      newVizIndex = @shuffleIndices[Math.floor(Math.random() * @shuffleIndices.length)]
     @SetVisualizer(newVizIndex)
     return
 
   RenderProcess: (scene, camera, bloomParams, noiseAmount, blendStrength) =>
-    renderTargetParameters = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, stencilBuffer: true }
+    renderTargetParameters = {
+                              minFilter: THREE.LinearFilter,
+                              magFilter: THREE.LinearFilter,
+                              format: THREE.RGBAFormat,
+                              stencilBuffer: true
+                             }
 
     renderTargetCube = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
     @cubeComposer = new (THREE.EffectComposer)(@renderer, renderTargetCube)
@@ -191,7 +206,10 @@ module.exports = class RenderController
     @blendComposer.addPass @blendPass
 
     if bloomParams?
-      @bloomPass = new (THREE.BloomPass)(bloomParams.strength, bloomParams.kernelSize, bloomParams.sigma, bloomParams.resolution)
+      @bloomPass = new (THREE.BloomPass)(bloomParams.strength,
+                                         bloomParams.kernelSize,
+                                         bloomParams.sigma,
+                                         bloomParams.resolution)
       @blendComposer.addPass @bloomPass
 
     @noise = new THREE.ShaderPass(NoiseShader)
@@ -308,14 +326,15 @@ module.exports = class RenderController
     @badTV.uniforms['time'].value = @clock.getElapsedTime()
     @crtEffect.uniforms['time'].value = @clock.getElapsedTime()
     @noise.uniforms['time'].value = @clock.getElapsedTime()
-    if @activeVisualizer.bloomParams? then @bloomPass.copyUniforms['opacity'].value = @activeVisualizer.bloomParams.strength + @strengthModifier
+    if @activeVisualizer.bloomParams?
+      @bloomPass.copyUniforms['opacity'].value = @activeVisualizer.bloomParams.strength + @strengthModifier
 
     if @audioInitializer.beatdetect.isKick() and @activeVisualizer.beatDistortionEffect
       @strengthModifier = if @activeVisualizer.bloomParams? then @activeVisualizer.bloomParams.strengthIncrease else 0
       @badTV.uniforms['distortion'].value = Math.random()
       @badTV.uniforms['distortion2'].value = Math.random()
       if Math.random() < 0.02
-        @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then Math.random() else -Math.random()) # * @audioInitializer.GetAverageVolume(@audioInitializer.frequencyData) / 5000
+        @badTV.uniforms['rollSpeed'].value = (if Math.random() < 0.5 then Math.random() else -Math.random())
     else
       @strengthModifier = Math.max(@strengthModifier - 0.1, 0)
       @badTV.uniforms['distortion'].value = Math.max(@badTV.uniforms['distortion'].value - 0.1, 0.001)
@@ -389,13 +408,20 @@ module.exports = class RenderController
 
   ClearLogo: =>
     min_dimension = Math.min(@canvas1.width * 0.12, @canvas1.height * 0.12)
-    @context1.clearRect(@canvas1.width * 0.98 - min_dimension, @canvas1.height * 0.98 - min_dimension, min_dimension, min_dimension)
+    @context1.clearRect(@canvas1.width * 0.98 - min_dimension,
+                        @canvas1.height * 0.98 - min_dimension,
+                        min_dimension,
+                        min_dimension)
 
   DrawLogo: =>
     @context1.globalAlpha = 0.4
     img = document.getElementById("logo")
     min_dimension = Math.min(@canvas1.width * 0.12, @canvas1.height * 0.12)
-    @context1.drawImage(img, @canvas1.width * 0.98 - min_dimension, @canvas1.height * 0.98 - min_dimension, min_dimension, min_dimension)
+    @context1.drawImage(img,
+                        @canvas1.width * 0.98 - min_dimension,
+                        @canvas1.height * 0.98 - min_dimension,
+                        min_dimension,
+                        min_dimension)
     @context1.globalAlpha = 1.0
     return
 
@@ -477,13 +503,19 @@ module.exports = class RenderController
 
     i = 0
     while i < filledBarAmount
-      @context1.fillRect(rectangleStartX + xOffset + i*volumeBarWidth, rectangleStartY, volumeBarWidth, volumeBarHeight)
+      @context1.fillRect(rectangleStartX + xOffset + i*volumeBarWidth,
+                         rectangleStartY,
+                         volumeBarWidth,
+                         volumeBarHeight)
       xOffset += volumeBarWidth * 0.5
       i += 1
 
     i = filledBarAmount
     while i < 10
-      @context1.fillRect(rectangleStartX + xOffset + i*volumeBarWidth, rectangleStartY + volumeBarHeight * 0.5 - volumeBarHeight * 0.1, volumeBarWidth, volumeBarHeight * 0.1)
+      @context1.fillRect(rectangleStartX + xOffset + i*volumeBarWidth,
+                         rectangleStartY + volumeBarHeight * 0.5 - volumeBarHeight * 0.1,
+                         volumeBarWidth,
+                         volumeBarHeight * 0.1)
       xOffset += volumeBarWidth * 0.5
       i += 1
 
@@ -560,28 +592,16 @@ module.exports = class RenderController
     @ClearVolumeDisplay()
 
     @context1.save()
-
     @context1.font = '38px TelegramaRaw'
 
     @context1.strokeStyle = 'black'
     @context1.lineWidth = 8
     @context1.strokeText('Created by Evan Hemsley', @canvas1.width * 0.02, @canvas1.height * 0.08 - 50)
     @context1.strokeText('@thatcosmonaut', @canvas1.width * 0.02, @canvas1.height * 0.16 - 50)
-    @context1.strokeText(String.fromCharCode(8592) + ' or ' + String.fromCharCode(8594) + ' to change channel',
-                         @canvas1.width * 0.02, @canvas1.height * 0.24 - 50)
-    @context1.strokeText(String.fromCharCode(8593) + ' or ' + String.fromCharCode(8595) + ' to adjust volume',
-                       @canvas1.width * 0.02, @canvas1.height * 0.32 - 50)
-    @context1.strokeText('Space to pause/play', @canvas1.width * 0.02, @canvas1.height * 0.4 - 50)
 
     @context1.fillStyle = 'white'
     @context1.fillText('Created by Evan Hemsley', @canvas1.width * 0.02, @canvas1.height * 0.08 - 50)
     @context1.fillText('@thatcosmonaut', @canvas1.width * 0.02, @canvas1.height * 0.16 - 50)
-    @context1.fillText(String.fromCharCode(8592) + ' or ' + String.fromCharCode(8594) + ' to change channel',
-                       @canvas1.width * 0.02, @canvas1.height * 0.24 - 50)
-    @context1.fillText(String.fromCharCode(8593) + ' or ' + String.fromCharCode(8595) + ' to adjust volume',
-                       @canvas1.width * 0.02, @canvas1.height * 0.32 - 50)
-    @context1.fillText('Space to pause/play', @canvas1.width * 0.02, @canvas1.height * 0.4 - 50)
-
     @context1.restore()
 
     @mesh1.material.map.needsUpdate = true
@@ -611,10 +631,14 @@ module.exports = class RenderController
 
     for i in [(channelNum.length - 1)..0] by -1
       @context1.strokeStyle = 'black'
-      @context1.strokeText(channelNum[i], @canvas1.width * (0.9 - ((channelNum.length - 1 - i) * 0.055)), @canvas1.height * 0.08 - 50)
+      @context1.strokeText(channelNum[i],
+                           @canvas1.width * (0.9 - ((channelNum.length - 1 - i) * 0.055)),
+                           @canvas1.height * 0.08 - 50)
 
       @context1.fillStyle = 'white'
-      @context1.fillText(channelNum[i], @canvas1.width * (0.9 - ((channelNum.length - 1 - i) * 0.055)), @canvas1.height * 0.08 - 50)
+      @context1.fillText(channelNum[i],
+                         @canvas1.width * (0.9 - ((channelNum.length - 1 - i) * 0.055)),
+                         @canvas1.height * 0.08 - 50)
 
     @context1.restore()
 
