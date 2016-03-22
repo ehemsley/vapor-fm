@@ -41,7 +41,7 @@ module.exports = class CybergridVisualizer extends Visualizer
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
-  GridLines: (left_x, bottom_y, right_x, top_y, spacing) =>
+  GridLines: (left_x, bottom_y, right_x, top_y, spacing) ->
     lines = []
     color = new THREE.Color(0xffffff)
 
@@ -83,7 +83,7 @@ module.exports = class CybergridVisualizer extends Visualizer
 
     lines
 
-  Sun: =>
+  Sun: ->
     geometry = new THREE.CylinderGeometry(0, 5.5, 6, 4, false)
     material = new THREE.MeshBasicMaterial({color: 0xffffff, opacity: 1.0, transparent: true})
     sun = new THREE.Mesh(geometry, material)

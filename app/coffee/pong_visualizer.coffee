@@ -116,7 +116,6 @@ module.exports = class PongVisualizer extends Visualizer
     @texture1.magFilter = THREE.LinearFilter
     @texture1.needsUpdate = true
     @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide, transparent: true, opacity: 1.0})
-    # @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(@canvas1.width, @canvas1.height), @material1)
     @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), @material1)
     @mesh1.position.set(0, 10, 0)
     @scene.add(@mesh1)
@@ -180,7 +179,12 @@ module.exports = class PongVisualizer extends Visualizer
 
   CheckBallCollision: =>
     @ballCollisionRaycaster.set(@ball.position.clone(), @ballVelocity.clone().normalize())
-    intersects = @ballCollisionRaycaster.intersectObjects([@playerPaddle, @enemyPaddle, @leftBound, @topBound, @rightBound, @bottomBound])
+    intersects = @ballCollisionRaycaster.intersectObjects([@playerPaddle,
+                                                           @enemyPaddle,
+                                                           @leftBound,
+                                                           @topBound,
+                                                           @rightBound,
+                                                           @bottomBound])
     intersectObjects = []
     for intersect in intersects
       if intersect.distance < 1.5

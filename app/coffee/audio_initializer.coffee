@@ -13,9 +13,7 @@ module.exports = class AudioInitializer
 
     @StopAndUnloadAudio()
 
-    # @loadCheckTimeout = setTimeout @CheckLoaded, 8000
-
-  GetAverageVolume: (array) =>
+  GetAverageVolume: (array) ->
     values = 0
     average = undefined
     i = 0
@@ -77,7 +75,8 @@ module.exports = class AudioInitializer
       @fft = new FFT.fft(@analyser.frequencyBinCount, sampleRate)
       @beatdetect.setSensitivity(500)
       @audioElement.play()
-      @audioElement.removeEventListener 'canplay', listener #firefox hack b/c firefox fires canplay a million times for no reason lol
+      #firefox hack b/c firefox fires canplay event a million times for no reason lol web dev
+      @audioElement.removeEventListener 'canplay', listener
       return
 
     @audioElement.addEventListener 'canplay', listener

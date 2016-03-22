@@ -11,10 +11,10 @@ module.exports = class Visualizer
 
     return
 
-  Update: (deltaTime) =>
+  Update: (deltaTime) ->
     return
 
-  Render: =>
+  Render: ->
     return
 
   HandleKeyDownInput: (keyCode) ->
