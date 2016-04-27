@@ -1,0 +1,17 @@
+body {
+  text-align: center;
+  font-family: Arial;
+}
+
+.history {
+
+}
+
+.title {
+  margin-bottom: 20px;
+}
+
+.entry {
+  display: block;
+  margin-bottom: 5px;
+}
