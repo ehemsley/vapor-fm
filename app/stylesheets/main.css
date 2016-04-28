@@ -9,6 +9,15 @@
   font-style: normal;
 }
 
+#history-link {
+  display: block;
+  height: 20vmin;
+  width: 50vmin;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
 #about-link {
   display: block;
   height: 20vmin;

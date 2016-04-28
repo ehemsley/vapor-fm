@@ -64,13 +64,12 @@ module.exports = class StartScreen
     @context1.fillText('evan hemsley', 280, 35)
 
     @context1.font = '14px TelegramaRaw'
-    @context1.fillText('Data restoration complete.', 280, 60)
     @context1.fillText('Channel: ' + String.fromCharCode(8592) + ' or ' + String.fromCharCode(8594),
-                       280, 80)
+                       280, 70)
     @context1.fillText('Volume: ' + String.fromCharCode(8593) + ' or ' + String.fromCharCode(8595),
-                       280, 100)
-    @context1.fillText('Pause/Play: Space', 280, 120)
-    @context1.fillText('Shuffle Mode: S', 280, 140)
+                       280, 90)
+    @context1.fillText('Pause/Play: Space', 280, 110)
+    @context1.fillText('Shuffle Mode: S', 280, 130)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
