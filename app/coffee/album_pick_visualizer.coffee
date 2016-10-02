@@ -16,6 +16,8 @@ module.exports = class AlbumPickVisualizer extends Visualizer
     @skyBox = @SkyBox()
     @scene.add(@skyBox)
 
+    @InitializeAlbumPickText()
+
     @InitializeCanvas()
     @DrawHeaderText()
 
@@ -55,6 +57,18 @@ module.exports = class AlbumPickVisualizer extends Visualizer
 
     return
 
+  InitializeAlbumPickText: =>
+    $.ajax({
+      url: 'http://vapor.fm/album_pick.txt',
+      type: 'GET',
+      success: (data) =>
+        albumPickValues = data.split(' - ')
+        @albumPickArtist = albumPickValues[0]
+        @albumPick = albumPickValues[1]
+      failure: (status) =>
+        console.log('error: ' + status)
+    })
+
 
   DrawHeaderText: =>
     @ClearHeaderText()
@@ -83,10 +97,10 @@ module.exports = class AlbumPickVisualizer extends Visualizer
     @ClearAlbumText()
     @context1.textAlign = 'center'
     @context1.font = '14px TelegramaRaw'
-    @context1.fillText('memory tape', 280, 65)
+    @context1.fillText(@albumPick, 280, 65)
     @context1.font = '12px TelegramaRaw'
     @context1.fillText('by', 280, 82)
-    @context1.fillText('bl00dwave', 280, 100)
+    @context1.fillText(@albumPickArtist, 280, 100)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
