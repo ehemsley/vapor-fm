@@ -414,7 +414,7 @@ module.exports = class RenderController
                         min_dimension)
 
   DrawLogo: =>
-    @context1.globalAlpha = 0.4
+    @context1.globalAlpha = 0.5
     img = document.getElementById("logo")
     min_dimension = Math.min(@canvas1.width * 0.12, @canvas1.height * 0.12)
     @context1.drawImage(img,
