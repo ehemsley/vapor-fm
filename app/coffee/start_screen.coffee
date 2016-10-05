@@ -70,8 +70,18 @@ module.exports = class StartScreen
 
   DrawHeaderLogo: =>
     img = document.getElementById("logo_header")
+
+    onImageLoad = =>
+      @context1.drawImage(img, 0, 0)
+
+    if (img.complete)
+      onImageLoad(img)
+    else
+      img.onload = onImageLoad
+
+
     #img = document.getElementById("logo")
-    @context1.drawImage(img, 0, 0)
+    #@context1.drawImage(img, 0, 0)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
