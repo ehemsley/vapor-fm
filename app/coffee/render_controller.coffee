@@ -195,8 +195,8 @@ module.exports = class RenderController
     if !@activeVisualizer.no_glow
       @glowComposer.addPass horizontalBlur
       @glowComposer.addPass verticalBlur
-      @glowComposer.addPass horizontalBlur
-      @glowComposer.addPass verticalBlur
+      #@glowComposer.addPass horizontalBlur
+      #@glowComposer.addPass verticalBlur
 
       @blendPass.uniforms['tBase'].value = @cubeComposer.renderTarget2.texture
       @blendPass.uniforms['tAdd'].value = @glowComposer.renderTarget1.texture
@@ -246,6 +246,7 @@ module.exports = class RenderController
     @crtEffect.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight)
     @crtEffect.renderToScreen = true
     @overlayComposer.addPass @crtEffect
+
     return
 
   Render: =>

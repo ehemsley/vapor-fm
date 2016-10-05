@@ -39,10 +39,12 @@ module.exports = class StartScreen
 
   InitializeCanvas: =>
     @canvas1 = document.createElement('canvas')
-    @canvas1.width = 500
-    @canvas1.height = 500
+    @canvas1.width = 600
+    @canvas1.height = 600
     @context1 = @canvas1.getContext('2d')
-    @context1.font = "30px TelegramaRaw"
+    @context1.font = "40px DolphinOceanWave"
+    @context1.fillText('blah blah blah', -200, -200) #hack to pre-initialize font
+
     # @context1.textAlign = "left"
     @context1.textBaseline = "top"
     @context1.fillStyle = "rgba(255,255,255,0.95)"
@@ -54,8 +56,8 @@ module.exports = class StartScreen
     @texture1.magFilter = THREE.LinearFilter
     @texture1.needsUpdate = true
     @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide, transparent: true, opacity: 1.0})
-    @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), @material1)
-    @mesh1.position.set(0, -100, 0)
+    @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), @material1)
+    @mesh1.position.set(0, -150, 0)
     @scene.add(@mesh1)
 
   DrawTestRect: =>
@@ -101,7 +103,10 @@ module.exports = class StartScreen
   DrawFlashingText: =>
     @ClearFlashingText()
     @context1.textAlign = 'center'
-    @context1.fillText('Press any key to begin', 250, 160)
+    @context1.strokeStyle = 'black'
+    @context1.strokeText('Press any key to begin', 300, 200)
+
+    @context1.fillText('Press any key to begin', 300, 200)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
@@ -109,7 +114,10 @@ module.exports = class StartScreen
 
   DrawLoadingText: =>
     @context1.textAlign = 'center'
-    @context1.fillText('Loading...', 280, 160)
+    @context1.strokeStyle = 'black'
+    @context1.strokeText('Loading', 300, 200)
+
+    @context1.fillText('Loading', 300, 200)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
@@ -120,7 +128,7 @@ module.exports = class StartScreen
     return
 
   ClearFlashingText: =>
-    @ClearText(0, 158, 540, 180)
+    @ClearText(0, 200, 540, 250)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true

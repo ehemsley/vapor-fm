@@ -29,11 +29,6 @@
     </script>
   </head>
 	<body>
-    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r81/three.min.js"></script>
-    <script src="javascripts/vendor.js?DIGEST"></script>
-    <script src="javascripts/app.js?DIGEST"></script>
-
     <div id="audioContainer" style="display:none;">
       <audio id="stream" src="http://168.235.77.138:8000/stream" crossorigin="anonymous"></audio>
     </div>
@@ -50,6 +45,10 @@
     <img id="logo" src="images/logo.png" alt="logo" style="display: none;">
     <img id="logo_header" src="images/logo_header.png" alt="logo_header" style="display: none;">
 
-    <script>require('application').init()</script>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r81/three.min.js"></script>
+    <script src="javascripts/vendor.js?DIGEST"></script>
+    <script src="javascripts/app.js?DIGEST"></script>
+    <script>$(function() {require('application').init()})();</script>
 	</body>
 </html>

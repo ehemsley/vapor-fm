@@ -9,6 +9,17 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'DolphinOceanWave';
+  src: url('fonts/dolphin_ocean_wave.eot');
+  src: url('fonts/dolphin_ocean_wave.eot?#iefix') format('embedded-opentype'),
+       url('fonts/dolphin_ocean_wave.woff2') format('woff2'),
+       url('fonts/dolphin_ocean_wave.woff') format('woff'),
+       url('fonts/dolphin_ocean_wave.ttf')  format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 #history-link {
   display: block;
   height: 20vmin;
