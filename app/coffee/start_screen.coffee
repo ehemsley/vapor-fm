@@ -128,7 +128,7 @@ module.exports = class StartScreen
     return
 
   ClearFlashingText: =>
-    @ClearText(0, 200, 540, 250)
+    @ClearText(0, 195, 540, 250)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
