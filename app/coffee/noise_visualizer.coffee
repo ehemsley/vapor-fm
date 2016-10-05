@@ -12,4 +12,6 @@ module.exports = class NoiseVisualizer extends Visualizer
 
     @noiseAmount = 1.0
 
+    @showCornerLogo = false
+
     return

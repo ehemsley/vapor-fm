@@ -58,7 +58,7 @@ module.exports = {
 
       "float scans = clamp(0.35 + 0.35 * sin(3.5 * time + uv.y * resolution.y * 1.5), 0.0, 1.0);",
       "float s = pow(scans, 1.7);",
-      "color = color * vec3(0.4 + 0.7 * s);",
+      "color = color * vec3(0.1 + 0.35 * s);",
 
       "color *= 1.0+0.01*sin(110.0*time);",
       "if (uv.x < 0.0 || uv.x > 1.0)",

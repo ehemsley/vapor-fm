@@ -8,6 +8,12 @@ module.exports = class Visualizer
     @noiseAmount = noiseAmount
     @blendStrength = blendStrength
     @beatDistortionEffect = beatDistortionEffect
+    @no_glow = false
+    @clearColor = 0x000000
+    @clearOpacity = 0
+
+    @showChannelNum = true
+    @showCornerLogo = true
 
     return
 

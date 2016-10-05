@@ -37,7 +37,6 @@ module.exports = class RenderController
     @infoDisplayActive = false
 
     @renderer = new THREE.WebGLRenderer( {alpha: true })
-    @renderer.setClearColor(0x000000, 0)
     @renderer.setSize(window.innerWidth, window.innerHeight)
     @visualizerElement.append(@renderer.domElement)
 
@@ -52,9 +51,6 @@ module.exports = class RenderController
     @visualizers[14] = new HeartVisualizer(@audioInitializer)
 
     @visualizerCounter = 7
-
-    @activeVisualizer = new StartScreen()
-    @activated = false
 
     @shuffleIndices = [3, 4, 5, 7, 14]
 
@@ -90,6 +86,9 @@ module.exports = class RenderController
 
     @hudCamera.position.set(0,0,2)
 
+    @SetVisualizer(new StartScreen())
+    @activated = false
+
     @RenderProcess(@activeVisualizer.scene,
                    @activeVisualizer.camera,
                    @activeVisualizer.bloomParams,
@@ -110,7 +109,7 @@ module.exports = class RenderController
 
   NextVisualizer: =>
     @visualizerCounter = (@visualizerCounter + 1) % @visualizers.length
-    @SetVisualizer(@visualizerCounter)
+    @SetVisualizer(@visualizers[@visualizerCounter])
     if @shuffling
       @shuffling = false
       @DrawShuffleText(@shuffling)
@@ -122,21 +121,22 @@ module.exports = class RenderController
     else
       @visualizerCounter = @visualizerCounter - 1
 
-    @SetVisualizer(@visualizerCounter)
+    @SetVisualizer(@visualizers[@visualizerCounter])
     if @shuffling
       @shuffling = false
       @DrawShuffleText(@shuffling)
     return
 
-  SetVisualizer: (index) =>
-    @activeVisualizer = @visualizers[index]
+  SetVisualizer: (visualizer) =>
+    @activeVisualizer = visualizer
+    #@renderer.setClearColor(@activeVisualizer.clearColor, @activeVisualizer.clearOpacity)
     @activeVisualizer.Activate()
 
-    @visualizerCounter = index
-    @ShowChannelDisplay(@visualizerCounter)
+    if @activeVisualizer.showChannelNum
+      @ShowChannelDisplay(@visualizerCounter)
 
     @ClearLogo()
-    unless @activeVisualizer instanceof NoiseVisualizer
+    if @activeVisualizer.showCornerLogo
       @DrawLogo()
 
     @RenderProcess(@activeVisualizer.scene,
@@ -162,7 +162,7 @@ module.exports = class RenderController
     newVizIndex = @visualizerCounter
     until newVizIndex != @visualizerCounter
       newVizIndex = @shuffleIndices[Math.floor(Math.random() * @shuffleIndices.length)]
-    @SetVisualizer(newVizIndex)
+    @SetVisualizer(@visualizers[newVizIndex])
     return
 
   RenderProcess: (scene, camera, bloomParams, noiseAmount, blendStrength) =>
@@ -179,6 +179,7 @@ module.exports = class RenderController
     hudPass = new (THREE.RenderPass)(@hud, @hudCamera)
 
     @cubeComposer.addPass @renderPass
+    @blendComposer = new (THREE.EffectComposer)(@renderer, renderTargetBlend)
 
     renderTargetGlow = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
     @glowComposer = new (THREE.EffectComposer)(@renderer, renderTargetGlow)
@@ -188,24 +189,27 @@ module.exports = class RenderController
     verticalBlur = new (THREE.ShaderPass)(THREE.VerticalBlurShader)
     verticalBlur.uniforms['v'].value = 1.0 / window.innerHeight
 
-    @glowComposer.addPass @renderPass
-    @glowComposer.addPass horizontalBlur
-    @glowComposer.addPass verticalBlur
-    @glowComposer.addPass horizontalBlur
-    @glowComposer.addPass verticalBlur
-
     @blendPass = new (THREE.ShaderPass)(THREE.AdditiveBlendShader)
-    @blendPass.uniforms['tBase'].value = @cubeComposer.renderTarget2
-    @blendPass.uniforms['tAdd'].value = @glowComposer.renderTarget1
-    @blendPass.uniforms['amountOne'].value = 2 - blendStrength
-    @blendPass.uniforms['amountTwo'].value = blendStrength
+
+    @glowComposer.addPass @renderPass
+    if !@activeVisualizer.no_glow
+      @glowComposer.addPass horizontalBlur
+      @glowComposer.addPass verticalBlur
+      @glowComposer.addPass horizontalBlur
+      @glowComposer.addPass verticalBlur
+
+      @blendPass.uniforms['tBase'].value = @cubeComposer.renderTarget2.texture
+      @blendPass.uniforms['tAdd'].value = @glowComposer.renderTarget1.texture
+      @blendPass.uniforms['amountOne'].value = 2 - blendStrength
+      @blendPass.uniforms['amountTwo'].value = blendStrength
+      @blendComposer.addPass @blendPass
+    else
+      @blendComposer.addPass @renderPass
+
 
     renderTargetBlend = new (THREE.WebGLRenderTarget)(window.innerWidth, window.innerHeight, renderTargetParameters)
 
-    @blendComposer = new (THREE.EffectComposer)(@renderer, renderTargetBlend)
-    @blendComposer.addPass @blendPass
-
-    if bloomParams?
+    if bloomParams? and !@activeVisualizer.no_glow
       @bloomPass = new (THREE.BloomPass)(bloomParams.strength,
                                          bloomParams.kernelSize,
                                          bloomParams.sigma,
@@ -224,9 +228,10 @@ module.exports = class RenderController
     @hudComposer.addPass hudPass
 
     @overlayComposer = new (THREE.EffectComposer)(@renderer)
+
     @hudBlendPass = new (THREE.ShaderPass)(DestOverlayBlendShader)
-    @hudBlendPass.uniforms['tSource'].value = @blendComposer.renderTarget1
-    @hudBlendPass.uniforms['tDest'].value = @hudComposer.renderTarget2
+    @hudBlendPass.uniforms['tSource'].value = @blendComposer.renderTarget1.texture
+    @hudBlendPass.uniforms['tDest'].value = @hudComposer.renderTarget2.texture
 
     @overlayComposer.addPass @hudBlendPass
 
@@ -291,11 +296,20 @@ module.exports = class RenderController
       @activeVisualizer.Update(deltaTime)
 
     @activeVisualizer.Render()
-    @cubeComposer.render(0.1)
-    @glowComposer.render(0.1)
-    @blendComposer.render(0.1)
-    @hudComposer.render(0.1)
-    @overlayComposer.render(0.1)
+    if @activeVisualizer.no_glow
+      #@renderer.render(@activeVisualizer.scene, @activeVisualizer.camera)
+      @cubeComposer.render(0.1)
+      @glowComposer.render(0.1)
+      @blendComposer.render(0.1)
+      @hudComposer.render(0.1)
+      @overlayComposer.render(0.1)
+    else
+      #@renderer.render(@activeVisualizer.scene, @activeVisualizer.camera)
+      @cubeComposer.render(0.1)
+      @glowComposer.render(0.1)
+      @blendComposer.render(0.1)
+      @hudComposer.render(0.1)
+      @overlayComposer.render(0.1)
 
     return
 
@@ -326,7 +340,8 @@ module.exports = class RenderController
     @badTV.uniforms['time'].value = @clock.getElapsedTime()
     @crtEffect.uniforms['time'].value = @clock.getElapsedTime()
     @noise.uniforms['time'].value = @clock.getElapsedTime()
-    if @activeVisualizer.bloomParams?
+
+    if !@activeVisualizer.no_glow and @activeVisualizer.bloomParams?
       @bloomPass.copyUniforms['opacity'].value = @activeVisualizer.bloomParams.strength + @strengthModifier
 
     if @audioInitializer.beatdetect.isKick() and @activeVisualizer.beatDistortionEffect

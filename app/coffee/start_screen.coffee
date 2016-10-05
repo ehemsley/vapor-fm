@@ -5,31 +5,42 @@ module.exports = class StartScreen
     @scene = new THREE.Scene
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 
-    @bloomParams = { strength: 1.0, strengthIncrease: 0, kernelSize: 12.0, sigma: 1.5, resolution: 512 }
+    @no_glow = true
+    @scene.background = new THREE.Color(0xa4d5f5)
+    #@clearColor = 0xa4d5f5
+    #@clearOpacity = 0
+
+    @bloomParams = { strength: 1.0, strengthIncrease: 0, kernelSize: 5.0, sigma: 1.0, resolution: 512 }
     @noiseAmount = 0.0
     @blendStrength = 1.0
 
     @ambientLight = new THREE.AmbientLight(0x404040)
     @scene.add(@ambientLight)
 
-    @skyBox = @SkyBox()
-    @scene.add(@skyBox)
+    #@skyBox = @SkyBox()
+    #@scene.add(@skyBox)
+
+    #@renderer.setClearColor(0xa4d5f5);
 
     @InitializeCanvas()
-    @DrawHeaderText()
+    @DrawHeaderLogo()
+    #@DrawHeaderText()
     # @DrawTestRect()
 
     @textFlashing = true
     @flashingTextOn = false
     @firstFrame = false
 
-    @camera.position.z = 40
+    @showChannelNum = false
+    @showCornerLogo = false
+
+    @camera.position.z = 300
     return
 
   InitializeCanvas: =>
     @canvas1 = document.createElement('canvas')
-    @canvas1.width = 540
-    @canvas1.height = 180
+    @canvas1.width = 500
+    @canvas1.height = 500
     @context1 = @canvas1.getContext('2d')
     @context1.font = "30px TelegramaRaw"
     # @context1.textAlign = "left"
@@ -43,8 +54,8 @@ module.exports = class StartScreen
     @texture1.magFilter = THREE.LinearFilter
     @texture1.needsUpdate = true
     @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide, transparent: true, opacity: 1.0})
-    @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(180, 60), @material1)
-    @mesh1.position.set(-4, 0, 0)
+    @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), @material1)
+    @mesh1.position.set(0, -100, 0)
     @scene.add(@mesh1)
 
   DrawTestRect: =>
@@ -55,8 +66,18 @@ module.exports = class StartScreen
 
     return
 
+  DrawHeaderLogo: =>
+    img = document.getElementById("logo_header")
+    #img = document.getElementById("logo")
+    @context1.drawImage(img, 0, 0)
+
+    @mesh1.material.map.needsUpdate = true
+    @mesh1.material.needsUpdate = true
+    return
+
   DrawHeaderText: =>
     @ClearHeaderText()
+
     @context1.textAlign = 'center'
     @context1.font = '30px TelegramaRaw'
     @context1.fillText('vapor.fm', 280, 0)
@@ -80,7 +101,7 @@ module.exports = class StartScreen
   DrawFlashingText: =>
     @ClearFlashingText()
     @context1.textAlign = 'center'
-    @context1.fillText('Press any key to begin...', 280, 160)
+    @context1.fillText('Press any key to begin', 250, 160)
 
     @mesh1.material.map.needsUpdate = true
     @mesh1.material.needsUpdate = true
@@ -115,8 +136,8 @@ module.exports = class StartScreen
     return
 
   SkyBox: ->
-    geometry = new THREE.BoxGeometry(500, 500, 500)
-    material = new THREE.MeshBasicMaterial({color: 0x1100ff, side: THREE.BackSide})
+    geometry = new THREE.BoxGeometry(1000, 1000, 1000)
+    material = new THREE.MeshBasicMaterial({color: 0xa4d5f5, side: THREE.BackSide})
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
@@ -140,7 +161,10 @@ module.exports = class StartScreen
           @flashingTextOn = true
           @timer = 0
 
-    @DrawHeaderText()
+    #@DrawHeaderText()
+
+  Activate: ->
+    return
 
   Render: ->
     return

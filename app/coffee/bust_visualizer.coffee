@@ -7,7 +7,7 @@ module.exports = class BustVisualizer extends Visualizer
           0.0,
           2.0,
           true)
-
+    @glow = false
     @xRotationDirection = 1
     @yRotationDirection = -1
 
@@ -46,7 +46,7 @@ module.exports = class BustVisualizer extends Visualizer
     @bustMinScale = 0.14
     bustMaterial = new THREE.MeshPhongMaterial({color: 0xffffff})
     loader = new THREE.OBJLoader
-    loader.load 'models/romanbust.obj', (object) =>
+    loader.load 'models/romanbustrecalc.obj', (object) =>
       object.traverse (child) ->
         if (child instanceof THREE.Mesh)
           child.material = bustMaterial

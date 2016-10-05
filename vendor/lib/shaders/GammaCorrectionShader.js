@@ -1,16 +1,15 @@
 /**
- * @author alteredq / http://alteredqualia.com/
+ * @author WestLangley / http://github.com/WestLangley
  *
- * Unpack RGBA depth shader
- * - show RGBA encoded depth as monochrome color
+ * Gamma Correction Shader
+ * http://en.wikipedia.org/wiki/gamma_correction
  */
 
-THREE.UnpackDepthRGBAShader = {
+THREE.GammaCorrectionShader = {
 
 	uniforms: {
 
 		"tDiffuse": { value: null },
-		"opacity":  { value: 1.0 }
 
 	},
 
@@ -29,18 +28,15 @@ THREE.UnpackDepthRGBAShader = {
 
 	fragmentShader: [
 
-		"uniform float opacity;",
-
 		"uniform sampler2D tDiffuse;",
 
 		"varying vec2 vUv;",
 
-		"#include <packing>",
-
 		"void main() {",
 
-			"float depth = 1.0 - unpackRGBAToDepth( texture2D( tDiffuse, vUv ) );",
-			"gl_FragColor = opacity * vec4( vec3( depth ), 1.0 );",
+			"vec4 tex = texture2D( tDiffuse, vec2( vUv.x, vUv.y ) );",
+
+			"gl_FragColor = LinearToGamma( tex, float( GAMMA_FACTOR ) );",
 
 		"}"
 
