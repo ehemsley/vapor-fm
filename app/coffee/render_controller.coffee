@@ -6,6 +6,7 @@ MystifyVisualizer = require('coffee/mystify_visualizer')
 CybergridVisualizer = require('coffee/cybergrid_visualizer')
 HeartVisualizer = require('coffee/heart_visualizer')
 OceanVisualizer = require('coffee/ocean_visualizer')
+WeatherVisualizer = require('coffee/weather_visualizer')
 StartScreen = require('coffee/start_screen')
 
 NoiseShader = require('shaders/noise_shader')
@@ -48,6 +49,7 @@ module.exports = class RenderController
     @visualizers[4] = new MystifyVisualizer(@audioInitializer)
     @visualizers[5] = new CybergridVisualizer(@audioInitializer)
     @visualizers[7] = new OceanVisualizer(@audioInitializer, @renderer)
+    @visualizers[9] = new WeatherVisualizer()
     @visualizers[14] = new HeartVisualizer(@audioInitializer)
 
     @visualizerCounter = 7
