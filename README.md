@@ -4,6 +4,9 @@
 
 Netradio + web player + visualizer = good times
 
+This project builds using brunch:
+http://brunch.io
+
 special thanks to Felix Turner for the excellent three js visualizer introduction
 
 (c) Evan Hemsley 2015-2016
