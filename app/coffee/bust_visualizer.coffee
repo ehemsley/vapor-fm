@@ -26,7 +26,8 @@ module.exports = class BustVisualizer extends Visualizer
 
     @scene.add(@skyBox)
 
-    @RomanBust()
+    #@RomanBust()
+    @Jack()
 
     i = 0
     while i < @lineBoxes.length
@@ -56,6 +57,20 @@ module.exports = class BustVisualizer extends Visualizer
       @bust = object
       @scene.add(@bust)
 
+  Jack: ->
+    @bustMinScale = 0.8
+    jackMaterial = new THREE.MeshPhongMaterial({color: 0xFF9100 })
+    loader = new THREE.OBJLoader
+    loader.load 'models/GoodJack.obj', (object) =>
+      object.traverse (child) ->
+        if (child instanceof THREE.Mesh)
+          child.material = jackMaterial
+      object.scale.set(1, 1, 1)
+      object.position.set(0, -1.5, 0)
+
+      @bust = object
+      @scene.add(@bust)
+
   LineBoxes: ->
     lineMaterial = new THREE.LineBasicMaterial({color: 0xffffff, linewidth: 2})
     lineBoxes = []
@@ -74,7 +89,7 @@ module.exports = class BustVisualizer extends Visualizer
 
   SkyBox: ->
     geometry = new THREE.BoxGeometry(500, 500, 500)
-    material = new THREE.MeshBasicMaterial({color: 0x1100ff, side: THREE.BackSide})
+    material = new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.BackSide})
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
@@ -86,7 +101,7 @@ module.exports = class BustVisualizer extends Visualizer
     if @bust?
       @bust.rotation.y += (0.01 + rotationAddition) * @yRotationDirection
 
-      scaleValue = 0.142
+      scaleValue = 1.1
 
       if @audioInitializer.beatdetect.isKick()
         @bust.scale.set(scaleValue, scaleValue, scaleValue)

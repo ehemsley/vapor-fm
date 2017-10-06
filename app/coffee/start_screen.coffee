@@ -6,7 +6,7 @@ module.exports = class StartScreen
     @camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 
     @no_glow = true
-    @scene.background = new THREE.Color(0xa4d5f5)
+    @scene.background = new THREE.Color(0x3E1C33)
     #@clearColor = 0xa4d5f5
     #@clearOpacity = 0
 
@@ -155,7 +155,7 @@ module.exports = class StartScreen
 
   SkyBox: ->
     geometry = new THREE.BoxGeometry(1000, 1000, 1000)
-    material = new THREE.MeshBasicMaterial({color: 0xa4d5f5, side: THREE.BackSide})
+    material = new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.BackSide})
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
