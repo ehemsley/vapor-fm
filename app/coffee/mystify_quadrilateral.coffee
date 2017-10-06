@@ -10,10 +10,10 @@ module.exports = class MystifyQuadrilateral
     @vertexThreePosition = new THREE.Vector3((Math.random() * width * 0.5) - width * 0.25, height * -0.5, -10)
     @vertexFourPosition = new THREE.Vector3(width * 0.5, (Math.random() * height * 0.5) - height * 0.25, -10)
 
-    @vertexOneVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) - 1, 0)
-    @vertexTwoVelocity = new THREE.Vector3((Math.random() * 1) + 1, (Math.random() * 2) - 1, 0)
-    @vertexThreeVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) + 1, 0)
-    @vertexFourVelocity = new THREE.Vector3((Math.random() * 1) - 1, (Math.random() * 2) - 1, 0)
+    @vertexOneVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) - 1, 0).multiplyScalar(3)
+    @vertexTwoVelocity = new THREE.Vector3((Math.random() * 1) + 1, (Math.random() * 2) - 1, 0).multiplyScalar(3)
+    @vertexThreeVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) + 1, 0).multiplyScalar(3)
+    @vertexFourVelocity = new THREE.Vector3((Math.random() * 1) - 1, (Math.random() * 2) - 1, 0).multiplyScalar(3)
 
     @leftBound = leftBound
     @rightBound = rightBound

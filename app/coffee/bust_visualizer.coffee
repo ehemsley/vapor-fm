@@ -58,14 +58,14 @@ module.exports = class BustVisualizer extends Visualizer
       @scene.add(@bust)
 
   Jack: ->
-    @bustMinScale = 0.8
+    @bustMinScale = 1
     jackMaterial = new THREE.MeshPhongMaterial({color: 0xFF9100 })
     loader = new THREE.OBJLoader
-    loader.load 'models/GoodJack.obj', (object) =>
+    loader.load 'models/badjack.obj', (object) =>
       object.traverse (child) ->
         if (child instanceof THREE.Mesh)
           child.material = jackMaterial
-      object.scale.set(1, 1, 1)
+      object.scale.set(@bustMinScale, @bustMinScale, @bustMinScale)
       object.position.set(0, -1.5, 0)
 
       @bust = object
@@ -89,7 +89,7 @@ module.exports = class BustVisualizer extends Visualizer
 
   SkyBox: ->
     geometry = new THREE.BoxGeometry(500, 500, 500)
-    material = new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.BackSide})
+    material = new THREE.MeshBasicMaterial({color: 0x1f0e19, side: THREE.BackSide})
     skybox = new THREE.Mesh(geometry, material)
     skybox
 

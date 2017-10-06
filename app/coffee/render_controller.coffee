@@ -48,7 +48,7 @@ module.exports = class RenderController
     @visualizers[4] = new MystifyVisualizer(@audioInitializer)
     @visualizers[5] = new CybergridVisualizer(@audioInitializer)
     @visualizers[7] = new OceanVisualizer(@audioInitializer, @renderer)
-    @visualizers[14] = new HeartVisualizer(@audioInitializer)
+    @visualizers[13] = new HeartVisualizer(@audioInitializer)
 
     @visualizerCounter = 7
 

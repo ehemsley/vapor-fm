@@ -57,7 +57,7 @@ module.exports = class StartScreen
     @texture1.needsUpdate = true
     @material1 = new THREE.MeshBasicMaterial({map: @texture1, side: THREE.DoubleSide, transparent: true, opacity: 1.0})
     @mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), @material1)
-    @mesh1.position.set(0, -150, 0)
+    @mesh1.position.set(0, -150, 1)
     @scene.add(@mesh1)
 
   DrawTestRect: =>

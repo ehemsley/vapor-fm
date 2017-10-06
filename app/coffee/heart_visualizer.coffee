@@ -3,7 +3,7 @@ Visualizer = require('coffee/visualizer')
 module.exports = class HeartVisualizer extends Visualizer
   constructor: (audioInitializer) ->
     super(audioInitializer,
-          { strength: 3, strengthIncrease: 0.0, kernelSize: 12, sigma: 2.0, resolution: 512 },
+          { strength: 1, strengthIncrease: 0.5, kernelSize: 12, sigma: 1.5, resolution: 512 },
           0.0,
           2.0,
           false)
@@ -40,16 +40,16 @@ module.exports = class HeartVisualizer extends Visualizer
 
   Hearts: (number) ->
     @hearts = []
-    heartMaterial = new THREE.MeshPhongMaterial({color: 0xff0011})
+    heartMaterial = new THREE.MeshPhongMaterial({color: 0xFF9100})
     loader = new THREE.OBJLoader
-    loader.load 'models/heart.obj', (object) =>
+    loader.load 'models/GoodJack.obj', (object) =>
       object.traverse (child) ->
         if (child instanceof THREE.Mesh)
           child.material = heartMaterial
 
       object.userData = { extraRotation: 0 }
       object.rotation.set(@RandomFloat(0, Math.PI/4), @RandomFloat(0, Math.PI/4), 0)
-      object.scale.set(0.25, 0.25, 0.25)
+      object.scale.set(1, 1, 1)
 
       for i in [0..number]
         newObject = object.clone()
@@ -57,6 +57,18 @@ module.exports = class HeartVisualizer extends Visualizer
         @scene.add(newObject)
 
       @SetHeartsPositions()
+    return
+
+  Jack: ->
+    heartMaterial = new THREE.MeshPhongMaterial({color: 0xff0000})
+    loader = new THREE.OBJLoader
+    loader.load 'models/GoodJack.obj', (object) =>
+      object.traverse (child) ->
+        if (child instanceof THREE.Mesh)
+          child.material = heartMaterial
+
+      @heart = object
+      @scene.add(object)
     return
 
   SetHeartsPositions: ->
@@ -80,7 +92,7 @@ module.exports = class HeartVisualizer extends Visualizer
 
   SkyBox: ->
     geometry = new THREE.BoxGeometry(500, 500, 500)
-    material = new THREE.MeshBasicMaterial({color: 0x0411ff, side: THREE.BackSide})
+    material = new THREE.MeshBasicMaterial({color: 0x1f0e19, side: THREE.BackSide})
     skybox = new THREE.Mesh(geometry, material)
     skybox
 
@@ -95,9 +107,9 @@ module.exports = class HeartVisualizer extends Visualizer
           heartObject.rotation.y += 0.01 + heartObject.userData.extraRotation
           heartObject.rotation.x += heartObject.userData.extraRotation
           heartObject.userData.extraRotation = Math.max(0, heartObject.userData.extraRotation - 0.01)
-          heartObject.scale.x = Math.max(heartObject.scale.x - 0.001, 0.25)
-          heartObject.scale.y = Math.max(heartObject.scale.y - 0.001, 0.25)
-          heartObject.scale.z = Math.max(heartObject.scale.z - 0.001, 0.25)
+          heartObject.scale.x = Math.max(heartObject.scale.x - 0.001, 1)
+          heartObject.scale.y = Math.max(heartObject.scale.y - 0.001, 1)
+          heartObject.scale.z = Math.max(heartObject.scale.z - 0.001, 1)
 
       if @audioInitializer.beatdetect.isKick()
         randomHeart = @hearts[@RandomInt(0, @hearts.length)]
@@ -106,7 +118,7 @@ module.exports = class HeartVisualizer extends Visualizer
       if @audioInitializer.beatdetect.isSnare()
         for heartObject in @hearts
           if heartObject?
-            heartObject.scale.set(0.3, 0.3, 0.3) if Math.random() < 0.33
+            heartObject.scale.set(1.1, 1.1, 1.1) if Math.random() < 0.33
 
     @camera.position.set(40 * Math.cos(@timer * 0.5), 0, 40 * Math.sin(@timer * 0.5))
     @camera.lookAt(@scene.position)
