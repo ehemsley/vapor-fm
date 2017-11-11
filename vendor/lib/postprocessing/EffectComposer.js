@@ -2,6 +2,8 @@
  * @author alteredq / http://alteredqualia.com/
  */
 
+const THREE = require('three')
+
 THREE.EffectComposer = function ( renderer, renderTarget ) {
 
 	this.renderer = renderer;

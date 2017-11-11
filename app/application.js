@@ -1,10 +1,6 @@
-var Page = require('coffee/page');
+var Page = require('js/page')
 
-var App = {
-  init: function init() {
-    console.log('App initialized.');
-    var page = new Page;
-  }
-};
-
-module.exports = App;
+module.exports = function () {
+  console.log('App initialized.')
+  let page = new Page()
+}
