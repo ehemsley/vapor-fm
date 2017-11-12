@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
-
 module.exports = class AudioInitializer {
   constructor () {
     this.StopAndUnloadAudio = this.StopAndUnloadAudio.bind(this)
@@ -50,7 +44,6 @@ module.exports = class AudioInitializer {
     this.audioElement.setAttribute('preload', 'none')
     this.audioElement.setAttribute('crossorigin', 'anonymous')
     document.getElementById('audioContainer').append(this.audioElement)
-    // $('#audioContainer').append("<audio id='stream' preload='none' crossorigin='anonymous'></audio>")
     this.audioElement = document.getElementById('stream')
     this.audioElement.src = this.originalSrc
 

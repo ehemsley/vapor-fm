@@ -1,43 +1,38 @@
-let Visualizer;
-module.exports = (Visualizer = class Visualizer {
-  constructor(audioInitializer, bloomParams, noiseAmount, blendStrength, beatDistortionEffect) {
-    this.audioInitializer = audioInitializer;
-    this.timer = 0;
-    this.scene = new THREE.Scene;
+const THREE = require('three')
 
-    this.bloomParams = bloomParams;
-    this.noiseAmount = noiseAmount;
-    this.blendStrength = blendStrength;
-    this.beatDistortionEffect = beatDistortionEffect;
-    this.no_glow = false;
-    this.clearColor = 0x000000;
-    this.clearOpacity = 0;
+module.exports = class Visualizer {
+  constructor (audioInitializer, bloomParams, noiseAmount, blendStrength, beatDistortionEffect) {
+    this.audioInitializer = audioInitializer
+    this.timer = 0
+    this.scene = new THREE.Scene()
 
-    this.showChannelNum = true;
-    this.showCornerLogo = true;
+    this.bloomParams = bloomParams
+    this.noiseAmount = noiseAmount
+    this.blendStrength = blendStrength
+    this.beatDistortionEffect = beatDistortionEffect
+    this.no_glow = false
+    this.clearColor = 0x000000
+    this.clearOpacity = 0
 
+    this.showChannelNum = true
+    this.showCornerLogo = true
   }
 
-  Update(deltaTime) {
+  Update (deltaTime) { }
+
+  Render () { }
+
+  HandleKeyDownInput (keyCode) { }
+
+  HandleKeyUpInput (keyCode) { }
+
+  Activate () { }
+
+  RandomFloat (min, max) {
+    return (Math.random() * (max - min)) + min
   }
 
-  Render() {
+  RandomInt (min, max) {
+    return Math.floor(Math.random() * ((max - min) + 1)) + min
   }
-
-  HandleKeyDownInput(keyCode) {
-  }
-
-  HandleKeyUpInput(keyCode) {
-  }
-
-  Activate() {
-  }
-
-  RandomFloat(min, max) {
-    return (Math.random() * (max - min)) + min;
-  }
-
-  RandomInt(min, max) {
-    return Math.floor(Math.random() * ((max - min) + 1)) + min;
-  }
-});
+}

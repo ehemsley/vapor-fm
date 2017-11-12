@@ -66,7 +66,6 @@ module.exports = class {
     let keyCode = e.keyCode
 
     if (this.activated) {
-      console.log(keyCode)
       if (this.keyCodeMap.has(keyCode)) {
         this.keyCodeMap.get(keyCode)()
       } else {
