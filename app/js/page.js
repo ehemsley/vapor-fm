@@ -13,6 +13,7 @@ module.exports = class {
     this.renderController = new RenderController(this.audioInitializer)
     window.addEventListener('resize', this.renderController.OnResize, false)
     window.addEventListener('audioLoaded', this.renderController.AudioLoadedHandler, false)
+    window.addEventListener('audioStalled', this.renderController.Pause, false)
     this.renderController.Render()
 
     this.activated = false

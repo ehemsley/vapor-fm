@@ -48,6 +48,7 @@ module.exports = class AudioInitializer {
     this.audioElement.src = this.originalSrc
 
     this.AddCanPlayListener()
+    this.AddStalledListener()
 
     this.loaded = false
     this.loading = false
@@ -56,7 +57,6 @@ module.exports = class AudioInitializer {
   LoadAndPlayAudio () {
     this.loading = true
     this.audioElement.setAttribute('preload', 'auto') // firefox hack, never fires canplay if preload not set to auto
-    // $('#audioContainer audio').attr('preload','auto')
     this.audioElement.load()
     clearTimeout(this.loadCheckTimeout)
     this.loadCheckTimeout = setTimeout(this.CheckLoaded, 8000)
@@ -89,5 +89,13 @@ module.exports = class AudioInitializer {
     }
 
     this.audioElement.addEventListener('canplay', listener)
+  }
+
+  AddStalledListener () {
+    var listener = () => {
+      this.StopAndUnloadAudio()
+      this.LoadAndPlayAudio()
+    }
+    this.audioElement.addEventListener('stalled', listener)
   }
 }
