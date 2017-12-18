@@ -1,5 +1,7 @@
 import { Clock } from 'three'
 
+const Timer = require('js/timer')
+
 module.exports = class UI {
   constructor () {
     this.canvas = document.createElement('canvas')
@@ -14,54 +16,47 @@ module.exports = class UI {
 
     this.paused = false
 
-    this.clock = new Clock()
-    this.clock.start()
-
-    this.playStatusActive = false
-    this.lastPlayStatusToggleTime = this.clock.getElapsedTime()
-
     this.channelDisplayActive = false
-    this.lastChannelUpdateTime = this.clock.getElapsedTime()
+    this.channelTimer = new Timer()
+    this.channelTimer.setFinishCallback(() => {
+      this.clearChannelDisplay()
+    })
 
-    this.lastIcecastUpdateTime = this.clock.getElapsedTime()
+    this.icecastTimer = new Timer()
+    this.icecastTimer.setFinishCallback(() => {
+      this.getIcecastData()
+      this.icecastTimer.start()
+    })
 
     this.infoDisplayActive = false
-    this.lastInfoUpdateTime = this.clock.getElapsedTime()
+    this.infoTimer = new Timer()
+    this.infoTimer.setFinishCallback(() => {
+      this.clearInfoDisplay()
+    })
+
+    this.playStatusActive = false
+    this.playStatusTimer = new Timer()
+    this.playStatusTimer.setFinishCallback(() => {
+      this.clearPlayStatus()
+      this.playStatusActive = false
+    })
 
     this.volumeDisplayActive = false
-    this.lastVolumeUpdateTime = this.clock.getElapsedTime()
+    this.volumeDisplayTimer = new Timer()
+    this.volumeDisplayTimer.setFinishCallback(() => {
+      this.clearVolumeDisplay()
+    })
+
+    this.clock = new Clock()
+    this.clock.start()
   }
 
   update () {
-    if (this.channelDisplayActive) {
-      if (this.clock.getElapsedTime() > (this.lastChannelUpdateTime + 4)) {
-        this.clearChannelDisplay()
-      }
-    }
-
-    if (this.clock.getElapsedTime() > (this.lastIcecastUpdateTime + 5)) {
-      if (!this.paused) { this.getIcecastData() }
-      this.lastIcecastUpdateTime = this.clock.getElapsedTime()
-    }
-
-    if (this.infoDisplayActive) {
-      if (this.clock.getElapsedTime() > (this.lastInfoUpdateTime + 5)) {
-        this.clearInfoDisplay()
-      }
-    }
-
-    if (this.playStatusActive) {
-      if (this.clock.getElapsedTime() > (this.lastPlayStatusToggleTime + 4)) {
-        this.clearPlayStatus()
-        this.playStatusActive = false
-      }
-    }
-
-    if (this.volumeDisplayActive) {
-      if (this.clock.getElapsedTime() > (this.lastVolumeUpdateTime + 2)) {
-        this.clearVolumeDisplay()
-      }
-    }
+    this.channelTimer.update()
+    this.icecastTimer.update()
+    this.infoTimer.update()
+    this.playStatusTimer.update()
+    this.volumeDisplayTimer.update()
   }
 
   updateText (songData) {
@@ -175,7 +170,7 @@ module.exports = class UI {
     this.clearPlayStatus()
 
     this.channelDisplayActive = true
-    this.lastChannelUpdateTime = this.clock.getElapsedTime()
+    this.channelTimer.start(4)
 
     if (channelNum === 0) {
       channelNum = 'A/V'
@@ -206,7 +201,7 @@ module.exports = class UI {
     this.clearVolumeDisplay()
 
     this.infoDisplayActive = true
-    this.lastInfoUpdateTime = this.clock.getElapsedTime()
+    this.infoTimer.start(5)
 
     this.context.save()
     this.context.font = '38px TelegramaRaw'
@@ -253,7 +248,7 @@ module.exports = class UI {
     this.context.restore()
 
     this.playStatusActive = true
-    this.lastPlayStatusToggleTime = this.clock.getElapsedTime()
+    this.playStatusTimer.start(4)
   }
 
   drawPlayIcon () {
@@ -275,7 +270,7 @@ module.exports = class UI {
     this.context.restore()
 
     this.playStatusActive = true
-    this.lastPlayStatusToggleTime = this.clock.getElapsedTime()
+    this.playStatusTimer.start(4)
   }
 
   drawOverlay (artistName, songName) {
@@ -336,7 +331,7 @@ module.exports = class UI {
     this.clearInfoDisplay()
 
     this.volumeDisplayActive = true
-    this.lastVolumeUpdateTime = this.clock.getElapsedTime()
+    this.volumeDisplayTimer.start(4)
 
     filledBarAmount = Math.min(Math.round(filledBarAmount), 10)
 
