@@ -11,27 +11,6 @@ module.exports = class PongVisualizer extends Visualizer {
       false
     )
 
-    this.Activate = this.Activate.bind(this)
-    this.InitializeHud = this.InitializeHud.bind(this)
-    this.UpdateScoreDisplay = this.UpdateScoreDisplay.bind(this)
-    this.UpdateWinDisplay = this.UpdateWinDisplay.bind(this)
-    this.Update = this.Update.bind(this)
-    this.CheckBallCollision = this.CheckBallCollision.bind(this)
-    this.HandleKeyDownInput = this.HandleKeyDownInput.bind(this)
-    this.HandleKeyUpInput = this.HandleKeyUpInput.bind(this)
-    this.PaddleUpInputPressed = this.PaddleUpInputPressed.bind(this)
-    this.PaddleDownInputPressed = this.PaddleDownInputPressed.bind(this)
-    this.PaddleUpInputReleased = this.PaddleUpInputReleased.bind(this)
-    this.PaddleDownInputReleased = this.PaddleDownInputReleased.bind(this)
-    this.ResetInputs = this.ResetInputs.bind(this)
-    this.ResetBall = this.ResetBall.bind(this)
-    this.ResetPaddles = this.ResetPaddles.bind(this)
-    this.ResetGame = this.ResetGame.bind(this)
-    this.InitResetTimer = this.InitResetTimer.bind(this)
-    this.CheckWin = this.CheckWin.bind(this)
-    this.PlayerWin = this.PlayerWin.bind(this)
-    this.PlayerLose = this.PlayerLose.bind(this)
-
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 
     this.playerPaddle = this.Paddle()

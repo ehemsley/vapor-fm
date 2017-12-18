@@ -1,4 +1,5 @@
 const AudioInitializer = require('js/audio_initializer')
+const UI = require('js/ui')
 const RenderController = require('js/render_controller')
 
 module.exports = class {
@@ -10,10 +11,12 @@ module.exports = class {
     this.CheckKeyUp = this.CheckKeyUp.bind(this)
     this.audioInitializer = new AudioInitializer()
 
-    this.renderController = new RenderController(this.audioInitializer)
-    window.addEventListener('resize', this.renderController.OnResize, false)
-    window.addEventListener('audioLoaded', this.renderController.AudioLoadedHandler, false)
-    window.addEventListener('audioStalled', this.renderController.Pause, false)
+    this.ui = new UI()
+
+    this.renderController = new RenderController(this.audioInitializer, this.ui)
+    window.addEventListener('resize', () => { this.renderController.OnResize() }, false)
+    window.addEventListener('audioLoaded', () => { this.renderController.AudioLoadedHandler() }, false)
+    window.addEventListener('audioStalled', () => { this.renderController.Pause() }, false)
     this.renderController.Render()
 
     this.activated = false
@@ -23,17 +26,17 @@ module.exports = class {
     this.prePauseVolume = 1
 
     this.keyCodeMap = new Map()
-    this.keyCodeMap.set(38, this.IncreaseVolume) // up arrow
-    this.keyCodeMap.set(40, this.DecreaseVolume) // down arrow
-    this.keyCodeMap.set(32, this.TogglePause) // spacebar
+    this.keyCodeMap.set(38, () => { this.IncreaseVolume() }) // up arrow
+    this.keyCodeMap.set(40, () => { this.DecreaseVolume() }) // down arrow
+    this.keyCodeMap.set(32, () => { this.TogglePause() }) // spacebar
     this.keyCodeMap.set(39, () => { // right arrow
       if (this.audioInitializer.loaded) { this.renderController.NextVisualizer() }
     })
     this.keyCodeMap.set(37, () => { // left arrow
       if (this.audioInitializer.loaded) { this.renderController.PreviousVisualizer() }
     })
-    this.keyCodeMap.set(73, this.renderController.ShowInfo) // i
-    this.keyCodeMap.set(83, this.renderController.ToggleShuffle) // s
+    this.keyCodeMap.set(73, () => { this.ui.drawInfo() }) // i
+    this.keyCodeMap.set(83, () => { this.renderController.ToggleShuffle() }) // s
 
     document.onkeydown = this.CheckKey
     document.onkeyup = this.CheckKeyUp
@@ -41,22 +44,24 @@ module.exports = class {
 
   IncreaseVolume () {
     this.audioInitializer.audioElement.volume = Math.min(Math.max(this.audioInitializer.audioElement.volume + 0.1, 0), 1)
-    this.renderController.UpdateVolumeDisplay(this.audioInitializer.audioElement.volume * 10)
+    this.ui.drawVolumeDisplay(this.audioInitializer.audioElement.volume * 10)
   }
 
   DecreaseVolume () {
     this.audioInitializer.audioElement.volume = Math.min(Math.max(this.audioInitializer.audioElement.volume - 0.1, 0), 1)
-    this.renderController.UpdateVolumeDisplay(this.audioInitializer.audioElement.volume * 10)
+    this.ui.drawVolumeDisplay(this.audioInitializer.audioElement.volume * 10)
   }
 
   TogglePause () {
     if (this.paused) {
       this.audioInitializer.LoadAndPlayAudio()
       this.audioInitializer.audioElement.volume = this.prePauseVolume
+      this.ui.unPause()
     } else {
       this.prePauseVolume = this.audioInitializer.audioElement.volume
       this.audioInitializer.StopAndUnloadAudio()
       this.renderController.Pause()
+      this.ui.pause()
     }
 
     this.paused = !this.paused
