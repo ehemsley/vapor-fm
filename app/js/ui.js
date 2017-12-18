@@ -18,7 +18,6 @@ module.exports = class UI {
 
     this.paused = false
 
-    this.channelDisplayActive = false
     this.channelTimer = new Timer()
     this.channelTimer.setFinishCallback(() => {
       this.clearChannelDisplay()
@@ -30,20 +29,16 @@ module.exports = class UI {
       this.icecastTimer.start()
     })
 
-    this.infoDisplayActive = false
     this.infoTimer = new Timer()
     this.infoTimer.setFinishCallback(() => {
       this.clearInfoDisplay()
     })
 
-    this.playStatusActive = false
     this.playStatusTimer = new Timer()
     this.playStatusTimer.setFinishCallback(() => {
       this.clearPlayStatus()
-      this.playStatusActive = false
     })
 
-    this.volumeDisplayActive = false
     this.volumeDisplayTimer = new Timer()
     this.volumeDisplayTimer.setFinishCallback(() => {
       this.clearVolumeDisplay()
@@ -87,13 +82,11 @@ module.exports = class UI {
   }
 
   clearChannelDisplay () {
-    this.channelDisplayActive = false
     this.clearCanvasArea(this.canvas.width * 0.65, 0, this.canvas.width, ((this.canvas.height * 0.08) - 50) + 150)
   }
 
   clearInfoDisplay () {
     this.clearCanvasArea(0, (this.canvas.height * 0.08) - 50, this.canvas.width * 0.75, ((this.canvas.height * 0.4) - 50) + (38 * 1.55))
-    this.infoDisplayActive = false
   }
 
   clearLogo () {
@@ -105,12 +98,10 @@ module.exports = class UI {
   }
 
   clearPlayStatus () {
-    this.playStatusActive = false
     this.clearCanvasArea(this.canvas.width * 0.8, 0, this.canvas.width * 0.25, this.canvas.height * 0.25)
   }
 
   clearVolumeDisplay () {
-    this.volumeDisplayActive = false
     this.context.clearRect(0, 0, this.canvas.width / 2, this.canvas.height / 2)
   }
 
@@ -118,7 +109,6 @@ module.exports = class UI {
     this.clearChannelDisplay()
     this.clearPlayStatus()
 
-    this.channelDisplayActive = true
     this.channelTimer.start(4)
 
     if (channelNum === 0) {
@@ -149,7 +139,6 @@ module.exports = class UI {
   drawInfo () {
     this.clearVolumeDisplay()
 
-    this.infoDisplayActive = true
     this.infoTimer.start(5)
 
     this.context.save()
@@ -196,7 +185,6 @@ module.exports = class UI {
     this.context.fillRect(width * 0.1, -height * 0.2, width * 0.1, height * 0.4)
     this.context.restore()
 
-    this.playStatusActive = true
     this.playStatusTimer.start(4)
   }
 
@@ -218,7 +206,6 @@ module.exports = class UI {
     this.context.fill()
     this.context.restore()
 
-    this.playStatusActive = true
     this.playStatusTimer.start(4)
   }
 
@@ -279,7 +266,6 @@ module.exports = class UI {
     this.clearVolumeDisplay()
     this.clearInfoDisplay()
 
-    this.volumeDisplayActive = true
     this.volumeDisplayTimer.start(4)
 
     filledBarAmount = Math.min(Math.round(filledBarAmount), 10)
