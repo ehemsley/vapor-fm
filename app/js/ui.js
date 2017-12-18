@@ -1,5 +1,7 @@
 import { Clock } from 'three'
 
+const IcecastHelper = require('js/icecast_helper')
+const StringHelper = require('js/string_helper')
 const Timer = require('js/timer')
 
 module.exports = class UI {
@@ -24,7 +26,7 @@ module.exports = class UI {
 
     this.icecastTimer = new Timer()
     this.icecastTimer.setFinishCallback(() => {
-      this.getIcecastData()
+      this.refreshSongData()
       this.icecastTimer.start()
     })
 
@@ -60,69 +62,16 @@ module.exports = class UI {
   }
 
   updateText (songData) {
-    // still broken if song has dash in it but not multiple artsts
-    // maybe check for duplication of artist name instead and base it on that
-    let artistName = ''
-    let songName = ''
+    let fittingArtistName = StringHelper.fittingString(songData.artistName, this.canvas, this.context, 0.8)
+    let fittingSongName = StringHelper.fittingString(songData.songName, this.canvas, this.context, 0.8)
 
-    if (this.countOccurrences(songData, ' - ') < 1) {
-      artistName = 'you are tuned in'
-      songName = 'to vapor fm'
-    } else if (this.countOccurrences(songData, ' - ') === 1) {
-      artistName = songData.split(' - ')[0]
-      songName = songData.split(' - ')[1]
-    } else {
-      const artistSubStringLocation = this.getNthOccurrence(songData, ' - ', 1)
-      const songSubStringLocation = this.getNthOccurrence(songData, ' - ', 2)
-      artistName = songData.substring(artistSubStringLocation + 3, songSubStringLocation)
-      songName = songData.substring(songSubStringLocation + 3, songData.length)
-    }
-
-    artistName = this.fittingString(artistName, 0.8)
-    songName = this.fittingString(songName, 0.8)
-
-    this.drawOverlay(artistName, songName)
+    this.drawOverlay(fittingArtistName, fittingSongName)
   }
 
-  getIcecastData () {
-    var xhr = new XMLHttpRequest()
-    xhr.timeout = 2000
-    xhr.open('GET', 'http://168.235.77.138:8000/status-json.xsl')
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        this.updateText(JSON.parse(xhr.response).icestats.source.title)
-      } else {
-        console.log('Icecast request failed.  Returned status of ' + xhr.status)
-      }
-    }
-    xhr.send()
-  }
-
-  // TODO: break string stuff out into helper class
-  getNthOccurrence (str, m, i) {
-    return str.split(m, i).join(m).length
-  }
-
-  countOccurrences (str, value) {
-    const regExp = new RegExp(value, 'gi')
-    return (str.match(regExp) || []).length
-  }
-
-  fittingString (str, maxWidthPercentage) {
-    let maxWidth = this.canvas.width * maxWidthPercentage
-    let width = this.context.measureText(str).width
-    const ellipsis = '...'
-    const ellipsisWidth = this.context.measureText(ellipsis).width
-    if (width <= maxWidth) {
-      return str
-    } else {
-      let len = str.length
-      while ((width >= (maxWidth - ellipsisWidth)) && (len-- > 0)) {
-        str = str.substring(0, len)
-        width = this.context.measureText(str).width
-      }
-      return str + ellipsis
-    }
+  refreshSongData () {
+    IcecastHelper.getSongData((songData) => {
+      this.updateText(songData)
+    })
   }
 
   pause () {

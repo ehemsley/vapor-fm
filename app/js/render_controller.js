@@ -379,7 +379,7 @@ module.exports = class RenderController {
     this.lastPlayStatusToggleTime = this.clock.getElapsedTime()
     this.playStatusTimerRunning = true
 
-    this.ui.getIcecastData()
+    this.ui.refreshSongData()
   }
 
   RouteKeyDownInput (keyCode) {
