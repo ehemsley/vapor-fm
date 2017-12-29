@@ -27,7 +27,7 @@ let IcecastHelper = {
 IcecastHelper.getSongData = function (successCallback) {
   var xhr = new XMLHttpRequest()
   xhr.timeout = 2000
-  xhr.open('GET', 'http://168.235.77.138:8000/status-json.xsl')
+  xhr.open('GET', 'https://vapor.fm:8000/status-json.xsl')
   xhr.onload = () => {
     if (xhr.status === 200) {
       let songData = JSON.parse(xhr.response).icestats.source.title
