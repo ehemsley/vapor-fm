@@ -106,6 +106,7 @@ module.exports = class RenderController {
     this.visualizerCounter = 2
     this.NextVisualizer()
 
+    this.ui.startIcecastTimer()
     this.ui.drawLogo()
   }
 

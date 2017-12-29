@@ -17,6 +17,7 @@ module.exports = class UI {
     this.context.fillStyle = 'rgba(255,255,255,0.95)'
 
     this.paused = false
+    this.icecastRefreshInterval = 5
 
     this.channelTimer = new Timer()
     this.channelTimer.setFinishCallback(() => {
@@ -26,7 +27,7 @@ module.exports = class UI {
     this.icecastTimer = new Timer()
     this.icecastTimer.setFinishCallback(() => {
       this.refreshSongData()
-      this.icecastTimer.start()
+      this.startIcecastTimer()
     })
 
     this.infoTimer = new Timer()
@@ -61,6 +62,10 @@ module.exports = class UI {
     let fittingSongName = StringHelper.fittingString(songData.songName, this.canvas, this.context, 0.8)
 
     this.drawOverlay(fittingArtistName, fittingSongName)
+  }
+
+  startIcecastTimer () {
+    this.icecastTimer.start(this.icecastRefreshInterval)
   }
 
   refreshSongData () {
