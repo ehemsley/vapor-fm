@@ -1,6 +1,6 @@
 const THREE = require('three')
 const Visualizer = require('js/visualizer')
-const Dolphin = require('js/dolphin')
+const Dolphin = require('js/objects/dolphin')
 
 module.exports = class OceanVisualizer extends Visualizer {
   constructor (audioInitializer, renderer) {

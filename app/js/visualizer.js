@@ -22,6 +22,11 @@ module.exports = class Visualizer {
 
   Render () { }
 
+  Resize (renderW, renderH) {
+    this.camera.aspect = renderW / renderH
+    this.camera.updateProjectionMatrix()
+  }
+
   HandleKeyDownInput (keyCode) { }
 
   HandleKeyUpInput (keyCode) { }

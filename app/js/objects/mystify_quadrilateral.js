@@ -1,5 +1,5 @@
 const THREE = require('three')
-const Quadrilateral = require('js/quadrilateral')
+const Quadrilateral = require('js/objects/quadrilateral')
 
 module.exports = class MystifyQuadrilateral {
   constructor (leftBound, rightBound, topBound, bottomBound) {

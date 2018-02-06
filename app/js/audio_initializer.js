@@ -10,7 +10,7 @@ module.exports = class AudioInitializer {
     this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount)
     this.floats = new Float32Array(this.analyser.frequencyBinCount)
     this.beatdetect = new FFT.BeatDetect(1024, 44100)
-    this.fft = new FFT.fft(1024, 44100)
+    // this.fft = new FFT.fft(1024, 44100)
 
     // this.audioElement = $('#stream').get(0)
     this.audioElement = document.getElementById('stream')
@@ -81,7 +81,7 @@ module.exports = class AudioInitializer {
 
       const { sampleRate } = this.context
       this.beatdetect = new FFT.BeatDetect(this.analyser.frequencyBinCount, sampleRate)
-      this.fft = new FFT.fft(this.analyser.frequencyBinCount, sampleRate)
+      // this.fft = new FFT.fft(this.analyser.frequencyBinCount, sampleRate)
       this.beatdetect.setSensitivity(500)
       this.audioElement.play()
       // firefox hack b/c firefox fires canplay event a million times for no reason lol web dev

@@ -5,14 +5,13 @@ module.exports = {
     "amount": { type: "f", value: 1.0 }
   },
 
-  vertexShader: [
-    "varying vec2 vUv;",
+  vertexShader:
+    `varying vec2 vUv;
 
-    "void main() {",
-      "vUv = uv;",
-      "gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
-    "}"
-  ].join("\n"),
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }`,
 
   fragmentShader: [
     "uniform sampler2D tDiffuse;",

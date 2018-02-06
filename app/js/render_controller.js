@@ -9,13 +9,16 @@
 
 const THREE = require('three')
 
-const NoiseVisualizer = require('js/noise_visualizer')
-const PongVisualizer = require('js/pong_visualizer')
-const BustVisualizer = require('js/bust_visualizer')
-const MystifyVisualizer = require('js/mystify_visualizer')
-const CybergridVisualizer = require('js/cybergrid_visualizer')
-const HeartVisualizer = require('js/heart_visualizer')
-const OceanVisualizer = require('js/ocean_visualizer')
+const NoiseVisualizer = require('js/visualizers/noise_visualizer')
+const PongVisualizer = require('js/visualizers/pong_visualizer')
+const BustVisualizer = require('js/visualizers/bust_visualizer')
+const MystifyVisualizer = require('js/visualizers/mystify_visualizer')
+const CybergridVisualizer = require('js/visualizers/cybergrid_visualizer')
+const HeartVisualizer = require('js/visualizers/heart_visualizer')
+const OceanVisualizer = require('js/visualizers/ocean_visualizer')
+
+const CheckerboardVisualizer = require('js/visualizers/shader_visualizers/checkerboard_visualizer')
+
 const StartScreen = require('js/start_screen')
 
 const NoiseShader = require('shaders/noise_shader')
@@ -42,8 +45,6 @@ module.exports = class RenderController {
 
     this.lastShuffleTime = this.clock.getElapsedTime()
 
-    this.ui = ui
-
     this.playStatusTimerRunning = false
     this.volumeDisplayActive = false
     this.infoDisplayActive = false
@@ -55,6 +56,7 @@ module.exports = class RenderController {
     const noiseVisualizer = new NoiseVisualizer()
     this.visualizers = ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((i) => noiseVisualizer))
     this.visualizers[0] = new PongVisualizer(this.audioInitializer)
+    this.visualizers[2] = new CheckerboardVisualizer(this.audioInitializer, this.renderer)
     this.visualizers[3] = new BustVisualizer(this.audioInitializer)
     this.visualizers[4] = new MystifyVisualizer(this.audioInitializer)
     this.visualizers[5] = new CybergridVisualizer(this.audioInitializer)
@@ -76,6 +78,8 @@ module.exports = class RenderController {
     this.pointLight.position.set(10, 20, 20)
     this.hud.add(this.pointLight)
 
+    this.ui = ui
+
     this.uiTexture = new THREE.Texture(this.ui.canvas)
     this.uiTexture.minFilter = THREE.LinearFilter
     this.uiTexture.magFilter = THREE.LinearFilter
@@ -85,6 +89,8 @@ module.exports = class RenderController {
     this.uiMesh = new THREE.Mesh(new THREE.PlaneGeometry(this.ui.canvas.width, this.ui.canvas.height), this.uiMaterial)
     this.uiMesh.position.set(0, 0, 0)
     this.hud.add(this.uiMesh)
+
+    this.ui.setMaterial(this.uiMaterial)
 
     this.hudCamera.position.set(0, 0, 2)
 
@@ -262,8 +268,6 @@ module.exports = class RenderController {
     requestAnimationFrame(() => { this.Render() })
 
     this.ui.update()
-    this.uiMesh.material.map.needsUpdate = true
-    this.uiMesh.material.needsUpdate = true
 
     const deltaTime = this.clock.getDelta()
     if (deltaTime > 0.5) { return }
@@ -297,18 +301,18 @@ module.exports = class RenderController {
     this.activeVisualizer.Render()
     if (this.activeVisualizer.no_glow) {
       // @renderer.render(@activeVisualizer.scene, @activeVisualizer.camera)
-      this.cubeComposer.render(0.1)
-      this.glowComposer.render(0.1)
-      this.blendComposer.render(0.1)
-      this.hudComposer.render(0.1)
-      this.overlayComposer.render(0.1)
+      this.cubeComposer.render(deltaTime)
+      this.glowComposer.render(deltaTime)
+      this.blendComposer.render(deltaTime)
+      this.hudComposer.render(deltaTime)
+      this.overlayComposer.render(deltaTime)
     } else {
       // @renderer.render(@activeVisualizer.scene, @activeVisualizer.camera)
-      this.cubeComposer.render(0.1)
-      this.glowComposer.render(0.1)
-      this.blendComposer.render(0.1)
-      this.hudComposer.render(0.1)
-      this.overlayComposer.render(0.1)
+      this.cubeComposer.render(deltaTime)
+      this.glowComposer.render(deltaTime)
+      this.blendComposer.render(deltaTime)
+      this.hudComposer.render(deltaTime)
+      this.overlayComposer.render(deltaTime)
     }
   }
 
@@ -317,8 +321,7 @@ module.exports = class RenderController {
     const renderH = window.innerHeight
 
     for (let visualizer of this.visualizers) {
-      visualizer.camera.aspect = renderW / renderH
-      visualizer.camera.updateProjectionMatrix()
+      visualizer.Resize(renderW, renderH)
     }
 
     this.crtEffect.uniforms['resolution'].value = new THREE.Vector2(window.innerWidth, window.innerHeight)

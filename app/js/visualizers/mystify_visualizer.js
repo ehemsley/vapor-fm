@@ -1,6 +1,6 @@
 const THREE = require('three')
 const Visualizer = require('js/visualizer')
-const MystifyQuadrilateral = require('js/mystify_quadrilateral')
+const MystifyQuadrilateral = require('js/objects/mystify_quadrilateral')
 
 module.exports = class MystifyVisualizer extends Visualizer {
   constructor (audioInitializer) {

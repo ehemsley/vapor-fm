@@ -64,6 +64,15 @@ module.exports = class UI {
     this.drawOverlay(fittingArtistName, fittingSongName)
   }
 
+  setMaterial (material) {
+    this.material = material
+  }
+
+  updateMaterial () {
+    this.material.map.needsUpdate = true
+    this.material.needsUpdate = true
+  }
+
   startIcecastTimer () {
     this.icecastTimer.start(this.icecastRefreshInterval)
   }
@@ -84,30 +93,36 @@ module.exports = class UI {
 
   clearCanvasArea (startX, startY, width, height) {
     this.context.clearRect(startX, startY, width, height)
+    this.updateMaterial()
   }
 
   clearChannelDisplay () {
     this.clearCanvasArea(this.canvas.width * 0.65, 0, this.canvas.width, ((this.canvas.height * 0.08) - 50) + 150)
+    this.updateMaterial()
   }
 
   clearInfoDisplay () {
     this.clearCanvasArea(0, (this.canvas.height * 0.08) - 50, this.canvas.width * 0.75, ((this.canvas.height * 0.4) - 50) + (38 * 1.55))
+    this.updateMaterial()
   }
 
   clearLogo () {
     const minDimension = Math.min(this.canvas.width * 0.12, this.canvas.height * 0.12)
-    return this.context.clearRect((this.canvas.width * 0.98) - minDimension,
+    this.context.clearRect((this.canvas.width * 0.98) - minDimension,
       (this.canvas.height * 0.98) - minDimension,
       minDimension,
       minDimension)
+    this.updateMaterial()
   }
 
   clearPlayStatus () {
     this.clearCanvasArea(this.canvas.width * 0.8, 0, this.canvas.width * 0.25, this.canvas.height * 0.25)
+    this.updateMaterial()
   }
 
   clearVolumeDisplay () {
     this.context.clearRect(0, 0, this.canvas.width / 2, this.canvas.height / 2)
+    this.updateMaterial()
   }
 
   drawChannelDisplay (channelNum) {
@@ -139,6 +154,8 @@ module.exports = class UI {
     }
 
     this.context.restore()
+
+    this.updateMaterial()
   }
 
   drawInfo () {
@@ -158,6 +175,8 @@ module.exports = class UI {
     this.context.fillText('Created by Evan Hemsley', this.canvas.width * 0.02, (this.canvas.height * 0.08) - 50)
     this.context.fillText('@thatcosmonaut', this.canvas.width * 0.02, (this.canvas.height * 0.16) - 50)
     this.context.restore()
+
+    this.updateMaterial()
   }
 
   drawLogo () {
@@ -172,6 +191,8 @@ module.exports = class UI {
       minDimension
     )
     this.context.globalAlpha = 1.0
+
+    this.updateMaterial()
   }
 
   drawPauseIcon () {
@@ -191,6 +212,8 @@ module.exports = class UI {
     this.context.restore()
 
     this.playStatusTimer.start(4)
+
+    this.updateMaterial()
   }
 
   drawPlayIcon () {
@@ -212,6 +235,8 @@ module.exports = class UI {
     this.context.restore()
 
     this.playStatusTimer.start(4)
+
+    this.updateMaterial()
   }
 
   drawOverlay (artistName, songName) {
@@ -226,6 +251,8 @@ module.exports = class UI {
     this.context.fillStyle = 'white'
     this.context.fillText(artistName, 10, (this.canvas.height * 0.9) - 50)
     this.context.fillText(songName, 10, (this.canvas.height * 0.98) - 50)
+
+    this.updateMaterial()
   }
 
   drawShuffleText (enabled) {
@@ -242,6 +269,8 @@ module.exports = class UI {
       this.context.strokeText('Shuffle: Off', 10, 10)
       this.context.fillText('Shuffle: Off', 10, 10)
     }
+
+    this.updateMaterial()
   }
 
   drawSpinner () {
@@ -265,6 +294,8 @@ module.exports = class UI {
       this.context.stroke()
     }
     this.context.restore()
+
+    this.updateMaterial()
   }
 
   drawVolumeDisplay (filledBarAmount) {
@@ -306,5 +337,7 @@ module.exports = class UI {
       xOffset += volumeBarWidth * 0.5
       i += 1
     }
+
+    this.updateMaterial()
   }
 }
