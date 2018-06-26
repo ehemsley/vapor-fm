@@ -332,10 +332,12 @@ module.exports = class RenderController {
   }
 
   UpdateAudioAnalyzer () {
-    this.audioInitializer.analyser.getByteFrequencyData(this.audioInitializer.frequencyData)
-    this.audioInitializer.analyser.getFloatTimeDomainData(this.audioInitializer.floats)
+    if (this.audioInitializer.analyser !== undefined) {
+      this.audioInitializer.analyser.getByteFrequencyData(this.audioInitializer.frequencyData)
+      this.audioInitializer.analyser.getFloatTimeDomainData(this.audioInitializer.floats)
 
-    this.audioInitializer.beatdetect.detect(this.audioInitializer.floats)
+      this.audioInitializer.beatdetect.detect(this.audioInitializer.floats)
+    }
   }
 
   UpdateEffects () {
@@ -348,7 +350,7 @@ module.exports = class RenderController {
       this.bloomPass.copyUniforms['opacity'].value = this.activeVisualizer.bloomParams.strength + this.strengthModifier
     }
 
-    if (this.audioInitializer.beatdetect.isKick() && this.activeVisualizer.beatDistortionEffect) {
+    if (this.audioInitializer.beatdetect !== undefined && this.audioInitializer.beatdetect.isKick() && this.activeVisualizer.beatDistortionEffect) {
       this.strengthModifier = (this.activeVisualizer.bloomParams != null) ? this.activeVisualizer.bloomParams.strengthIncrease : 0
       this.badTV.uniforms['distortion'].value = Math.random()
       this.badTV.uniforms['distortion2'].value = Math.random()

@@ -4,19 +4,22 @@ module.exports = class AudioInitializer {
     this.LoadAndPlayAudio = this.LoadAndPlayAudio.bind(this)
     this.CheckLoaded = this.CheckLoaded.bind(this)
     this.AddCanPlayListener = this.AddCanPlayListener.bind(this)
-    const AudioContext = window.AudioContext || window.webkitAudioContext || false
-    this.context = new AudioContext()
-    this.analyser = this.context.createAnalyser()
-    this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount)
-    this.floats = new Float32Array(this.analyser.frequencyBinCount)
-    this.beatdetect = new FFT.BeatDetect(1024, 44100)
-    // this.fft = new FFT.fft(1024, 44100)
 
     // this.audioElement = $('#stream').get(0)
     this.audioElement = document.getElementById('stream')
     this.AddCanPlayListener()
 
     this.StopAndUnloadAudio()
+  }
+
+  // have to do this because of new google policy lol!!!!!!!!
+  InitAudioContext () {
+    const AudioContext = window.AudioContext || window.webkitAudioContext || false
+    this.context = new AudioContext()
+    this.analyser = this.context.createAnalyser()
+    this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount)
+    this.floats = new Float32Array(this.analyser.frequencyBinCount)
+    this.beatdetect = new FFT.BeatDetect(1024, 44100)
   }
 
   GetAverageVolume (array) {
@@ -55,6 +58,7 @@ module.exports = class AudioInitializer {
   }
 
   LoadAndPlayAudio () {
+    this.InitAudioContext()
     this.loading = true
     this.audioElement.setAttribute('preload', 'auto') // firefox hack, never fires canplay if preload not set to auto
     this.audioElement.load()
