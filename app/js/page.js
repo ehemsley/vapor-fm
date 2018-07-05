@@ -40,6 +40,8 @@ module.exports = class {
 
     document.onkeydown = this.CheckKey
     document.onkeyup = this.CheckKeyUp
+    document.onclick = this.CheckClick
+    document.addEventListener('click', () => { if (!this.activated) { this.Activate(this) } })
   }
 
   IncreaseVolume () {
@@ -78,21 +80,25 @@ module.exports = class {
         this.renderController.RouteKeyDownInput(keyCode)
       }
     } else {
-      this.activated = true
-      this.audioInitializer.LoadAndPlayAudio()
-      this.renderController.activeVisualizer.DisplayLoading()
-
-      var listener = () => {
-        this.renderController.Activate()
-        return this.audioInitializer.audioElement.removeEventListener('canplay', listener) // firefox hack
-      }
-
-      this.audioInitializer.audioElement.addEventListener('canplay', listener)
+      this.Activate(this)
     }
   }
 
   CheckKeyUp (e) {
     e = e || window.event
     this.renderController.RouteKeyUpInput(e.keyCode)
+  }
+
+  Activate (self) {
+    self.activated = true
+    self.audioInitializer.LoadAndPlayAudio()
+    self.renderController.activeVisualizer.DisplayLoading()
+
+    var listener = () => {
+      self.renderController.Activate()
+      return self.audioInitializer.audioElement.removeEventListener('canplay', listener) // firefox hack
+    }
+
+    self.audioInitializer.audioElement.addEventListener('canplay', listener)
   }
 }
