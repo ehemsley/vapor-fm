@@ -9,4 +9,4 @@ http://brunch.io
 
 special thanks to Felix Turner for the excellent three js visualizer introduction
 
-(c) Evan Hemsley 2015-2016
+(c) Evan Hemsley 2015-2018
