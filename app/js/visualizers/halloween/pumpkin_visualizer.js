@@ -34,9 +34,4 @@ module.exports = class PumpkinVisualizer extends BustVisualizer {
         var skybox = new THREE.Mesh(geometry, material)
         return skybox
     }
-
-    Update (deltaTime) {
-        super.Update(deltaTime)
-        console.log(this.scaleValue)
-    }
 }
