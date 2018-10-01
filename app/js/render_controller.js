@@ -12,13 +12,15 @@ const THREE = require('three')
 const NoiseVisualizer = require('js/visualizers/noise_visualizer')
 const PongVisualizer = require('js/visualizers/pong_visualizer')
 const BustVisualizer = require('js/visualizers/bust_visualizer')
-const PumpkinVisualizer = require('js/visualizers/pumpkin_visualizer')
 const MystifyVisualizer = require('js/visualizers/mystify_visualizer')
 const CybergridVisualizer = require('js/visualizers/cybergrid_visualizer')
 const HeartVisualizer = require('js/visualizers/heart_visualizer')
 const OceanVisualizer = require('js/visualizers/ocean_visualizer')
 
 const CheckerboardVisualizer = require('js/visualizers/shader_visualizers/checkerboard_visualizer')
+
+const PumpkinVisualizer = require('js/visualizers/halloween/pumpkin_visualizer')
+const HalloweenHeartVisualizer = require('js/visualizers/halloween/halloween_heart_visualizer')
 
 const StartScreen = require('js/start_screen')
 
@@ -62,7 +64,7 @@ module.exports = class RenderController {
     this.visualizers[4] = new MystifyVisualizer(this.audioInitializer)
     this.visualizers[5] = new CybergridVisualizer(this.audioInitializer)
     this.visualizers[7] = new OceanVisualizer(this.audioInitializer, this.renderer)
-    this.visualizers[14] = new HeartVisualizer(this.audioInitializer)
+    this.visualizers[13] = new HalloweenHeartVisualizer(this.audioInitializer)
 
     this.visualizerCounter = 7
 

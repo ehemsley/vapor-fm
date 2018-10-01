@@ -11,6 +11,9 @@ module.exports = class HeartVisualizer extends Visualizer {
       false
     )
 
+    this.minScale = 0.25
+    this.maxScale = 0.3
+
     this.Update = this.Update.bind(this)
 
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -58,7 +61,7 @@ module.exports = class HeartVisualizer extends Visualizer {
 
       object.userData = { extraRotation: 0 }
       object.rotation.set(this.RandomFloat(0, Math.PI / 4), this.RandomFloat(0, Math.PI / 4), 0)
-      object.scale.set(0.25, 0.25, 0.25)
+      object.scale.set(this.minScale, this.minScale, this.minScale)
 
       for (let i = 0; i < number; i++) {
         const newObject = object.clone()
@@ -111,9 +114,9 @@ module.exports = class HeartVisualizer extends Visualizer {
           heartObject.rotation.y += 0.01 + heartObject.userData.extraRotation
           heartObject.rotation.x += heartObject.userData.extraRotation
           heartObject.userData.extraRotation = Math.max(0, heartObject.userData.extraRotation - 0.01)
-          heartObject.scale.x = Math.max(heartObject.scale.x - 0.001, 0.25)
-          heartObject.scale.y = Math.max(heartObject.scale.y - 0.001, 0.25)
-          heartObject.scale.z = Math.max(heartObject.scale.z - 0.001, 0.25)
+          heartObject.scale.x = Math.max(heartObject.scale.x - 0.001, this.minScale)
+          heartObject.scale.y = Math.max(heartObject.scale.y - 0.001, this.minScale)
+          heartObject.scale.z = Math.max(heartObject.scale.z - 0.001, this.minScale)
         }
       }
 
@@ -125,7 +128,7 @@ module.exports = class HeartVisualizer extends Visualizer {
       if (this.audioInitializer.beatdetect.isSnare()) {
         for (heartObject of Array.from(this.hearts)) {
           if (heartObject != null) {
-            if (Math.random() < 0.33) { heartObject.scale.set(0.3, 0.3, 0.3) }
+            if (Math.random() < 0.33) { heartObject.scale.set(this.maxScale, this.maxScale, this.maxScale) }
           }
         }
       }

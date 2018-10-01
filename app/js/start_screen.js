@@ -19,7 +19,7 @@ module.exports = class StartScreen {
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 
     this.no_glow = true
-    this.scene.background = new THREE.Color(0xa4d5f5)
+    this.scene.background = new THREE.Color(0x3E1C33)
     // @clearColor = 0xa4d5f5
     // @clearOpacity = 0
 
@@ -70,7 +70,7 @@ module.exports = class StartScreen {
     this.texture1.needsUpdate = true
     this.material1 = new THREE.MeshBasicMaterial({map: this.texture1, side: THREE.DoubleSide, transparent: true, opacity: 1.0})
     this.mesh1 = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), this.material1)
-    this.mesh1.position.set(0, -150, 0)
+    this.mesh1.position.set(0, -150, 1)
     return this.scene.add(this.mesh1)
   }
 
@@ -166,7 +166,7 @@ module.exports = class StartScreen {
 
   SkyBox () {
     const geometry = new THREE.BoxGeometry(1000, 1000, 1000)
-    const material = new THREE.MeshBasicMaterial({color: 0xa4d5f5, side: THREE.BackSide})
+    const material = new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.BackSide})
     const skybox = new THREE.Mesh(geometry, material)
     return skybox
   }

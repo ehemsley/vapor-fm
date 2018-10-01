@@ -106,9 +106,9 @@ module.exports = class Quadrilateral {
 
   RandomVelocityComponent (originalVelocity) {
     if (originalVelocity > 0) {
-      return Math.min(Math.random() * -4, -0.1)
+      return Math.min(Math.random() * -5, -1)
     } else {
-      return Math.max(Math.random() * 4, 0.1)
+      return Math.max(Math.random() * 5, 1)
     }
   }
 
