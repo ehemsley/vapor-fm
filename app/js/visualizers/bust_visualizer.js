@@ -32,6 +32,7 @@ module.exports = class BustVisualizer extends Visualizer {
 
     this.scene.add(this.skyBox)
 
+    this.scaleValue = 0.142
     this.RomanBust()
 
     let i = 0
@@ -101,10 +102,8 @@ module.exports = class BustVisualizer extends Visualizer {
     if (this.bust != null) {
       this.bust.rotation.y += (0.01 + rotationAddition) * this.yRotationDirection
 
-      const scaleValue = 0.142
-
       if (this.audioInitializer.beatdetect.isKick()) {
-        this.bust.scale.set(scaleValue, scaleValue, scaleValue)
+        this.bust.scale.set(this.scaleValue, this.scaleValue, this.scaleValue)
         this.yRotationDirection = Math.random() < 0.5 ? -1 : 1
       } else {
         this.bust.scale.x = Math.max(this.bust.scale.x - 0.001, this.bustMinScale)
