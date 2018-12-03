@@ -17,10 +17,10 @@ module.exports = class MystifyQuadrilateral {
     this.vertexThreePosition = new THREE.Vector3((Math.random() * width * 0.5) - (width * 0.25), height * -0.5, -10)
     this.vertexFourPosition = new THREE.Vector3(width * 0.5, (Math.random() * height * 0.5) - (height * 0.25), -10)
 
-    this.vertexOneVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) - 1, 0)
-    this.vertexTwoVelocity = new THREE.Vector3((Math.random() * 1) + 1, (Math.random() * 2) - 1, 0)
-    this.vertexThreeVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) + 1, 0)
-    this.vertexFourVelocity = new THREE.Vector3((Math.random() * 1) - 1, (Math.random() * 2) - 1, 0)
+    this.vertexOneVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) - 1, 0).multiplyScalar(3)
+    this.vertexTwoVelocity = new THREE.Vector3((Math.random() * 1) + 1, (Math.random() * 2) - 1, 0).multiplyScalar(3)
+    this.vertexThreeVelocity = new THREE.Vector3((Math.random() * 2) - 1, (Math.random() * 1) + 1, 0).multiplyScalar(3)
+    this.vertexFourVelocity = new THREE.Vector3((Math.random() * 1) - 1, (Math.random() * 2) - 1, 0).multiplyScalar(3)
 
     this.leftBound = leftBound
     this.rightBound = rightBound
@@ -54,10 +54,12 @@ module.exports = class MystifyQuadrilateral {
       vertices[2] = this.vertexThreePosition.clone().add(vertexThreeDirection.clone().multiplyScalar(i * 20))
       vertices[3] = this.vertexFourPosition.clone().add(vertexFourDirection.clone().multiplyScalar(i * 20))
 
-      const velocities = [this.vertexOneVelocity.clone(),
+      const velocities = [
+        this.vertexOneVelocity.clone(),
         this.vertexTwoVelocity.clone(),
         this.vertexThreeVelocity.clone(),
-        this.vertexFourVelocity.clone()]
+        this.vertexFourVelocity.clone()
+      ]
 
       const quadrilateral = new Quadrilateral(this, vertices, velocities, bounds)
       quadrilaterals.push(quadrilateral)
